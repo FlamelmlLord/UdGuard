@@ -13,7 +13,7 @@
     "vue": "^2.6.14",
     "vue-class-component": "^7.2.3",
     "vue-property-decorator": "^9.1.2",
-    "vue-router": "^4.5.0",
+    "vue-router": "3",
     "vuetify": "^2.6.0",
     "vuex": "^3.6.2"
   },
@@ -48,7 +48,8 @@
     "extends": [
       "plugin:vue/essential",
       "@vue/standard",
-      "@vue/typescript/recommended"
+      "@vue/typescript/recommended",
+      "eslint:recommended"
     ],
     "parserOptions": {
       "ecmaVersion": 2020
