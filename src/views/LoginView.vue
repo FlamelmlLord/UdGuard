@@ -7,7 +7,7 @@
       <!-- Sección izquierda -->
       <v-col cols="12" md="6" class="left-section" style="background: #0D2B44; border-radius: 20px 0 0 20px; padding: 64px;">
         <div class="logo-container d-flex flex-column align-center justify-center" style="height: 100%;">
-          <img src="/src/assets/logo_GSI.png" alt="Logo GSI" style="max-width: 380px; margin-bottom: 32px;">
+          <img :src="require('@/assets/logo_UD.png')" alt="Logo Universidad Distrital" style="max-width: 380px; margin-bottom: 32px;">
           <h2 class="text-center font-weight-bold" style="color: #2a5579; font-size: 2.2rem; line-height: 1.4;">
             Maestría en Gestión y<br />Seguridad de la Información
           </h2>
