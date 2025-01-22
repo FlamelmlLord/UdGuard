@@ -5,6 +5,7 @@ import store from './store'
 import vuetify from './plugins/vuetify'
 import VueSweetalert2 from 'vue-sweetalert2'
 import 'sweetalert2/dist/sweetalert2.min.css'
+import '@mdi/font/css/materialdesignicons.css'
 
 Vue.config.productionTip = false
 Vue.use(VueSweetalert2)
