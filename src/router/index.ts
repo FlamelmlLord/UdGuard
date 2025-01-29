@@ -1,17 +1,25 @@
 import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
-import LoginView from '../views/LoginView.vue'
-import recoverPasswordView from '@/views/recoverPasswordView.vue'
 import dashboardHomeView from '@/views/dashboardHomeView.vue'
 
 Vue.use(VueRouter)
 
 const routes: Array<RouteConfig> = [
-
   {
     path: '/',
+    redirect: '/login'
+  },
+
+  {
+    path: '/login',
     name: 'Login',
-    component: LoginView
+    component: () => import('../components/auth/LoginHome.vue')
+  },
+
+  {
+    path: '/recover-password',
+    name: 'RecoverPassword',
+    component: () => import('../components/auth/RecoverPassword.vue')
   },
 
   {
@@ -21,13 +29,10 @@ const routes: Array<RouteConfig> = [
   },
 
   {
-    path: '/recover-password',
-    name: 'recover-password',
-    component: recoverPasswordView
+    path: '*',
+    redirect: '/login'
   }
-
 ]
-
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
