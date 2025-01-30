@@ -9,30 +9,32 @@ const routes: Array<RouteConfig> = [
     path: '/',
     redirect: '/login'
   },
-
   {
     path: '/login',
     name: 'Login',
     component: () => import('../components/auth/LoginHome.vue')
   },
-
   {
     path: '/recover-password',
     name: 'RecoverPassword',
     component: () => import('../components/auth/RecoverPassword.vue')
   },
-
   {
     path: '/dashboard',
     name: 'dashboard',
     component: dashboardHomeView
   },
-
+  {
+    path: '/dashboard/docs',
+    name: 'DashboardDocs',
+    component: () => import('@/components/Dashboard/DashboardDocs.vue')
+  },
   {
     path: '*',
     redirect: '/login'
   }
 ]
+
 const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,

@@ -13,18 +13,26 @@
       <nav class="menu">
         <ul>
           <li>
-            <a href="#" class="menu-item" :class="{ active: hoveredItem === 'Inicio' }"
-               @mouseover="hover('Inicio')" @mouseleave="unhover">
+            <router-link
+              to="/dashboard"
+              class="menu-item"
+              :class="{ active: hoveredItem === 'Inicio' }"
+              @mouseover="hover('Inicio')"
+              @mouseleave="unhover">
               <i class="mdi mdi-home-outline icon"></i>
               <span>Inicio</span>
-            </a>
+            </router-link>
           </li>
           <li>
-            <a href="#" class="menu-item" :class="{ active: hoveredItem === 'Documentos' }"
-               @mouseover="hover('Documentos')" @mouseleave="unhover">
+            <router-link
+              to="/dashboard/docs"
+              class="menu-item"
+              :class="{ active: hoveredItem === 'Documentos' }"
+              @mouseover="hover('Documentos')"
+              @mouseleave="unhover">
               <i class="mdi mdi-file-document-outline icon"></i>
               <span>Documentos</span>
-            </a>
+            </router-link>
           </li>
           <li>
             <a href="#" class="menu-item" :class="{ active: hoveredItem === 'Cumplimiento' }"
@@ -42,6 +50,14 @@
           </li>
         </ul>
       </nav>
+      <div class="user-management">
+        <a href="#" class="menu-item" :class="{ active: hoveredItem === 'Usuarios' }"
+           @mouseover="hover('Usuarios')" @mouseleave="unhover">
+          <i class="mdi mdi-account-group-outline icon"></i>
+          <span>Gestión de Usuarios</span>
+        </a>
+      </div>
+
       <div class="bottom-section">
         <button class="logout-button" @click="logout">
           <i class="mdi mdi-logout-variant"></i>

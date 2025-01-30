@@ -81,6 +81,28 @@
   font-size: 1.4rem;
 }
 
+/* Estilos para la sección de Gestión de Usuarios */
+.user-management {
+  margin: 1rem 0;
+}
+
+.user-management .menu-item {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  color: #0D2B44;
+  text-decoration: none;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.user-management .menu-item:hover,
+.user-management .menu-item.active {
+  background-color: #46AFEA;
+  color: white;
+}
+
 .bottom-section {
   margin-top: auto;
 }
@@ -207,12 +229,14 @@ input:checked + .slider:before {
   color: white;
 }
 
-.dark-mode .logout-button {
-  border-color: white;
+.dark-mode .menu-item:hover,
+.dark-mode .menu-item.active {
+  background-color: #46AFEA;
   color: white;
 }
 
-.dark-mode h1 {
+.dark-mode .logout-button {
+  border-color: white;
   color: white;
 }
 
@@ -239,23 +263,24 @@ input:checked + .slider:before {
   color: #888;
 }
 
-.dashboard.dark-mode h1 {
-  color: white;
-}
-
-.dashboard * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
-/* New styles for dark mode elements */
-
-/* Título en la sección de noticias y fechas importantes */
 .dark-mode .news-section {
   background-color: #333;
 }
 
 .dark-mode .news-section h2 {
   color: #fff;
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
+}
+
+/* Dark mode para la sección de Gestión de Usuarios */
+.dark-mode .user-management .menu-item {
+  color: white;
+}
+
+.dark-mode .user-management .menu-item:hover,
+.dark-mode .user-management .menu-item.active {
+  background-color: #46AFEA;
+}
+
+.dashboard * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }

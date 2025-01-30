@@ -8,6 +8,7 @@ import 'sweetalert2/dist/sweetalert2.min.css'
 import '@mdi/font/css/materialdesignicons.css'
 import '@/styles/auth.css'
 import '@/styles/dashboard.css'
+import '@/styles/dashboard_docs.css'
 
 Vue.config.productionTip = false
 Vue.use(VueSweetalert2)
