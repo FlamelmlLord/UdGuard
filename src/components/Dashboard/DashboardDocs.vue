@@ -1,173 +1,273 @@
 <template>
-  <div class="dashboard" :class="{ 'dark-mode': isDarkMode }">
-    <aside class="sidebar">
-      <div class="user-section">
-        <img src="/path/to/logo_GSI.png" alt="Logo GSI" class="logo" />
-      </div>
-      <div class="search-section">
-        <div class="search-box">
-          <i class="mdi mdi-magnify search-icon"></i>
-          <input type="text" placeholder="Buscar..." class="search-input" />
-        </div>
-      </div>
-      <nav class="menu">
-        <ul>
-          <li>
-            <router-link
-              to="/dashboard"
-              class="menu-item"
-              :class="{ active: hoveredItem === 'Inicio' }"
-              @mouseover="hover('Inicio')"
-              @mouseleave="unhover">
-              <i class="mdi mdi-home-outline icon"></i>
-              <span>Inicio</span>
-            </router-link>
-          </li>
-          <li>
-            <router-link
-              to="/dashboard/docs"
-              class="menu-item"
-              :class="{ active: hoveredItem === 'Documentos' }"
-              @mouseover="hover('Documentos')"
-              @mouseleave="unhover">
-              <i class="mdi mdi-file-document-outline icon"></i>
-              <span>Documentos</span>
-            </router-link>
-          </li>
-          <li>
-            <a href="#" class="menu-item" :class="{ active: hoveredItem === 'Cumplimiento' }"
-               @mouseover="hover('Cumplimiento')" @mouseleave="unhover">
-              <i class="mdi mdi-checkbox-marked-circle-outline icon"></i>
-              <span>Cumplimiento</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="menu-item" :class="{ active: hoveredItem === 'Factores' }"
-               @mouseover="hover('Factores')" @mouseleave="unhover">
-              <i class="mdi mdi-chart-pie icon"></i>
-              <span>Factores</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-      <div class="user-management">
-        <a href="#" class="menu-item" :class="{ active: hoveredItem === 'Usuarios' }"
-           @mouseover="hover('Usuarios')" @mouseleave="unhover">
-          <i class="mdi mdi-account-group-outline icon"></i>
-          <span>Gestión de Usuarios</span>
-        </a>
-      </div>
-      <div class="bottom-section">
-        <button class="logout-button" @click="logout">
-          <i class="mdi mdi-logout-variant"></i>
-          Cerrar sesión
-        </button>
-        <div class="theme-toggle">
-          <label class="theme-switch">
-            <i class="mdi mdi-weather-night icon"></i>
-            <span>Modo Oscuro</span>
-            <div class="switch">
-              <input type="checkbox" v-model="isDarkMode" @change="toggleTheme">
-              <span class="slider"></span>
-            </div>
-          </label>
-        </div>
-      </div>
-    </aside>
+  <div class="docs-page">
+    <div class="documents-container">
+      <h1 class="page-title">Gestor de Documentos</h1>
 
-    <main class="main-content">
-      <div class="documents-container">
-        <h1 class="title">GESTOR DE DOCUMENTOS</h1>
-        <div class="search-bar">
-          <input type="text" placeholder="Buscar..." class="search-input" />
-          <i class="mdi mdi-magnify search-icon"></i>
-        </div>
-
-        <button class="add-document-button" @click="addDocument">
-          <i class="mdi mdi-plus icon"></i>
-          Añadir Documento
-        </button>
-
-        <div class="documents-table">
-          <div class="table-header">
-            <div class="column-header name-column">Nombre</div>
-            <div class="column-header date-column">Última Modificación</div>
+      <div class="documents-header">
+        <div class="left-section">
+          <div class="search-bar">
+            <i class="mdi mdi-magnify search-icon"></i>
+            <input
+              type="text"
+              v-model="searchQuery"
+              placeholder="Buscar documento..."
+              class="search-input"
+            />
           </div>
+        </div>
+        <div class="header-buttons">
+          <button
+            v-if="selectedDocumentsCount >= 2"
+            class="delete-selected-button"
+            @click="confirmDeleteSelected"
+          >
+            <i class="mdi mdi-delete icon"></i>
+            <span class="button-text">Eliminar Seleccionados ({{selectedDocumentsCount}})</span>
+          </button>
+          <button class="add-document-button" @click="openAddDocumentModal">
+            <i class="mdi mdi-plus icon"></i>
+            <span class="button-text">Añadir Documento</span>
+          </button>
+        </div>
+      </div>
 
-          <div class="table-body">
-            <p v-if="documents.length === 0" class="empty-table-message">No hay documentos disponibles.</p>
-            <div
-              class="table-row"
-              v-for="(document, index) in documents"
-              :key="index">
-              <div class="name-column">
-                <input type="checkbox" class="checkbox" />
-                <i class="mdi mdi-file-document-outline file-icon"></i>
-                <span class="document-name">{{ document.name }}</span>
-              </div>
-              <div class="date-column">{{ document.modified }}</div>
+      <div class="documents-table">
+        <div class="table-header">
+          <div class="checkbox-column"></div>
+          <div class="name-column">Nombre</div>
+          <div class="date-column">Última Modificación</div>
+          <div class="actions-column">Acciones</div>
+        </div>
+
+        <div class="table-body">
+          <p v-if="filteredDocuments.length === 0" class="empty-table-message">
+            No hay documentos disponibles.
+          </p>
+          <div
+            v-for="document in paginatedDocuments"
+            :key="document.id"
+            :class="['table-row', { 'selected': document.selected }]"
+            @click="toggleSelect(document)"
+          >
+            <div class="checkbox-column">
+              <i v-if="document.selected" class="mdi mdi-check check-icon"></i>
+            </div>
+            <div class="name-column">
+              <i class="mdi mdi-file-document-outline file-icon"></i>
+              <span class="document-name">{{ document.name }}</span>
+            </div>
+            <div class="date-column">{{ document.modified }}</div>
+            <div class="actions-column">
+              <button class="action-button" @click.stop="downloadDocument(document)">
+                <i class="mdi mdi-download action-icon"></i>
+              </button>
+              <button class="action-button" @click.stop="confirmDelete(document)">
+                <i class="mdi mdi-delete action-icon"></i>
+              </button>
             </div>
           </div>
         </div>
+
+        <div class="pagination" v-if="totalPages > 1">
+          <button
+            class="pagination-button"
+            @click="prevPage"
+            :disabled="currentPage === 1"
+          >
+            <i class="mdi mdi-chevron-left"></i>
+          </button>
+          <span class="page-info">{{ currentPage }} de {{ totalPages }}</span>
+          <button
+            class="pagination-button"
+            @click="nextPage"
+            :disabled="currentPage === totalPages"
+          >
+            <i class="mdi mdi-chevron-right"></i>
+          </button>
+        </div>
       </div>
-    </main>
+    </div>
+
+    <!-- Modal para añadir documento -->
+    <div v-if="showModal" class="modal-overlay" @click="closeModal">
+      <div class="modal-content" @click.stop>
+        <h2>Añadir Nuevo Documento</h2>
+        <form @submit.prevent="addDocument" class="add-document-form">
+          <div class="form-group">
+            <label for="documentName">Nombre del documento</label>
+            <input
+              type="text"
+              id="documentName"
+              v-model="newDocument.name"
+              required
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label for="documentFile">Archivo</label>
+            <input
+              type="file"
+              id="documentFile"
+              @change="handleFileUpload"
+              required
+              class="form-input"
+            />
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="cancel-button" @click="closeModal">
+              Cancelar
+            </button>
+            <button type="submit" class="submit-button">
+              Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { useRouter } from 'vue-router'
-
 export default {
   name: 'DashboardDocs',
   data () {
     return {
       documents: [],
-      hoveredItem: null,
-      isDarkMode: false
+      searchQuery: '',
+      showModal: false,
+      newDocument: {
+        name: '',
+        file: null
+      },
+      currentPage: 1,
+      itemsPerPage: 15
     }
   },
-  setup () {
-    const router = useRouter()
-    return { router }
-  },
-  created () {
-    const darkMode = localStorage.getItem('darkMode')
-    if (darkMode) {
-      this.isDarkMode = JSON.parse(darkMode)
-      this.applyDarkMode(this.isDarkMode)
+  computed: {
+    filteredDocuments () {
+      return this.documents.filter(doc =>
+        doc.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      )
+    },
+    totalPages () {
+      return Math.ceil(this.filteredDocuments.length / this.itemsPerPage)
+    },
+    paginatedDocuments () {
+      const start = (this.currentPage - 1) * this.itemsPerPage
+      const end = start + this.itemsPerPage
+      return this.filteredDocuments.slice(start, end)
+    },
+    selectedDocumentsCount () {
+      return this.documents.filter(doc => doc.selected).length
     }
   },
   methods: {
-    hover (item) {
-      this.hoveredItem = item
+    toggleSelect (document) {
+      document.selected = !document.selected
     },
-    unhover () {
-      this.hoveredItem = null
-    },
-    addDocument () {
-      alert('Funcionalidad para añadir documento')
-    },
-    async logout () {
-      try {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        await this.router.push('/login')
-      } catch (error) {
-        console.error('Error al cerrar sesión:', error)
+    prevPage () {
+      if (this.currentPage > 1) {
+        this.currentPage--
       }
     },
-    toggleTheme () {
-      this.applyDarkMode(this.isDarkMode)
-      localStorage.setItem('darkMode', this.isDarkMode)
+    nextPage () {
+      if (this.currentPage < this.totalPages) {
+        this.currentPage++
+      }
     },
-    applyDarkMode (isDark) {
-      document.body.classList.toggle('dark-mode', isDark)
+    openAddDocumentModal () {
+      this.showModal = true
+    },
+    closeModal () {
+      this.showModal = false
+      this.newDocument = { name: '', file: null }
+    },
+    handleFileUpload (event) {
+      this.newDocument.file = event.target.files[0]
+    },
+    async addDocument () {
+      try {
+        const newDoc = {
+          id: Date.now(),
+          name: this.newDocument.name,
+          modified: new Date().toLocaleDateString(),
+          file: this.newDocument.file,
+          selected: false
+        }
+        this.documents.push(newDoc)
+        this.closeModal()
+
+        await this.$swal({
+          icon: 'success',
+          title: '¡Documento agregado!',
+          text: 'El documento se ha agregado correctamente',
+          confirmButtonColor: '#4CAF50'
+        })
+      } catch (error) {
+        await this.$swal({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudo agregar el documento',
+          confirmButtonColor: '#f44336'
+        })
+      }
+    },
+    downloadDocument (document) {
+      console.log('Descargando documento:', document.name)
+    },
+    async confirmDelete (document) {
+      const result = await this.$swal({
+        title: '¿Estás seguro?',
+        text: `¿Deseas eliminar el documento "${document.name}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f44336',
+        cancelButtonColor: '#999',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      })
+
+      if (result.isConfirmed) {
+        this.deleteDocument(document)
+      }
+    },
+    async confirmDeleteSelected () {
+      const selectedDocs = this.documents.filter(doc => doc.selected)
+      const result = await this.$swal({
+        title: '¿Estás seguro?',
+        text: `¿Deseas eliminar los ${selectedDocs.length} documentos seleccionados?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f44336',
+        cancelButtonColor: '#999',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+      })
+
+      if (result.isConfirmed) {
+        this.deleteSelectedDocuments()
+      }
+    },
+    async deleteDocument (document) {
+      this.documents = this.documents.filter(doc => doc.id !== document.id)
+
+      await this.$swal({
+        icon: 'success',
+        title: '¡Eliminado!',
+        text: 'El documento ha sido eliminado correctamente',
+        confirmButtonColor: '#4CAF50'
+      })
+    },
+    async deleteSelectedDocuments () {
+      this.documents = this.documents.filter(doc => !doc.selected)
+
+      await this.$swal({
+        icon: 'success',
+        title: '¡Eliminados!',
+        text: 'Los documentos seleccionados han sido eliminados correctamente',
+        confirmButtonColor: '#4CAF50'
+      })
     }
   }
 }
 </script>
-
-<style scoped>
-@import "../../styles/dashboard.css";
-@import "../../styles/dashboard_docs.css";
-</style>

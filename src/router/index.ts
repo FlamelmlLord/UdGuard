@@ -21,13 +21,19 @@ const routes: Array<RouteConfig> = [
   },
   {
     path: '/dashboard',
-    name: 'dashboard',
-    component: dashboardHomeView
-  },
-  {
-    path: '/dashboard/docs',
-    name: 'DashboardDocs',
-    component: () => import('@/components/Dashboard/DashboardDocs.vue')
+    component: dashboardHomeView,
+    children: [
+      {
+        path: 'docs',
+        name: 'DashboardDocs',
+        component: () => import('@/components/Dashboard/DashboardDocs.vue')
+      },
+      {
+        path: 'facts',
+        name: 'DashboardFacts',
+        component: () => import('@/components/Dashboard/DashboardFacts.vue')
+      }
+    ]
   },
   {
     path: '*',

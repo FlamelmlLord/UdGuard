@@ -35,17 +35,21 @@
             </router-link>
           </li>
           <li>
+            <router-link
+              to="/dashboard/facts"
+              class="menu-item"
+              :class="{ active: hoveredItem === 'Factores' }"
+              @mouseover="hover('Factores')"
+              @mouseleave="unhover">
+              <i class="mdi mdi-chart-pie icon"></i>
+              <span>Factores</span>
+            </router-link>
+          </li>
+          <li>
             <a href="#" class="menu-item" :class="{ active: hoveredItem === 'Cumplimiento' }"
                @mouseover="hover('Cumplimiento')" @mouseleave="unhover">
               <i class="mdi mdi-checkbox-marked-circle-outline icon"></i>
               <span>Cumplimiento</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="menu-item" :class="{ active: hoveredItem === 'Factores' }"
-               @mouseover="hover('Factores')" @mouseleave="unhover">
-              <i class="mdi mdi-chart-pie icon"></i>
-              <span>Factores</span>
             </a>
           </li>
         </ul>
@@ -76,13 +80,8 @@
       </div>
     </aside>
     <main class="main-content">
-      <h1 class="main-title">BIENVENIDO AL GESTOR DE INFORMACION Y DOCUMENTOS</h1>
-      <div class="content-area">
-        <div class="news-section">
-          <h2>Noticias y Fechas Importantes</h2>
-          <p>Fechas y noticias importantes aquí...</p>
-        </div>
-      </div>
+      <!-- Aquí se renderizan las vistas dinámicas -->
+      <router-view />
     </main>
   </div>
 </template>
