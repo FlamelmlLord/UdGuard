@@ -1,8 +1,8 @@
 <template>
-  <div class="dashboard" :class="{ 'dark-mode': isDarkMode }">
+  <div class="dashboard" :class="{ 'dark-mode': $store.state.darkMode }">
     <aside class="sidebar">
       <div class="user-section">
-        <img src="/path/to/logo_GSI.png" alt="Logo GSI" class="logo" />
+        <img src="@/assets/logo_GSI.png" alt="Logo GSI" class="logo" />
       </div>
       <div class="search-section">
         <div class="search-box">
@@ -46,20 +46,28 @@
             </router-link>
           </li>
           <li>
-            <a href="#" class="menu-item" :class="{ active: hoveredItem === 'Cumplimiento' }"
-               @mouseover="hover('Cumplimiento')" @mouseleave="unhover">
+            <router-link
+              to="/dashboard/compliance"
+              class="menu-item"
+              :class="{ active: hoveredItem === 'Cumplimiento' }"
+              @mouseover="hover('Cumplimiento')"
+              @mouseleave="unhover">
               <i class="mdi mdi-checkbox-marked-circle-outline icon"></i>
               <span>Cumplimiento</span>
-            </a>
+            </router-link>
           </li>
         </ul>
       </nav>
       <div class="user-management">
-        <a href="#" class="menu-item" :class="{ active: hoveredItem === 'Usuarios' }"
-           @mouseover="hover('Usuarios')" @mouseleave="unhover">
+        <router-link
+          to="/dashboard/users"
+          class="menu-item"
+          :class="{ active: hoveredItem === 'Usuarios' }"
+          @mouseover="hover('Usuarios')"
+          @mouseleave="unhover">
           <i class="mdi mdi-account-group-outline icon"></i>
           <span>Gestión de Usuarios</span>
-        </a>
+        </router-link>
       </div>
 
       <div class="bottom-section">
@@ -72,7 +80,11 @@
             <i class="mdi mdi-weather-night icon"></i>
             <span>Modo Oscuro</span>
             <div class="switch">
-              <input type="checkbox" v-model="isDarkMode" @change="toggleTheme">
+              <input
+                type="checkbox"
+                :checked="$store.state.darkMode"
+                @change="$store.dispatch('toggleDarkMode')"
+              >
               <span class="slider"></span>
             </div>
           </label>
@@ -80,56 +92,40 @@
       </div>
     </aside>
     <main class="main-content">
-      <!-- Aquí se renderizan las vistas dinámicas -->
-      <router-view />
+      <router-view></router-view>
     </main>
   </div>
 </template>
 
-<script>
-import { useRouter } from 'vue-router'
+<script lang="ts">
+import Vue from 'vue'
+import { Component } from 'vue-property-decorator'
 
-export default {
-  name: 'HomeDashboardView',
-  data () {
-    return {
-      hoveredItem: null,
-      isDarkMode: false
-    }
-  },
-  setup () {
-    const router = useRouter()
-    return { router }
-  },
-  created () {
-    const darkMode = localStorage.getItem('darkMode')
-    if (darkMode) {
-      this.isDarkMode = JSON.parse(darkMode)
-      this.applyDarkMode(this.isDarkMode)
-    }
-  },
-  methods: {
-    hover (item) {
-      this.hoveredItem = item
-    },
-    unhover () {
-      this.hoveredItem = null
-    },
-    toggleTheme () {
-      this.applyDarkMode(this.isDarkMode)
-      localStorage.setItem('darkMode', this.isDarkMode)
-    },
-    applyDarkMode (isDark) {
-      document.body.classList.toggle('dark-mode', isDark)
-    },
-    async logout () {
-      try {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        await this.router.push('/login')
-      } catch (error) {
-        console.error('Error al cerrar sesión:', error)
-      }
+@Component({
+  name: 'DashboardHomeView'
+})
+export default class DashboardHomeView extends Vue {
+  hoveredItem: string | null = null
+
+  created (): void {
+    this.$store.dispatch('initDarkMode')
+  }
+
+  hover (item: string): void {
+    this.hoveredItem = item
+  }
+
+  unhover (): void {
+    this.hoveredItem = null
+  }
+
+  async logout (): Promise<void> {
+    try {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      await this.$router.push('/login')
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error)
     }
   }
 }

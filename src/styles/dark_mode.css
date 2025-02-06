@@ -1,0 +1,21 @@
+:root {
+    /* Light mode colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f4f6f9;
+    --text-primary: #09090A;
+    --text-secondary: #666666;
+  }
+  
+  .dark-mode {
+    /* Dark mode colors */
+    --bg-primary: #121212;
+    --bg-secondary: #1E1E1E;
+    --text-primary: #FFFFFF;
+    --text-secondary: #B0B0B0;
+  }
+  
+  /* Apply dark mode to body or specific elements */
+  body.dark-mode {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }

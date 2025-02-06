@@ -32,6 +32,12 @@ const routes: Array<RouteConfig> = [
         path: 'facts',
         name: 'DashboardFacts',
         component: () => import('@/components/Dashboard/DashboardFacts.vue')
+      },
+      {
+        path: 'features/:factorId',
+        name: 'DashboardFeatures',
+        component: () => import('@/components/Dashboard/DashboardFeatures.vue'),
+        props: true
       }
     ]
   },

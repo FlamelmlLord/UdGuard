@@ -68,7 +68,7 @@
           </div>
         </div>
 
-        <div class="pagination" v-if="totalPages > 1">
+        <div class="pagination" v-if="filteredDocuments.length > 10">
           <button
             class="pagination-button"
             @click="prevPage"
@@ -140,7 +140,7 @@ export default {
         file: null
       },
       currentPage: 1,
-      itemsPerPage: 15
+      itemsPerPage: 10
     }
   },
   computed: {
