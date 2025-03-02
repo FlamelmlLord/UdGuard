@@ -38,6 +38,16 @@ const routes: Array<RouteConfig> = [
         name: 'DashboardFeatures',
         component: () => import('@/components/Dashboard/DashboardFeatures.vue'),
         props: true
+      },
+      {
+        path: 'users',
+        name: 'DashboardUsers',
+        component: () => import('@/components/DashboardUser/UserSettings.vue')
+      },
+      {
+        path: 'home',
+        name: 'DashboardHome',
+        component: () => import('@/components/Dashboard/DashboardHome.vue')
       }
     ]
   },

@@ -14,11 +14,12 @@
         <ul>
           <li>
             <router-link
-              to="/dashboard"
+              to="/dashboard/home"
               class="menu-item"
               :class="{ active: hoveredItem === 'Inicio' }"
               @mouseover="hover('Inicio')"
-              @mouseleave="unhover">
+              @mouseleave="unhover"
+            >
               <i class="mdi mdi-home-outline icon"></i>
               <span>Inicio</span>
             </router-link>
@@ -29,7 +30,8 @@
               class="menu-item"
               :class="{ active: hoveredItem === 'Documentos' }"
               @mouseover="hover('Documentos')"
-              @mouseleave="unhover">
+              @mouseleave="unhover"
+            >
               <i class="mdi mdi-file-document-outline icon"></i>
               <span>Documentos</span>
             </router-link>
@@ -40,7 +42,8 @@
               class="menu-item"
               :class="{ active: hoveredItem === 'Factores' }"
               @mouseover="hover('Factores')"
-              @mouseleave="unhover">
+              @mouseleave="unhover"
+            >
               <i class="mdi mdi-chart-pie icon"></i>
               <span>Factores</span>
             </router-link>
@@ -51,7 +54,8 @@
               class="menu-item"
               :class="{ active: hoveredItem === 'Cumplimiento' }"
               @mouseover="hover('Cumplimiento')"
-              @mouseleave="unhover">
+              @mouseleave="unhover"
+            >
               <i class="mdi mdi-checkbox-marked-circle-outline icon"></i>
               <span>Cumplimiento</span>
             </router-link>
@@ -64,12 +68,12 @@
           class="menu-item"
           :class="{ active: hoveredItem === 'Usuarios' }"
           @mouseover="hover('Usuarios')"
-          @mouseleave="unhover">
+          @mouseleave="unhover"
+        >
           <i class="mdi mdi-account-group-outline icon"></i>
           <span>Gestión de Usuarios</span>
         </router-link>
       </div>
-
       <div class="bottom-section">
         <button class="logout-button" @click="logout">
           <i class="mdi mdi-logout-variant"></i>
@@ -84,7 +88,7 @@
                 type="checkbox"
                 :checked="$store.state.darkMode"
                 @change="$store.dispatch('toggleDarkMode')"
-              >
+              />
               <span class="slider"></span>
             </div>
           </label>
@@ -105,7 +109,7 @@ import { Component } from 'vue-property-decorator'
   name: 'DashboardHomeView'
 })
 export default class DashboardHomeView extends Vue {
-  hoveredItem: string | null = null
+  hoveredItem: string | null = null;
 
   created (): void {
     this.$store.dispatch('initDarkMode')

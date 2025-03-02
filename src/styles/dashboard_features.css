@@ -1,0 +1,143 @@
+.dashboard-features-container {
+    padding: 24px;
+    width: 100%;
+  }
+  
+  .dashboard-content {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+  }
+  
+  .dashboard-title-container {
+    margin-bottom: 24px;
+  }
+  
+  .dashboard-title {
+    color: #333;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  
+  .feature-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    transition: transform 0.2s ease;
+  }
+  
+  .feature-card:hover {
+    transform: translateY(-4px);
+  }
+  
+  .feature-card--verde {
+    border-left: 4px solid #4CAF50;
+  }
+  
+  .feature-card--amarillo {
+    border-left: 4px solid #FFC107;
+  }
+  
+  .feature-card--rojo {
+    border-left: 4px solid #F44336;
+  }
+  
+  .feature-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  
+  .feature-title {
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+  }
+  
+  .feature-status {
+    margin-left: 16px;
+  }
+  
+  .status-indicator {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .status-indicator.verde {
+    background-color: #E8F5E9;
+    color: #2E7D32;
+  }
+  
+  .status-indicator.amarillo {
+    background-color: #FFF8E1;
+    color: #F57F17;
+  }
+  
+  .status-indicator.rojo {
+    background-color: #FFEBEE;
+    color: #C62828;
+  }
+  
+  .feature-card-body {
+    margin-bottom: 16px;
+  }
+  
+  .feature-details {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .feature-details li {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 8px;
+    padding-left: 16px;
+    position: relative;
+  }
+  
+  .feature-details li:before {
+    content: "•";
+    color: #999;
+    position: absolute;
+    left: 0;
+  }
+  
+  .feature-card-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .detail-button {
+    background: none;
+    border: none;
+    color: #1976D2;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px;
+    transition: color 0.2s ease;
+  }
+  
+  .detail-button:hover {
+    color: #1565C0;
+  }
+  
+  .detail-button svg {
+    margin-left: 4px;
+  }
