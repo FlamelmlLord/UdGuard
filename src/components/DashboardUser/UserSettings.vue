@@ -29,7 +29,7 @@
                       <v-list-item-subtitle class="text-caption grey--text">
                         País, ciudad
                       </v-list-item-subtitle>
-                      <v-list-item-title>Bulgaria, Sofia</v-list-item-title>
+                      <v-list-item-title>Colombia, Andres</v-list-item-title>
                     </v-list-item-content>
                   </v-list-item>
                 </v-col>
@@ -39,7 +39,7 @@
                       <v-list-item-subtitle class="text-caption grey--text">
                         Fecha de nacimiento
                       </v-list-item-subtitle>
-                      <v-list-item-title>08.04.1993</v-list-item-title>
+                      <v-list-item-title>08/04/1993</v-list-item-title>
                     </v-list-item-content>
                   </v-list-item>
 
@@ -63,7 +63,7 @@
         <v-card-title>
           <v-row align="center" justify="space-between">
             <v-col cols="auto">
-              <span class="text-h6">Users Management</span>
+              <span class="text-h6">Gestion de usuarios</span>
             </v-col>
             <v-col cols="auto">
               <v-text-field
@@ -124,7 +124,7 @@
                   <v-icon small>mdi-cog</v-icon>
                 </v-btn>
               </template>
-              <span>Modify Roles</span>
+              <span>Editar Roles</span>
             </v-tooltip>
 
             <v-tooltip bottom>
@@ -139,7 +139,7 @@
                   <v-icon small>mdi-delete</v-icon>
                 </v-btn>
               </template>
-              <span>Remove User</span>
+              <span>Eliminar Usuario</span>
             </v-tooltip>
           </template>
         </v-data-table>
@@ -149,7 +149,7 @@
       <v-dialog v-model="dialogRoles" max-width="500px">
         <v-card>
           <v-card-title>
-            <span class="text-h5">Edit User Roles</span>
+            <span class="text-h5">Editar Roles de usuario</span>
           </v-card-title>
 
           <v-card-text>
@@ -170,8 +170,8 @@
 
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" text @click="closeDialog">Cancel</v-btn>
-            <v-btn color="blue darken-1" text @click="saveRoles">Save</v-btn>
+            <v-btn color="blue darken-1" text @click="closeDialog">Cancelar</v-btn>
+            <v-btn color="blue darken-1" text @click="saveRoles">Guardar</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -197,32 +197,36 @@ export default {
     users: [
       {
         avatar: 'https://via.placeholder.com/40',
-        name: 'Terry Rosales',
+        name: 'Andres Guevara',
         status: 'Not Logged in',
-        roles: ['Manager', 'Admin', 'Auditor']
+        roles: ['Administrador', 'Auxiliar']
       },
       {
         avatar: 'https://via.placeholder.com/40',
-        name: 'Lennart Hjornbjaesk',
+        name: 'Carlos Guerrero',
         status: 'Active',
-        roles: ['Manager', 'Admin']
+        roles: ['Administrador', 'Auxiliar']
       },
       {
         avatar: 'https://via.placeholder.com/40',
-        name: 'Tallah Cotton',
+        name: 'David Bincoman ',
         status: 'Active',
-        roles: ['Admin', 'Auditor']
+        roles: ['Docente']
+      },
+      {
+        avatar: 'https://via.placeholder.com/40',
+        name: 'Miguel Arial',
+        status: 'Active',
+        roles: ['Estudiante']
       }
     ],
-    availableRoles: ['Manager', 'Admin', 'Auditor']
+    availableRoles: ['Administrador', 'Docente', 'Estudiante', 'Auxiliar']
   }),
 
   methods: {
     getRoleColor (role) {
       const colors = {
-        Manager: 'warning',
-        Admin: 'primary darken-1',
-        Auditor: 'success'
+        Administrador: 'primary darken-1'
       }
       return colors[role] || 'grey'
     },
@@ -256,24 +260,4 @@ export default {
 }
 </script>
 
-   <style scoped>
-   .v-data-table ::v-deep .v-data-table__wrapper {
-    overflow-x: auto;
-   }
-
-   .v-avatar {
-    border: 2px solid #eee;
-   }
-
-   .v-chip {
-    margin-right: 4px;
-   }
-
-   .v-btn {
-    margin: 0 2px;
-   }
-
-   .status-text {
-    font-size: 0.875rem;
-   }
-   </style>
+   <style scoped lang="css"> @import '../../styles/dashboard_usersettings.css'; </style>

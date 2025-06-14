@@ -65,7 +65,7 @@ export default {
             'C3: Relevancia Académica y Pertinencia'
           ]
         }
-        // Add other factors here
+
       ]
     }
   },

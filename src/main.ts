@@ -9,7 +9,6 @@ import '@mdi/font/css/materialdesignicons.css'
 import '@/styles/dark_mode.css'
 import '@/styles/auth.css'
 import '@/styles/dashboard.css'
-import '@/styles/dashboard_docs.css'
 import '@/styles/dashboard_facts.css'
 
 Vue.config.productionTip = false

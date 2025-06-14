@@ -26,18 +26,6 @@
           </li>
           <li>
             <router-link
-              to="/dashboard/docs"
-              class="menu-item"
-              :class="{ active: hoveredItem === 'Documentos' }"
-              @mouseover="hover('Documentos')"
-              @mouseleave="unhover"
-            >
-              <i class="mdi mdi-file-document-outline icon"></i>
-              <span>Documentos</span>
-            </router-link>
-          </li>
-          <li>
-            <router-link
               to="/dashboard/facts"
               class="menu-item"
               :class="{ active: hoveredItem === 'Factores' }"
@@ -50,7 +38,7 @@
           </li>
           <li>
             <router-link
-              to="/dashboard/compliance"
+              to="/dashboard/Cumplimiento"
               class="menu-item"
               :class="{ active: hoveredItem === 'Cumplimiento' }"
               @mouseover="hover('Cumplimiento')"

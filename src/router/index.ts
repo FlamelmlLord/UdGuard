@@ -24,11 +24,6 @@ const routes: Array<RouteConfig> = [
     component: dashboardHomeView,
     children: [
       {
-        path: 'docs',
-        name: 'DashboardDocs',
-        component: () => import('@/components/Dashboard/DashboardDocs.vue')
-      },
-      {
         path: 'facts',
         name: 'DashboardFacts',
         component: () => import('@/components/Dashboard/DashboardFacts.vue')
@@ -38,6 +33,11 @@ const routes: Array<RouteConfig> = [
         name: 'DashboardFeatures',
         component: () => import('@/components/Dashboard/DashboardFeatures.vue'),
         props: true
+      },
+      {
+        path: 'Cumplimiento',
+        name: 'DashboardGraphs',
+        component: () => import('@/components/Dashboard/DashboardGraphs.vue') // 👈 Aquí se añade la nueva ruta
       },
       {
         path: 'users',

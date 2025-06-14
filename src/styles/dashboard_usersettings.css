@@ -1,0 +1,19 @@
+   .v-data-table ::v-deep .v-data-table__wrapper {
+    overflow-x: auto;
+   }
+
+   .v-avatar {
+    border: 2px solid #eee;
+   }
+
+   .v-chip {
+    margin-right: 4px;
+   }
+
+   .v-btn {
+    margin: 0 2px;
+   }
+
+   .status-text {
+    font-size: 0.875rem;
+   }

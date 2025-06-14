@@ -45,3 +45,4 @@ coverage/
 # Security keys or sensitive files
 keys/
 secrets/
+.qodo
