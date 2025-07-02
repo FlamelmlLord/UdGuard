@@ -15,7 +15,8 @@
     "baseUrl": ".",
     "emitDecoratorMetadata": true,
     "types": [
-      "webpack-env"
+      "webpack-env",
+      "node"
     ],
     "paths": {
       "@/*": [
