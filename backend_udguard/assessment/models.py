@@ -31,5 +31,5 @@ class Indicator(models.Model):
     @property
     def porcentaje(self):
         if self.meta:
-            return (self.puntos / self.meta) * 100
+            return round((self.puntos / self.meta) * 100, -1)
         return 0

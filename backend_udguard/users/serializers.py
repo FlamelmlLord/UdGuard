@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.utils.timezone import now
 
 User = get_user_model()
 
@@ -11,6 +12,14 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token["tipo_user"] = user.tipo_user
         return token
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        self.user.last_login = now()
+        self.user.save(update_fields=["last_login"])
+
+        return data
 
 
 class UserListSerializer(serializers.ModelSerializer):
@@ -41,6 +50,11 @@ class RegisterSerializer(serializers.ModelSerializer):
             "tipo_estudio",
             "experiencia_laboral",
         ]
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Este correo ya está registrado.")
+        return value
 
     def create(self, validated_data):
         password = validated_data.pop("password")

@@ -9,6 +9,7 @@ from assessment.serializers import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from logs.views import log_action
 
 
 class FactorsCreateListViewSet(APIView):
@@ -26,22 +27,20 @@ class FactorsCreateListViewSet(APIView):
 
         serializer = FactorsSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            factor = serializer.save()
+            log_action(factor, "create", request.user)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class FactorsListCharacteristicsViewSet(APIView):
+class FactorsListCreateCharacteristicsViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, factors_id):
         characteristics = Characteristics.objects.filter(factors=factors_id)
         serializer = CharacteristicsSerializer(characteristics, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class CharacteristicsCreateViewSet(APIView):
-    permission_classes = [IsAuthenticated]
 
     def post(self, request, factors_id):
         tipo = request.user.tipo_user
@@ -53,7 +52,8 @@ class CharacteristicsCreateViewSet(APIView):
         data["factors"] = factor.id
         serializer = CharacteristicsSerializer(data=data)
         if serializer.is_valid():
-            serializer.save()
+            caracteristica = serializer.save()
+            log_action(caracteristica, "create", request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -78,11 +78,17 @@ class CharacteristicListUpdateViewSet(APIView):
         caracteristica_data = CharacteristicsSerializer(caracteristica).data
         indicadores_data = IndicatorSerializer(indicators, many=True).data
 
-        caracteristica_data["cumplimiento"] = round(promedio, 2)
+        caracteristica_data["cumplimiento"] = round(promedio, 1)
+
         caracteristica_data["porcentaje"] = (
-            round(((promedio - 1) / 4) * 100, 2) if promedio else 0
+            round(((promedio - 1) / 4) * 100, 1) if promedio else 0
         )
+
         caracteristica_data["indicadores"] = indicadores_data
+
+        caracteristica_data["grado_cumplimiento"] = get_grado_cumplimiento(
+            caracteristica_data["porcentaje"]
+        )
 
         return Response(caracteristica_data, status=status.HTTP_200_OK)
 
@@ -99,7 +105,7 @@ class CharacteristicListUpdateViewSet(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         caracteristica.descripcion = update_description
-        caracteristica.save()
+        log_action(caracteristica, "update", request.user)
 
         serializer = CharacteristicsSerializer(caracteristica)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -116,7 +122,8 @@ class IndicatorCreateView(APIView):
         caracteristica = get_object_or_404(Characteristics, pk=caracteristica_id)
         serializer = IndicatorSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(caracteristica=caracteristica)
+            indicador = serializer.save(caracteristica=caracteristica)
+            log_action(indicador, "create", request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -132,7 +139,19 @@ class IndicatorUpdateView(APIView):
         indicador = get_object_or_404(Indicator, pk=indicador_id)
         serializer = IndicatorSerializer(indicador, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            indicador = serializer.save()
+            log_action(indicador, "update", request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+def get_grado_cumplimiento(porcentaje):
+    if 1 < porcentaje < 49:
+        return "No se cumple"
+    if 50 < porcentaje < 69:
+        return "Se cumple insatisfactoriamente"
+    if 70 < porcentaje < 79:
+        return "Se cumple aceptablemente"
+    if porcentaje > 80:
+        return "Se cumple en alto grado"

@@ -1,24 +1,38 @@
 from django.contrib import admin
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from users.views import CustomLoginView, RegisterUserViewSet, UserListViewSet
-from events.views import EventsListCreateViewSet
+from users.views import (
+    CustomLoginView,
+    RegisterUserViewSet,
+    UserListViewSet,
+    PasswordResetRequestView,
+)
 from assessment.views import (
     FactorsCreateListViewSet,
-    FactorsListCharacteristicsViewSet,
-    CharacteristicsCreateViewSet,
+    FactorsListCreateCharacteristicsViewSet,
     CharacteristicListUpdateViewSet,
     IndicatorCreateView,
     IndicatorUpdateView,
 )
+from events.views import EventsListCreateViewSet
+from logs.views import LogsListViewSet
 
 urlpatterns = [
     path("api/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/login/", CustomLoginView.as_view(), name="token_obtain_pair"),
     path("api/register/", RegisterUserViewSet.as_view(), name="user_register"),
-    path("api/users/", UserListViewSet.as_view(), name="user_list"),
+    path("api/users/<int:num_page>", UserListViewSet.as_view(), name="user_list"),
+    path(
+        "api/users/forget/",
+        PasswordResetRequestView.as_view(),
+        name="user_forget_password",
+    ),
     path("api/users/<int:user_id>/", UserListViewSet.as_view(), name="user_delete"),
-    path("api/events/", EventsListCreateViewSet.as_view(), name="list_events"),
+    path(
+        "api/events/<int:num_page>",
+        EventsListCreateViewSet.as_view(),
+        name="list_events",
+    ),
     path(
         "api/factors/",
         FactorsCreateListViewSet.as_view(),
@@ -26,13 +40,8 @@ urlpatterns = [
     ),
     path(
         "api/factors/<uuid:factors_id>/characteristics/",
-        FactorsListCharacteristicsViewSet.as_view(),
+        FactorsListCreateCharacteristicsViewSet.as_view(),
         name="characteristics_by_factor",
-    ),
-    path(
-        "api/factors/<uuid:factors_id>/characteristics/",
-        CharacteristicsCreateViewSet.as_view(),
-        name="create_characteristic",
     ),
     path(
         "api/characteristics/<uuid:caracteristica_id>/",
@@ -48,6 +57,11 @@ urlpatterns = [
         "api/indicators/<uuid:indicador_id>/",
         IndicatorUpdateView.as_view(),
         name="indicators_update",
+    ),
+    path(
+        "api/logs/<int:num_page>/",
+        LogsListViewSet.as_view(),
+        name="logs_list",
     ),
     path("admin/", admin.site.urls),
 ]
