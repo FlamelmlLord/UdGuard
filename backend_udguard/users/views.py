@@ -14,7 +14,7 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from logs.views import log_action
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 
@@ -111,3 +111,28 @@ class PasswordResetRequestView(APIView):
         )
 
         return Response({"detail": "email de recuperacion enviado"})
+
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        uid = request.data.get("uid")
+        token = request.data.get("token")
+        new_password = request.data.get("new_password")
+
+        try:
+            User = get_user_model()
+
+            uid = urlsafe_base64_decode(uid).decode()
+            user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError):
+            return Response({"detail": "Usuario inválido"}, status=400)
+
+        if not default_token_generator.check_token(user, token):
+            return Response({"detail": "Token inválido o expirado"}, status=400)
+
+        user.set_password(new_password)
+        user.save()
+
+        return Response({"detail": "Contraseña actualizada correctamente"})

@@ -6,6 +6,7 @@ from users.views import (
     RegisterUserViewSet,
     UserListViewSet,
     PasswordResetRequestView,
+    PasswordResetConfirmView,
 )
 from assessment.views import (
     FactorsCreateListViewSet,
@@ -28,6 +29,11 @@ urlpatterns = [
         name="user_forget_password",
     ),
     path("api/users/<int:user_id>/", UserListViewSet.as_view(), name="user_delete"),
+    path(
+        "api/users/forget-reset-confirm/",
+        PasswordResetConfirmView.as_view(),
+        name="user_reset_confirm",
+    ),
     path(
         "api/events/<int:num_page>",
         EventsListCreateViewSet.as_view(),
