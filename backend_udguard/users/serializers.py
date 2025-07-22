@@ -19,6 +19,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         self.user.last_login = now()
         self.user.save(update_fields=["last_login"])
 
+        data["tipo_user"] = self.user.tipo_user
+
         return data
 
 
