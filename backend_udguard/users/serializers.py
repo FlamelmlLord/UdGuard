@@ -30,6 +30,9 @@ class UserListSerializer(serializers.ModelSerializer):
             "name",
             "status",
             "tipo_user",
+            "date_joined",
+            "last_login",
+            "email"
         ]
         read_only_fields = ["id", "username", "email"]
 

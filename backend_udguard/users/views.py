@@ -136,3 +136,12 @@ class PasswordResetConfirmView(APIView):
         user.save()
 
         return Response({"detail": "Contraseña actualizada correctamente"})
+
+
+class UserByIdView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserListSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+

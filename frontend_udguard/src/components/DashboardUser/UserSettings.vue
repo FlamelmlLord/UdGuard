@@ -210,11 +210,10 @@ export default {
   }),
 
   methods: {
-
     async fetchCurrentUser () {
       try {
         console.log('Fetching current user data...')
-        const response = await axios.get('/auth/user/', {
+        const response = await axios.get('auth/users/token/', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('access_token')}`
           }
@@ -223,8 +222,7 @@ export default {
         this.currentUser = {
           date_joined: response.data.date_joined || '',
           last_login: response.data.last_login || '',
-          first_name: response.data.first_name || '',
-          last_name: response.data.last_name || '',
+          name: response.data.name || '',
           email: response.data.email || ''
         }
         console.log('Current user data:', this.currentUser)
@@ -254,9 +252,7 @@ export default {
       return date.toLocaleDateString('es-CO', options)
     },
     getFullName () {
-      const firstName = this.currentUser.first_name || ''
-      const lastName = this.currentUser.last_name || ''
-      const fullName = `${firstName} ${lastName}`.trim()
+      const fullName = `${this.currentUser.name}`.trim()
       return fullName || this.currentUser.username || 'Usuario'
     },
     async fetchUsers () {
@@ -343,6 +339,7 @@ export default {
   },
   async mounted () {
     // Simulación de datos de usuarios
+    await this.fetchCurrentUser()
     console.log('Fetching user data...')
     await axios.get('/users/40', { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } })
       .then(response => {
