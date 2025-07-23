@@ -27,12 +27,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = [
-            "id",
-            "name",
-            "status",
-            "tipo_user",
-        ]
+        fields = ["id", "name", "status", "tipo_user", "date_joined", "last_login"]
         read_only_fields = ["id", "username", "email"]
 
 
