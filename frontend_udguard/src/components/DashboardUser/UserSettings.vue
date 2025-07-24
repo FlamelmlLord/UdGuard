@@ -202,11 +202,11 @@ export default {
       { text: 'Username', value: 'username' }, // Agregar username
       { text: 'Email', value: 'email' }, // Agregar email
       { text: 'Status', value: 'status' },
-      { text: 'User Role', value: 'roles' },
+      { text: 'User Role', value: 'tipo_user' },
       { text: 'Actions', value: 'actions', sortable: false, width: '100px' }
     ],
     users: [],
-    availableRoles: ['Administrador', 'Auxiliar']
+    availableRoles: ['Administrador', 'Consultor']
   }),
 
   methods: {
@@ -275,13 +275,13 @@ export default {
             email: user.email,
             // avatar: user.avatar || require('@/assets/default-avatar.png'),
             status: user.is_active ? 'Active' : 'Inactive',
-            roles: this.mapUserRoles(user.tipo_user || user.role) // Mapear roles
+            roles: this.mapUserRoles(user.tipo_user)// Mapear roles
           }))
         } else {
           // Si la respuesta tiene estructura diferente
           this.users = response.data.results || response.data.users || []
         }
-        console.log('Processed users:', this.users)
+        console.log('Users fetched successfully:', this.users)
       } catch (error) {
         console.error('Error fetching users:', error)
         // Mostrar mensaje de error
@@ -303,9 +303,10 @@ export default {
       // Mapear tipos de usuario del backend a roles del frontend
       const roleMapping = {
         ADMIN: ['Administrador'],
-        AUXILIAR: ['Auxiliar']
+        AUXILIAR: ['Colaborador']
       }
-      return roleMapping[userType] || ['Auxiliar']
+      console.log('Mapping user type:', userType, 'to roles:', roleMapping[userType])
+      return roleMapping[userType] || ['Colaborador']
     },
     getRoleColor (role) {
       const colors = {

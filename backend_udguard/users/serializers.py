@@ -28,6 +28,7 @@ class UserListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
+            "username",
             "status",
             "tipo_user",
             "date_joined",
