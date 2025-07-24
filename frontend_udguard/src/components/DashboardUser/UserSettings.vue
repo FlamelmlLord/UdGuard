@@ -259,32 +259,27 @@ export default {
       this.loading = true
       try {
         console.log('Fetching users from API...')
-        // Hacer la petición correctamente
         const response = await axios.get('/users/', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('access_token')}`
           }
         })
         console.log('Users API response:', response.data)
-        // Mapear los datos si es necesario
         if (Array.isArray(response.data)) {
           this.users = response.data.map(user => ({
             id: user.id,
             name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username,
             username: user.username,
             email: user.email,
-            // avatar: user.avatar || require('@/assets/default-avatar.png'),
             status: user.is_active ? 'Active' : 'Inactive',
-            roles: this.mapUserRoles(user.tipo_user)// Mapear roles
+            roles: this.mapUserRoles(user.tipo_user)
           }))
         } else {
-          // Si la respuesta tiene estructura diferente
           this.users = response.data.results || response.data.users || []
         }
         console.log('Users fetched successfully:', this.users)
       } catch (error) {
         console.error('Error fetching users:', error)
-        // Mostrar mensaje de error
         if (this.$swal) {
           this.$swal({
             title: 'Error',
@@ -331,10 +326,52 @@ export default {
       }
       this.closeDialog()
     },
-    removeUser (item) {
-      const index = this.users.indexOf(item)
-      if (confirm('¿Estás seguro de eliminar este usuario?')) {
-        this.users.splice(index, 1)
+    async removeUser (item) {
+      try {
+        const confirmed = await this.$swal({
+          title: '¿Estás seguro?',
+          text: `¿Deseas deshabilitar el usuario "${item.name}"?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Sí, deshabilitar',
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6'
+        })
+        if (confirmed.isConfirmed) {
+          console.log('Disabling user:', item.id)
+          // Realizar la petición para desactivar el usuario
+          const response = await axios.patch(`/users/${item.id}/`, {
+            is_active: false // Desactivar el usuario
+          }, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+          })
+          console.log('User disabled response:', response.data)
+          // Mostrar mensaje de éxito
+          await this.$swal({
+            title: 'Usuario deshabilitado',
+            text: `El usuario "${item.name}" ha sido deshabilitado correctamente`,
+            icon: 'success',
+            confirmButtonText: 'OK'
+          })
+          // Refrescar la tabla con los nuevos datos
+          const userIndex = this.users.findIndex(u => u.id === item.id)
+          if (userIndex !== -1) {
+            this.users[userIndex].status = 'Inactive'
+          }
+          console.log('estado actualizado individualmente')
+        }
+      } catch (error) {
+        console.error('Error disabling user:', error)
+        // Mostrar mensaje de error
+        this.$swal({
+          title: 'Error',
+          text: 'No se pudo deshabilitar el usuario. Inténtalo de nuevo.',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        })
       }
     }
   },
