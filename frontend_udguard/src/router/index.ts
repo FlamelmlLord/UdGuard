@@ -24,12 +24,12 @@ const routes: Array<RouteConfig> = [
     component: dashboardHomeView,
     children: [
       {
-        path: 'facts',
+        path: 'factors',
         name: 'DashboardFacts',
         component: () => import('@/components/Dashboard/DashboardFacts.vue')
       },
       {
-        path: 'features/:factorId',
+        path: 'factors/:factorId/characteristics',
         name: 'DashboardFeatures',
         component: () => import('@/components/Dashboard/DashboardFeatures.vue'),
         props: true

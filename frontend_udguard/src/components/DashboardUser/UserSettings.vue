@@ -124,7 +124,7 @@
                   <v-icon small>mdi-cog</v-icon>
                 </v-btn>
               </template>
-              <span>Editar Roles</span>
+              <span>Editar Usuario</span>
             </v-tooltip>
 
             <v-tooltip bottom>
@@ -149,31 +149,23 @@
       <v-dialog v-model="dialogRoles" max-width="500px">
         <v-card>
           <v-card-title>
-            <span class="text-h5">Editar Roles de usuario</span>
+            <span class="text-h5">Editar Usuario</span>
+            <v-spacer></v-spacer>
+            <v-btn icon @click="closeDialog">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
           </v-card-title>
-
           <v-card-text>
             <v-container>
               <v-row>
-                <v-col cols="12">
-                  <v-checkbox
-                    v-for="role in availableRoles"
-                    :key="role"
-                    v-model="selectedRoles"
-                    :label="role"
-                    :value="role"
-                  ></v-checkbox>
-                </v-col>
+                <c-col cols="12">
+                  <!--no editable-->
+                </c-col>
               </v-row>
             </v-container>
           </v-card-text>
-
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" text @click="closeDialog">Cancelar</v-btn>
-            <v-btn color="blue darken-1" text @click="saveRoles">Guardar</v-btn>
-          </v-card-actions>
         </v-card>
+
       </v-dialog>
     </v-container>
   </template>
