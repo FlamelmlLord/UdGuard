@@ -62,17 +62,29 @@
       <v-card>
         <v-card-title>
           <v-row align="center" justify="space-between">
-            <v-col cols="auto">
-            <span class="text-h6">Gestion de usuarios</span>
+            <v-col cols="12" sm="auto">
+              <span class="text-h6">Gestión de usuarios</span>
             </v-col>
-            <v-col cols="auto">
+            <v-col cols="12" sm="auto" class="d-flex align-center gap-3">
+              <!-- Botón Registrar Usuario -->
+              <v-btn
+                class="register-user-btn"
+                @click="openRegisterDialog"
+                elevation="2"
+              >
+                <v-icon left>mdi-account-plus</v-icon>
+                Registrar Usuario
+              </v-btn>
+
+              <!-- Campo de búsqueda -->
               <v-text-field
                 v-model="search"
                 append-icon="mdi-magnify"
-                label="Search"
+                label="Buscar"
                 single-line
                 hide-details
                 dense
+                class="search-field"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -158,29 +170,60 @@
           <v-card-text>
             <v-container>
               <v-row>
-                <c-col cols="12">
+                <v-col cols="12">
                   <!--no editable-->
-                </c-col>
+                </v-col>
               </v-row>
             </v-container>
           </v-card-text>
         </v-card>
+      </v-dialog>
 
+      <!-- Dialog para registrar usuario -->
+      <v-dialog v-model="dialogRegister" max-width="1000px" persistent>
+        <v-card class="register-dialog-card">
+          <v-card-title class="register-dialog-header">
+            <span class="text-h5 white--text">
+              <v-icon left color="white">mdi-account-plus</v-icon>
+              Registrar Nuevo Usuario
+            </span>
+            <v-spacer></v-spacer>
+            <v-btn icon @click="closeRegisterDialog" color="white">
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-card-title>
+
+          <v-card-text class="pa-6">
+            <!-- Aquí irá el componente RegisterUser -->
+            <RegisterUser
+              v-if="dialogRegister"
+              @user-registered="handleUserRegistered"
+              @cancel="closeRegisterDialog"
+              :dialog-mode="true"
+            />
+          </v-card-text>
+        </v-card>
       </v-dialog>
     </v-container>
   </template>
 
 <script>
 import axios from '../../plugins/Axios'
+import RegisterUser from './RegisterUser.vue' // Importar el componente
+
 export default {
   name: 'UserSettings',
+  components: {
+    RegisterUser
+  },
 
   data: () => ({
     search: '',
     dialogRoles: false,
+    dialogRegister: false, // Nuevo dialog para registro
     selectedRoles: [],
     editedItem: null,
-    loading: false, // Agregar estado de carga
+    loading: false,
     currentUser: {
       date_joined: '',
       last_login: '',
@@ -191,8 +234,8 @@ export default {
     headers: [
       { text: '', value: 'avatar', sortable: false, width: '50px' },
       { text: 'Name', value: 'name' },
-      { text: 'Username', value: 'username' }, // Agregar username
-      { text: 'Email', value: 'email' }, // Agregar email
+      { text: 'Username', value: 'username' },
+      { text: 'Email', value: 'email' },
       { text: 'Status', value: 'status' },
       { text: 'User Role', value: 'tipo_user' },
       { text: 'Actions', value: 'actions', sortable: false, width: '100px' }
@@ -202,6 +245,7 @@ export default {
   }),
 
   methods: {
+    // Métodos existentes...
     async fetchCurrentUser () {
       try {
         console.log('Fetching current user data...')
@@ -230,6 +274,7 @@ export default {
         }
       }
     },
+
     formatDate (dateString) {
       if (!dateString) return 'No disponible'
       const date = new Date(dateString)
@@ -243,10 +288,12 @@ export default {
       }
       return date.toLocaleDateString('es-CO', options)
     },
+
     getFullName () {
       const fullName = `${this.currentUser.name}`.trim()
       return fullName || this.currentUser.username || 'Usuario'
     },
+
     async fetchUsers () {
       this.loading = true
       try {
@@ -286,8 +333,8 @@ export default {
         this.loading = false
       }
     },
+
     mapUserRoles (userType) {
-      // Mapear tipos de usuario del backend a roles del frontend
       const roleMapping = {
         ADMIN: ['Administrador'],
         AUXILIAR: ['Colaborador']
@@ -295,6 +342,7 @@ export default {
       console.log('Mapping user type:', userType, 'to roles:', roleMapping[userType])
       return roleMapping[userType] || ['Colaborador']
     },
+
     getRoleColor (role) {
       const colors = {
         Administrador: 'primary darken-1',
@@ -302,22 +350,26 @@ export default {
       }
       return colors[role] || 'grey'
     },
+
     modifyRoles (item) {
       this.editedItem = item
       this.selectedRoles = [...item.roles]
       this.dialogRoles = true
     },
+
     closeDialog () {
       this.dialogRoles = false
       this.editedItem = null
       this.selectedRoles = []
     },
+
     saveRoles () {
       if (this.editedItem) {
         this.editedItem.roles = [...this.selectedRoles]
       }
       this.closeDialog()
     },
+
     async removeUser (item) {
       try {
         const confirmed = await this.$swal({
@@ -332,23 +384,20 @@ export default {
         })
         if (confirmed.isConfirmed) {
           console.log('Disabling user:', item.id)
-          // Realizar la petición para desactivar el usuario
           const response = await axios.patch(`/users/${item.id}/`, {
-            is_active: false // Desactivar el usuario
+            is_active: false
           }, {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('access_token')}`
             }
           })
           console.log('User disabled response:', response.data)
-          // Mostrar mensaje de éxito
           await this.$swal({
             title: 'Usuario deshabilitado',
             text: `El usuario "${item.name}" ha sido deshabilitado correctamente`,
             icon: 'success',
             confirmButtonText: 'OK'
           })
-          // Refrescar la tabla con los nuevos datos
           const userIndex = this.users.findIndex(u => u.id === item.id)
           if (userIndex !== -1) {
             this.users[userIndex].status = 'Inactive'
@@ -357,7 +406,6 @@ export default {
         }
       } catch (error) {
         console.error('Error disabling user:', error)
-        // Mostrar mensaje de error
         this.$swal({
           title: 'Error',
           text: 'No se pudo deshabilitar el usuario. Inténtalo de nuevo.',
@@ -365,13 +413,52 @@ export default {
           confirmButtonText: 'OK'
         })
       }
+    },
+
+    // Nuevos métodos para el registro
+    openRegisterDialog () {
+      this.dialogRegister = true
+    },
+
+    closeRegisterDialog () {
+      this.dialogRegister = false
+    },
+
+    async handleUserRegistered (userData) {
+      try {
+        // Cerrar el dialog
+        this.closeRegisterDialog()
+
+        // Mostrar mensaje de éxito
+        this.$swal({
+          title: '¡Éxito!',
+          text: 'Usuario registrado correctamente',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        })
+
+        // Recargar la lista de usuarios
+        await this.fetchUsers()
+      } catch (error) {
+        console.error('Error handling user registration:', error)
+        this.$swal({
+          title: 'Error',
+          text: 'Hubo un problema al registrar el usuario',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        })
+      }
     }
   },
+
   async mounted () {
-    // Simulación de datos de usuarios
     await this.fetchCurrentUser()
     console.log('Fetching user data...')
-    await axios.get('/users/40', { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } })
+    await axios.get('/users/40', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access_token')}`
+      }
+    })
       .then(response => {
         console.log('Users fetched successfully:', response.data)
         this.users = response.data.results || response.data.users || []
@@ -383,4 +470,4 @@ export default {
 }
 </script>
 
-  <style scoped lang="css"> @import '../../styles/dashboard_usersettings.css'; </style>
+<style scoped lang="css"> @import '../../styles/dashboard_usersettings.css'; </style>
