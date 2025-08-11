@@ -1,7 +1,7 @@
 <template>
     <v-container fluid>
       <!-- Profile Section -->
-      <v-card class="mb-6">
+      <v-card class="mb-3">
         <v-card-text>
           <v-row align="center">
             <v-col cols="12" sm="3" class="text-center">
