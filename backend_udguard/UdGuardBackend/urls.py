@@ -13,6 +13,7 @@ from assessment.views import (
     FactorsCreateListViewSet,
     FactorsListCreateCharacteristicsViewSet,
     CharacteristicListUpdateViewSet,
+    #CharacteristicsListCreateIndicatorsViewSet, test import indicador por característica
     IndicatorCreateView,
     IndicatorUpdateView,
 )
@@ -69,6 +70,12 @@ urlpatterns = [
         "api/characteristics/<uuid:caracteristica_id>/indicators/",
         IndicatorCreateView.as_view(),
         name="indicators_create",
+    ),
+    #test para listar indicadores por factor
+        path(
+        "api/characteristics/<uuid:caracteristica_id>/indicators/",
+        CharacteristicsListCreateIndicatorsViewSet.as_view(),
+        name="indicators_by_characteristic",
     ),
     path(
         "api/indicators/<uuid:indicador_id>/",

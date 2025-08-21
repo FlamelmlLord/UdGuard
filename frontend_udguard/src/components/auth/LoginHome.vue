@@ -115,7 +115,7 @@ export default {
         icon: 'success',
         confirmButtonText: 'Continuar'
       }).then(() => {
-        const route = data.role === 'ADMIN' ? '/dashboard' : '/dashboard'
+        const route = data.role === 'ADMIN' ? '/dashboard/home' : '/dashboard/home'
         this.$router.push(route)
       })
     },

@@ -146,12 +146,58 @@ class IndicatorUpdateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def get_grado_cumplimiento(porcentaje):
-    if 1 < porcentaje < 49:
-        return "No se cumple"
-    if 50 < porcentaje < 69:
-        return "Se cumple insatisfactoriamente"
-    if 70 < porcentaje < 79:
-        return "Se cumple aceptablemente"
-    if porcentaje > 80:
-        return "Se cumple en alto grado"
+def get_grado_cumplimiento(grado_numerico):
+    """
+    Determina el grado de cumplimiento basado en la escala numérica 1-5
+    según la tabla de evaluación institucional
+    """
+    if 1.0 <= grado_numerico <= 2.4:
+        return {
+            "grado": "E",
+            "descripcion": "No se cumple",
+            "color": "#e71000",
+        }
+    elif 2.5 <= grado_numerico <= 3.4:
+        return {
+            "grado": "D",
+            "descripcion": "Se cumple insatisfactoriamente",
+            "color": "#e78800",
+        }
+    elif 3.5 <= grado_numerico <= 3.9:
+        return {
+            "grado": "C",
+            "descripcion": "Se cumple aceptablemente",
+            "color": "#e7d900",
+        }
+    elif 4.0 <= grado_numerico <= 4.4:
+        return {
+            "grado": "B",
+            "descripcion": "Se cumple en alto grado",
+            "color": "#6dca00",
+        }
+    elif 4.5 <= grado_numerico <= 5.0:
+        return {
+            "grado": "A",
+            "descripcion": "Se cumple plenamente",
+            "color": "#00ca00",
+        }
+    else:
+        return {
+            "grado": "N/A",
+            "descripcion": "Sin datos suficientes",
+            "color": "#6b7280",
+        }
+
+
+def calcular_porcentaje_desde_grado(
+    grado_numerico, min_puntaje=1.0, max_puntaje=5.0
+):
+    """
+    Convierte el grado numérico (1-5) a porcentaje (0-100%)
+    """
+    if grado_numerico is None or grado_numerico == 0:
+        return 0
+
+    # Normalizar a escala 0-100
+    porcentaje = ((grado_numerico - min_puntaje) / (max_puntaje - min_puntaje)) * 100
+    return round(porcentaje, 1)

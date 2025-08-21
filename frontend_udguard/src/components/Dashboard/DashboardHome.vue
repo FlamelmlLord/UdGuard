@@ -426,7 +426,7 @@
 </template>
 
 <script>
-import FullCalendar from '@fullcalendar/vue3'
+import FullCalendar from '@fullcalendar/vue'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
