@@ -61,7 +61,7 @@ class FactorsListCreateCharacteristicsViewSet(APIView):
 class CharacteristicListUpdateViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, caracteristica_id):
+    def get(self, __, caracteristica_id):
         caracteristica = get_object_or_404(Characteristics, pk=caracteristica_id)
         indicators = Indicator.objects.filter(caracteristica=caracteristica)
 
@@ -110,6 +110,19 @@ class CharacteristicListUpdateViewSet(APIView):
         serializer = CharacteristicsSerializer(caracteristica)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def delete(self, request, caracteristica_id):
+        tipo = request.user.tipo_user
+        if tipo != "admin":
+            return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
+
+        caracteristica = get_object_or_404(Characteristics, pk=caracteristica_id)
+        caracteristica.delete()
+
+        return Response(
+            {"message": "Característica e indicadores eliminados"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
 
 class IndicatorCreateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -144,6 +157,18 @@ class IndicatorUpdateView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, indicador_id):
+        tipo = request.user.tipo_user
+        if tipo != "admin":
+            return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
+        indicador = get_object_or_404(Indicator, pk=indicador_id)
+        indicador.delete()
+
+        return Response(
+            {"message": "indicador eliminado"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
 
 def get_grado_cumplimiento(porcentaje):
