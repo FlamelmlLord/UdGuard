@@ -1,4 +1,4 @@
-.dashboard-features-container {
+.dashboard-characteristics-container {
   padding: 24px;
   width: 100%;
 }
@@ -16,7 +16,7 @@
   font-size: 24px;
   font-weight: 600;
 }
-.features-grid {
+.characteristics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;

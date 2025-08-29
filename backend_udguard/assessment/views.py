@@ -37,10 +37,10 @@ class FactorsCreateListViewSet(APIView):
 class FactorsListCreateCharacteristicsViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, factors_id):
+    def get(self, __, factors_id):
         characteristics = Characteristics.objects.filter(factors=factors_id)
-        serializer = CharacteristicsSerializer(characteristics, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        data = [characteristic_status(c) for c in characteristics]
+        return Response(data, status=status.HTTP_200_OK)
 
     def post(self, request, factors_id):
         tipo = request.user.tipo_user
@@ -87,7 +87,7 @@ class CharacteristicListUpdateViewSet(APIView):
         caracteristica_data["indicadores"] = indicadores_data
 
         caracteristica_data["grado_cumplimiento"] = get_grado_cumplimiento(
-            caracteristica_data["porcentaje"]
+            caracteristica_data["cumplimiento"]
         )
 
         return Response(caracteristica_data, status=status.HTTP_200_OK)
@@ -98,15 +98,17 @@ class CharacteristicListUpdateViewSet(APIView):
             return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
 
         caracteristica = get_object_or_404(Characteristics, pk=caracteristica_id)
+        update_name = request.data["nombre"]
         update_description = request.data["descripcion"]
-        if update_description is None:
+        if update_description is None and update_name is None:
             return Response(
-                {"detail": "El campo 'descripcion' es requerido."},
+                {"detail": "El campo 'nombre' y 'descripcion' son requeridos."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        caracteristica.nombre = update_name
         caracteristica.descripcion = update_description
         log_action(caracteristica, "update", request.user)
-
+        caracteristica.save()
         serializer = CharacteristicsSerializer(caracteristica)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -201,3 +203,27 @@ def calcular_porcentaje_desde_grado(
     # Normalizar a escala 0-100
     porcentaje = ((grado_numerico - min_puntaje) / (max_puntaje - min_puntaje)) * 100
     return round(porcentaje, 1)
+
+def characteristic_status(caracteristica):
+    indicators = Indicator.objects.filter(caracteristica=caracteristica)
+
+    if indicators.exists():
+        print(indicators)
+        calificaciones = [
+            i.calificacion for i in indicators if i.calificacion is not None
+        ]
+        promedio = sum(calificaciones) / len(calificaciones) if calificaciones else 0
+    else:
+        promedio = 0
+
+    caracteristica_data = CharacteristicsSerializer(caracteristica).data
+
+    caracteristica_data["cumplimiento"] = round(promedio, 1)
+    caracteristica_data["porcentaje"] = (
+        round(((promedio - 1) / 4) * 100, 1) if promedio else 0
+    )
+    caracteristica_data["grado_cumplimiento"] = get_grado_cumplimiento(
+        caracteristica_data["cumplimiento"]
+    )
+
+    return caracteristica_data

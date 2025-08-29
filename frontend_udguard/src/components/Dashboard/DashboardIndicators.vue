@@ -10,7 +10,7 @@
             <div class="header-title-section">
               <h2 class="dashboard-main-title">
                 <v-icon class="title-icon mr-3" size="28" color="primary">mdi-chart-box-outline</v-icon>
-                C.1 PROYECTO EDUCATIVO DEL PROGRAMA
+                {{characteristic.nombre}}
               </h2>
             </div>
           </v-col>
@@ -67,26 +67,42 @@
                 <canvas id="complianceChart"></canvas>
               </div>
               <div class="chart-info">
-                <div class="compliance-badge">
-                  <v-icon class="compliance-icon" size="24" color="success">mdi-check-circle</v-icon>
-                  <span class="compliance-label">CUMPLIMIENTO</span>
-                </div>
-                <div class="compliance-score">4.6</div>
-                <div class="compliance-percentage">88%</div>
+
+<!--                 <div class="compliance-score">4.6</div> -->
+                <!-- Removemos compliance-percentage ya que estará en el centro del gráfico -->
+              </div>
+            </div>
+          </v-col>
+
+          <!-- Center Section - Grado Cumplimiento -->
+          <v-col cols="12" md="2">
+            <div class="grado-section">
+              <div class="grado-header">
+                <v-icon class="grado-icon" color="info" size="24">mdi-information-outline</v-icon>
+                <h3 class="grado-title">Grado Cumplimiento</h3>
+              </div>
+              <div class="grado-value">
+                <h2 
+                  class="grado-cumplimiento" 
+                  :style="{ color: characteristic.color_grado || '#2c3e50' }" 
+                >
+                  {{ characteristic.cumplimiento || '0.0' }}
+                </h2>
+                <span class="grado-scale">/5.0</span>
               </div>
             </div>
           </v-col>
 
           <!-- Description Container -->
-          <v-col cols="12" md="7">
+          <v-col cols="12" md="5">
             <div class="description-container">
               <div class="description-header">
-                <v-icon class="description-icon mr-2" color="info">mdi-information-outline</v-icon>
-                <h3 class="description-title">Descripción del Factor</h3>
+                <v-icon class="description-icon mr-2" color="primary">mdi-text-box-outline</v-icon>
+                <h3 class="description-title">Descripción</h3>
               </div>
               <div class="description-content">
                 <p class="description-text">
-                  {{ currentFactorDescription }}
+                  {{ characteristic.descripcion || 'Descripción no disponible' }}
                 </p>
               </div>
               <div class="description-footer">
@@ -110,10 +126,10 @@
       <div class="evaluation-section">
         <div class="section-header">
           <v-icon class="section-icon mr-3" size="24" color="primary">mdi-clipboard-list-outline</v-icon>
-          <h3 class="section-title">Aspectos a Evaluar</h3>
+          <h3 class="section-title">Indicadores</h3>
           <v-spacer></v-spacer>
           <v-chip class="aspect-count-chip" color="primary" outlined small>
-            {{ aspectos.length }} Aspectos
+            {{ Object.keys(characteristic.indicadores).length }} Aspectos
           </v-chip>
         </div>
 
@@ -137,7 +153,7 @@
             </thead>
             <tbody>
               <tr
-                v-for="(item, index) in aspectos"
+                v-for="(item, index) in characteristic.indicadores"
                 :key="index"
                 class="table-row"
                 :class="{ 'row-even': index % 2 === 0 }"
@@ -145,7 +161,7 @@
                 <td class="aspect-cell">
                   <div class="aspect-content">
                     <div class="aspect-number">{{ index + 1 }}.</div>
-                    <div class="aspect-description">{{ item.descripcion }}</div>
+                    <div class="aspect-description">{{ item.nombre }}</div>
                   </div>
                 </td>
                 <td class="evidence-cell">
@@ -157,7 +173,7 @@
                     @click="viewEvidence(index)"
                   >
                     <v-icon left size="16">mdi-file-eye-outline</v-icon>
-                    Evidencia {{ index + 1 }}
+                    Evidencia {{ item.link_evidencia }}
                   </v-btn>
                 </td>
                 <td class="rating-cell">
@@ -337,6 +353,7 @@
 </template>
 
 <script>
+import axios from '../../plugins/Axios'
 import Chart from 'chart.js/auto'
 
 export default {
@@ -346,6 +363,8 @@ export default {
       selectedFactor: 1,
       showManageModal: false,
       activeTab: 0,
+      characteristicsId: 0,
+      characteristic: {},
       isAdmin: true, // Cambiar según el rol del usuario
       lastUpdate: '15 de Agosto, 2025',
 
@@ -355,15 +374,7 @@ export default {
         { id: 3, nombre: 'C.3 Participación en Actividades de Cooperación' }
       ],
 
-      aspectos: [
-        { descripcion: 'Articulación del Proyecto Educativo del Programa con el Proyecto Educativo Institucional...', calificacion: '4.5' },
-        { descripcion: 'Impacto de las políticas y estrategias de planeación y evaluación curricular...', calificacion: '4.8' },
-        { descripcion: 'Articulación de las tres funciones sustantivas en el proyecto educativo del programa', calificacion: '4.2' },
-        { descripcion: 'Evidencia de la evolución del Proyecto Educativo del Programa...', calificacion: '4.9' },
-        { descripcion: 'Impactos de la evolución del Proyecto Educativo del Programa...', calificacion: '4.6' }
-      ],
-
-      currentFactorDescription: 'La MGSI cuenta con un Proyecto Educativo acorde a los parámetros y estamentos de la UDFJC en cuanto a sus diferentes disciplinas definiendo sus objetivos de una forma específica y puntual para el buen desarrollo, cabe mencionar que la MGSI cuenta con una Buena transmisión de identidad tanto del programa como de la Universidad.',
+      aspectos: [],
       editableDescription: '',
       editableAspects: [],
       complianceChart: null
@@ -383,10 +394,6 @@ export default {
     }
   },
 
-  mounted () {
-    this.renderChart()
-  },
-
   beforeDestroy () {
     if (this.complianceChart) {
       this.complianceChart.destroy()
@@ -394,17 +401,28 @@ export default {
   },
 
   methods: {
-    renderChart () {
+    renderChart (percentage, color) {
       const ctx = document.getElementById('complianceChart')
+      console.log(color)
+      
+      // Destruir chart anterior si existe
+      if (this.complianceChart) {
+        this.complianceChart.destroy()
+      }
+
+      // Usar el percentage que viene como parámetro, no un valor fijo
+      const numericPercentage = parseFloat(percentage) || 0
+      const remaining = 100 - numericPercentage
+
       this.complianceChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
           labels: ['Cumplimiento', 'Restante'],
           datasets: [
             {
-              data: [88, 12],
-              backgroundColor: ['#4CAF50', '#E8F5E8'],
-              borderColor: ['#4CAF50', '#E8F5E8'],
+              data: [numericPercentage, remaining],
+              backgroundColor: [color, '#E8F5E8'],
+              borderColor: [color, '#E8F5E8'],
               borderWidth: 0,
               cutout: '75%'
             }
@@ -417,8 +435,69 @@ export default {
             legend: { display: false },
             tooltip: { enabled: false }
           }
-        }
+        },
+        plugins: [{
+          id: 'centerText',
+          beforeDraw: function(chart) {
+            const ctx = chart.ctx
+            const centerX = (chart.chartArea.left + chart.chartArea.right) / 2
+            const centerY = (chart.chartArea.top + chart.chartArea.bottom) / 2
+            
+            ctx.restore()
+            
+            // Configurar el texto principal - usar el percentage dinámico
+            const fontSize = Math.min(chart.width, chart.height) / 6
+            ctx.font = `bold ${fontSize}px Arial`
+            ctx.textAlign = 'center'
+            ctx.textBaseline = 'middle'
+            ctx.fillStyle = '#2c3e50'
+
+            // Mostrar el porcentaje dinámico con el símbolo %
+            const percentageText = `${Math.round(numericPercentage)}%`
+            ctx.fillText(percentageText, centerX, centerY)
+            
+            ctx.save()
+          }
+        }]
       })
+    },
+
+      async fetchCaracteristica () {
+      console.log(this.characteristicsId)
+      this.loading = true
+      this.error = null
+      
+      try {
+        const token = localStorage.getItem('access_token')
+        console.log('Making API request with token')
+
+        const response = await axios.get(`/characteristics/${this.characteristicsId}/`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        console.log('API response received Characteristics:', response.data)
+        this.characteristic = response.data
+        
+        // Esperar a que Vue termine de actualizar el DOM
+        await this.$nextTick()
+        
+        // Ahora renderizar el gráfico
+        this.renderChart(`${this.characteristic.porcentaje}`, `${this.characteristic.grado_cumplimiento.color}`)
+
+      } catch (error) {
+        console.error('Error fetching factors:', error)
+        
+        if (error.response?.status === 401) {
+          console.log('Token expired, clearing auth data')
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('user_data')
+          this.$router.push('/login')
+        }
+      } finally {
+        this.loading = false
+      }
     },
 
     toggleManageModal () {
@@ -465,6 +544,12 @@ export default {
         confirmButtonText: 'Continuar'
       })
     }
+  },
+    async mounted() {
+      this.characteristicsId = this.$route.params.caracteristicaId
+    await this.fetchCaracteristica()
+      
   }
 }
 </script>
+<style scoped lang="css"> @import '../../styles/dashboard_indicators.css'; </style>

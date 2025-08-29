@@ -1,42 +1,38 @@
 <template>
-  <div class="dashboard-features-container">
+  <div class="dashboard-characteristics-container">
     <div class="dashboard-content">
       <div class="dashboard-title-container">
-        <h2 class="dashboard-title">#1 Misión, Proyecto Institucional y de Programa</h2>
+        <h2 class="dashboard-title">{{this.title}}</h2>
       </div>
 
-      <div class="features-container">
-        <div class="features-grid">
+      <div class="characteristics-container">
+        <div class="characteristics-grid">
           <div
-            v-for="feature in features"
-            :key="feature.id"
-            class="feature-card"
-            :class="getFeatureClass(feature.estado)"
+            v-for="characteristic in characteristics"
+            :key="characteristic.id"
+            class="characteristic-card"
           >
-            <div class="feature-card-header">
-              <h3 class="feature-title">{{ feature.titulo }}</h3>
-              <div class="feature-actions">
-                <button @click="editarCaracteristica(feature)" class="icon-btn">
+            <div class="characteristic-card-header">
+              <h3 class="characteristic-title">{{ characteristic.nombre }}</h3>
+              <div class="characteristic-actions">
+                <button @click="editarCaracteristica(characteristic)" class="icon-btn">
                   ✏️
                 </button>
               </div>
-              <div class="feature-status">
-                <span :class="['status-indicator', feature.estado]">
-                  {{ feature.estadoTexto }}
+                <div class="characteristic-status">
+                  <span :style="{ fontWeight: 'bold' }">Grado Cumplimiento: {{ characteristic.cumplimiento }}</span><br>
+                <span :style="{ backgroundColor: characteristic.grado_cumplimiento.color }">
+                  {{ characteristic.grado_cumplimiento.descripcion }}
                 </span>
-              </div>
+              </div> 
             </div>
 
-            <div class="feature-card-body">
-              <ul class="feature-details">
-                <li v-for="detalle in feature.detalles" :key="detalle">
-                  {{ detalle }}
-                </li>
-              </ul>
+            <div class="characteristic-card-body">
+              {{characteristic.descripcion}}
             </div>
 
             <div class="feature-card-footer">
-              <button class="detail-button">
+              <button @click="mostrarDetalles(characteristic.id)" class="detail-button">
                 Detalles
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M9 18l6-6-6-6"/>
@@ -70,51 +66,21 @@
 </template>
 
 <script>
+import axios from '../../plugins/Axios'
+
 export default {
-  name: 'DashboardFeatures',
+  name: 'DashboardCharacteristics',
   props: {
     factorId: {
       type: [String, Number],
       required: true
     }
   },
+
   data () {
     return {
-      features: [
-        {
-          id: 1,
-          titulo: 'C1: Misión y Proyecto Institucional',
-          estado: 'verde',
-          estadoTexto: 'Cumplimiento',
-          detalles: [
-            'Coherencia con la misión institucional',
-            'Alineación con objetivos del programa',
-            'Documentación actualizada y clara'
-          ]
-        },
-        {
-          id: 2,
-          titulo: 'C2: Proyecto Educativo del Programa',
-          estado: 'verde',
-          estadoTexto: 'Cumplimiento',
-          detalles: [
-            'Definición clara de objetivos',
-            'Plan de estudios coherente',
-            'Metodologías de enseñanza innovadoras'
-          ]
-        },
-        {
-          id: 3,
-          titulo: 'C3: Relevancia Académica y Pertinencia',
-          estado: 'verde',
-          estadoTexto: 'Cumplimiento',
-          detalles: [
-            'Impacto del programa en el contexto',
-            'Líneas de investigación relevantes',
-            'Articulación con necesidades sociales'
-          ]
-        }
-      ],
+      characteristics: [],
+      title:"",
       nuevaCaracteristica: {
         titulo: '',
         detalles: []
@@ -139,14 +105,48 @@ export default {
         this.nuevoDetalle = ''
       }
     },
+    async fetchCaracteristica () {
+      
+      this.loading = true
+      this.error = null
+      
+      try {
+        const token = localStorage.getItem('access_token')
+        console.log('Making API request with token')
+
+        const response = await axios.get(`/factors/${this.factorId}/characteristics/`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        
+        console.log('API response received Characteristics:', response.data)
+        this.characteristics = response.data
+        // Procesar datos...
+        
+      } catch (error) {
+        console.error('Error fetching factors:', error)
+        
+        // Si es error 401, el token expiró
+        if (error.response?.status === 401) {
+          console.log('Token expired, clearing auth data')
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('user_data')
+          this.$router.push('/login')
+        }
+      } finally {
+        this.loading = false
+      }
+    },
     guardarCaracteristica () {
       if (!this.nuevaCaracteristica.titulo || this.nuevaCaracteristica.detalles.length === 0) return
 
       if (this.modoEdicion && this.indiceEdicion !== null) {
-        this.features[this.indiceEdicion].titulo = this.nuevaCaracteristica.titulo
-        this.features[this.indiceEdicion].detalles = [...this.nuevaCaracteristica.detalles]
+        this.characteristics[this.indiceEdicion].titulo = this.nuevaCaracteristica.titulo
+        this.characteristics[this.indiceEdicion].detalles = [...this.nuevaCaracteristica.detalles]
       } else {
-        this.features.push({
+        this.characteristics.push({
           id: Date.now(),
           titulo: this.nuevaCaracteristica.titulo,
           estado: 'verde',
@@ -163,7 +163,7 @@ export default {
         detalles: [...feature.detalles]
       }
       this.modoEdicion = true
-      this.indiceEdicion = this.features.findIndex(f => f.id === feature.id)
+      this.indiceEdicion = this.characteristics.findIndex(f => f.id === feature.id)
       this.mostrarModal = true
     },
     cerrarModal () {
@@ -172,12 +172,25 @@ export default {
       this.indiceEdicion = null
       this.nuevaCaracteristica = { titulo: '', detalles: [] }
       this.nuevoDetalle = ''
+    },
+    mostrarDetalles (caracteristicaId) {
+      console.log( caracteristicaId)
+            this.$router.push({
+        name: 'DashboardIndicators',
+        params: { caracteristicaId: caracteristicaId }
+      })
     }
   },
   created () {
     console.log('Factor ID:', this.factorId)
+  },
+  async mounted() {
+
+    this.title = this.$route.params.titulo
+    console.log(this.$route.params.factorId)
+    this.fetchCaracteristica()
   }
 }
 </script>
 
-<style scoped lang="css"> @import '../../styles/dashboard_features.css'; </style>
+<style scoped lang="css"> @import '../../styles/dashboard_characteristics.css'; </style>

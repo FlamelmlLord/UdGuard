@@ -11,21 +11,21 @@
             v-for="factor in factores"
             :key="factor.id"
             class="factor-card"
-            :class="getFactorClass(factor.estado)"
+            :class="getFactorClass(factor.estado.color)"
           >
-            <div class="factor-card-header">
-              <h3 class="factor-title">{{ factor.titulo }}</h3>
-              <div class="factor-status">
-                <span :class="['status-indicator', factor.estado]">
-                  {{ factor.estadoTexto }}
+            <div class="factor-card-header" >
+              <h3 class="factor-title">{{ factor.nombre }}</h3>
+              <div class="factor-status" :style="{ backgroundColor: factor.estado.color }">
+                <span :class="['status-indicator']">
+                  {{ factor.estado.descripcion }}
                 </span>
               </div>
             </div>
 
             <div class="factor-card-body">
               <ul class="factor-details">
-                <li v-for="alerta in factor.alertas" :key="alerta">
-                  {{ alerta }}
+                <li v-for="alerta in factor.caracteristicas" :key="alerta.nombre">
+                  {{ alerta.nombre }}
                 </li>
               </ul>
             </div>
@@ -33,7 +33,7 @@
             <div class="factor-card-footer">
               <button
                 class="view-button"
-                @click="navigateToDashboardFeatures(factor)"
+                @click="navigateToDashboardCharacteristics(factor)"
               >
                 Ver
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -57,17 +57,7 @@ export default {
   data() {
     return {
       factores: [
-        {
-          id: 1,
-          titulo: '#1 Misión, Proyecto Institucional y de Programa',
-          estado: 'verde',
-          estadoTexto: 'Cumplimiento',
-          alertas: [
-            'C1: Misión y Proyecto Institucional',
-            'C2: Proyecto Educativo del Programa',
-            'C3: Relevancia Académica y Pertinencia'
-          ]
-        }
+
       ],
       loading: false,
       error: null
@@ -103,7 +93,8 @@ export default {
           }
         })
         
-        console.log('API response received:', response.data)
+        console.log('API response received Factors:', response.data)
+        this.factores = response.data
         // Procesar datos...
         
       } catch (error) {
@@ -130,21 +121,22 @@ export default {
       }[estado]
     },
 
-    navigateToDashboardFeatures (factor) {
+    navigateToDashboardCharacteristics (factor) {
       this.$router.push({
-        name: 'DashboardFeatures',
-        params: { factorId: factor.id }
+        name: 'DashboardCharacteristics',
+        params: { factorId: factor.id, titulo:factor.nombre }
       })
     }
   },
 
   // Verificar autenticación al montar el componente
   async mounted() {
+
     console.log('DashboardFacts mounted')
     
     if (this.checkAuthentication()) {
       console.log('User authenticated, loading data')
-      // await this.fetchFactores() // Descomenta cuando quieras usar la API
+      await this.fetchFactores() // Descomenta cuando quieras usar la API
     }
   }
 }

@@ -30,14 +30,14 @@ const routes: Array<RouteConfig> = [
       },
       {
         path: 'facts/:factorId/characteristics',
-        name: 'DashboardFeatures',
-        component: () => import('@/components/Dashboard/DashboardFeatures.vue'),
+        name: 'DashboardCharacteristics',
+        component: () => import('@/components/Dashboard/DashboardCharacteristics.vue'),
         props: true
       },
       {
         path: 'Cumplimiento',
-        name: 'DashboardGraphs',
-        component: () => import('@/components/Dashboard/DashboardGraphs.vue') // 👈 Aquí se añade la nueva ruta
+        name: 'DashboardIndicators',
+        component: () => import('@/components/Dashboard/DashboardIndicators.vue') // 👈 Aquí se añade la nueva ruta
       },
       {
         path: 'users',
