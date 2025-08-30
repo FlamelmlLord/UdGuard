@@ -35,8 +35,9 @@ const routes: Array<RouteConfig> = [
         props: true
       },
       {
-        path: 'Cumplimiento',
+        path: 'Cumplimiento/:caracteristicaId',
         name: 'DashboardIndicators',
+        props: true,
         component: () => import('@/components/Dashboard/DashboardIndicators.vue') // 👈 Aquí se añade la nueva ruta
       },
       {

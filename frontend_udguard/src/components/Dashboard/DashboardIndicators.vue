@@ -22,7 +22,8 @@
                 :items="factors"
                 item-text="nombre"
                 item-value="id"
-                label="Seleccionar Factor"
+                label="Seleccionar Caracteristica"
+                @change="navigateToCharacteristic(selectedFactor)"
                 outlined
                 dense
                 class="factor-select"
@@ -369,9 +370,7 @@ export default {
       lastUpdate: '15 de Agosto, 2025',
 
       factors: [
-        { id: 1, nombre: 'C.1 Proyecto Educativo del Programa' },
-        { id: 2, nombre: 'C.2 Relevancia Académica y Pertinencia Social' },
-        { id: 3, nombre: 'C.3 Participación en Actividades de Cooperación' }
+
       ],
 
       aspectos: [],
@@ -461,7 +460,22 @@ export default {
         }]
       })
     },
-
+    navigateToCharacteristic(caracteristicaId) {
+      this.$router.replace({
+        name: 'DashboardIndicators',
+        params: { caracteristicaId }
+      }).catch(err => { console.log(err) });
+    },
+      async characteristicsByFactor(factor) {
+        const token = localStorage.getItem('access_token')
+        const response = await axios.get(`/factors/${factor}/characteristics/`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        console.log('API response received Characteristics by factor:', response.data)
+        this.factors = response.data
+      },
       async fetchCaracteristica () {
       console.log(this.characteristicsId)
       this.loading = true
@@ -478,7 +492,9 @@ export default {
         })
         console.log('API response received Characteristics:', response.data)
         this.characteristic = response.data
-        
+
+        await this.characteristicsByFactor(response.data.factors)
+
         // Esperar a que Vue termine de actualizar el DOM
         await this.$nextTick()
         
@@ -546,6 +562,7 @@ export default {
     }
   },
     async mounted() {
+      console.log(this.$route.params.caracteristicaId)
       this.characteristicsId = this.$route.params.caracteristicaId
     await this.fetchCaracteristica()
       
