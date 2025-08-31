@@ -1,21 +1,156 @@
 :root {
-    /* Light mode colors */
-    --bg-primary: #ffffff;
-    --bg-secondary: #f4f6f9;
-    --text-primary: #09090A;
-    --text-secondary: #666666;
-  }
-  
-  .dark-mode {
-    /* Dark mode colors */
-    --bg-primary: #121212;
-    --bg-secondary: #1E1E1E;
-    --text-primary: #FFFFFF;
-    --text-secondary: #B0B0B0;
-  }
-  
-  /* Apply dark mode to body or specific elements */
-  body.dark-mode {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-  }
+  /* Light mode colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f6f9;
+  --text-primary: #09090A;
+  --text-secondary: #666666;
+  --card-bg: #fff;
+  --card-border: #e5e7eb;
+  --btn-primary-bg: #38bdf8;
+  --btn-primary-text: #fff;
+  --btn-secondary-bg: #e0e7ef;
+  --btn-secondary-text: #22223b;
+  --modal-bg: #fff;
+  --input-bg: #f4f6f9;
+  --input-text: #09090A;
+  --calendar-bg: #fff;
+}
+
+.dark-mode {
+  /* Dark mode colors */
+  --bg-primary: #121212;
+  --bg-secondary: #1E1E1E;
+  --text-primary: #FFFFFF;
+  --text-secondary: #B0B0B0;
+  --card-bg: #181C23;
+  --card-border: #23272f;
+  --btn-primary-bg: #38bdf8;
+  --btn-primary-text: #181C23;
+  --btn-secondary-bg: #23272f;
+  --btn-secondary-text: #fff;
+  --modal-bg: #23272f;
+  --input-bg: #23272f;
+  --input-text: #fff;
+  --calendar-bg: #181C23;
+}
+
+/* Apply dark mode to body or specific elements */
+body.dark-mode {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Aplica a body y todos los elementos */
+body, .dashboard-container, .main-grid, .calendar-panel, .info-panel, .event-counters, .event-counter-card, .info-carousel-modern, .modal-content, .event-form, .events-list, .events-table, .event-item, .slide-overlay-modern {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.event-counter-card, .info-carousel-modern, .modal-content, .event-form, .events-list, .events-table, .event-item {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+}
+
+input, textarea, select {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--card-border) !important;
+}
+
+.btn-primary {
+  background: var(--btn-primary-bg) !important;
+  color: var(--btn-primary-text) !important;
+}
+
+.btn-secondary {
+  background: var(--btn-secondary-bg) !important;
+  color: var(--btn-secondary-text) !important;
+}
+
+.slide-overlay-modern {
+  background: linear-gradient(0deg, rgba(30,41,59,0.85) 70%, rgba(30,41,59,0.1) 100%) !important;
+  color: #fff !important;
+}
+
+body.dark-mode,
+.dark-mode {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .dashboard-header,
+body.dark-mode .calendar-panel,
+body.dark-mode .main-grid,
+body.dark-mode .info-panel,
+body.dark-mode .event-counters,
+body.dark-mode .event-counter-card,
+body.dark-mode .info-carousel-modern,
+body.dark-mode .modal-content,
+body.dark-mode .event-form,
+body.dark-mode .events-list,
+body.dark-mode .events-table,
+body.dark-mode .event-item,
+body.dark-mode .slide-overlay-modern {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+body.dark-mode .event-counter-card,
+body.dark-mode .info-carousel-modern,
+body.dark-mode .modal-content,
+body.dark-mode .event-form,
+body.dark-mode .events-list,
+body.dark-mode .events-table,
+body.dark-mode .event-item {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+}
+
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+  background: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--card-border) !important;
+}
+
+body.dark-mode .btn-primary {
+  background: linear-gradient(135deg, #46AFEA 0%, #134367 50%, #0D2B44 100%) !important;
+  color: #fff !important;
+}
+
+body.dark-mode .btn-secondary {
+  background: var(--btn-secondary-bg) !important;
+  color: var(--btn-secondary-text) !important;
+}
+
+/* FullCalendar dark mode */
+body.dark-mode .fc {
+  background: var(--calendar-bg) !important;
+  color: var(--text-primary) !important;
+}
+body.dark-mode .fc-daygrid-day,
+body.dark-mode .fc-scrollgrid,
+body.dark-mode .fc-col-header-cell,
+body.dark-mode .fc-daygrid-day-number {
+  background: var(--calendar-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--card-border) !important;
+}
+body.dark-mode .fc-toolbar-title,
+body.dark-mode .fc-button,
+body.dark-mode .fc-button-primary {
+  color: var(--text-primary) !important;
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+}
+body.dark-mode .fc-button-primary:not(:disabled):hover {
+  background: #134367 !important;
+  color: #fff !important;
+}
+body.dark-mode .fc-day-today {
+  background: rgba(70,175,234,0.12) !important;
+}
+body.dark-mode .fc-event {
+  color: #fff !important;
+}

@@ -1,27 +1,44 @@
 <template>
   <div class="dashboard-facts-container">
-    <div class="dashboard-content">
-      <div class="dashboard-title-container">
-        <h2 class="dashboard-title">Gestor de Factores</h2>
+    <div class="dashboard-header-factores">
+      <div class="dashboard-header-content">
+        <svg class="dashboard-header-icon" width="38" height="38" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="#46AFEA" stroke-width="2"/>
+          <path d="M8 12l2 2 4-4" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div>
+          <h2 class="dashboard-title">Gestor de Factores</h2>
+          <p class="dashboard-subtitle">
+            Visualiza y gestiona el estado de los factores clave del programa. Haz clic en <b>Ver</b> para profundizar en cada uno.
+          </p>
+        </div>
       </div>
-
+    </div>
+    <div class="dashboard-content">
       <div class="factores-container">
         <div class="factores-grid">
           <div
             v-for="factor in factores"
             :key="factor.id"
             class="factor-card"
-            :class="getFactorClass(factor.estado.color)"
           >
-            <div class="factor-card-header" >
+            <div class="factor-card-header">
               <h3 class="factor-title">{{ factor.nombre }}</h3>
-              <div class="factor-status" :style="{ backgroundColor: factor.estado.color }">
-                <span :class="['status-indicator']">
-                  {{ factor.estado.descripcion }}
+              <div
+                class="factor-status"
+                :class="{
+                  'status-green': getEstadoColor(factor).label === 'Alto',
+                  'status-yellow': getEstadoColor(factor).label === 'Medio',
+                  'status-red': getEstadoColor(factor).label === 'Bajo',
+                  'status-gray': getEstadoColor(factor).label === 'Sin datos'
+                }"
+                :title="getEstadoColor(factor).label"
+              >
+                <span class="status-indicator">
+                  {{ getEstadoColor(factor).label }}
                 </span>
               </div>
             </div>
-
             <div class="factor-card-body">
               <ul class="factor-details">
                 <li v-for="alerta in factor.caracteristicas" :key="alerta.nombre">
@@ -29,7 +46,6 @@
                 </li>
               </ul>
             </div>
-
             <div class="factor-card-footer">
               <button
                 class="view-button"
@@ -119,6 +135,22 @@ export default {
         amarillo: 'factor-card--amarillo',
         rojo: 'factor-card--rojo'
       }[estado]
+    },
+
+    getEstadoColor(factor) {
+      // Si no hay características, estado gris
+      if (!factor.caracteristicas || factor.caracteristicas.length === 0) {
+        return { color: '#6b7280', label: 'Sin datos' }
+      }
+      // Calcula el promedio de cumplimiento
+      const promedios = factor.caracteristicas
+        .map(c => Number(c.cumplimiento))
+        .filter(v => !isNaN(v))
+      if (promedios.length === 0) return { color: '#6b7280', label: 'Sin datos' }
+      const promedio = promedios.reduce((a, b) => a + b, 0) / promedios.length
+      if (promedio >= 4) return { color: '#22c55e', label: 'Alto' }// Verde
+      if (promedio >= 3) return { color: '#eab308', label: 'Medio' }// Amarillo
+      return { color: '#ef4444', label: 'Bajo' }// Rojo
     },
 
     navigateToDashboardCharacteristics (factor) {
