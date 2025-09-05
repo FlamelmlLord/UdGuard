@@ -33,6 +33,23 @@ class FactorsCreateListViewSet(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def patch(self, request):
+        tipo = request.user.tipo_user
+        if tipo != "admin":
+            return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
+
+        factor_id = request.data.get("id")
+        if not factor_id:
+            return Response({"error": "Debe enviar el id del factor a actualizar"}, status=status.HTTP_400_BAD_REQUEST)
+
+        factor = get_object_or_404(Factors, pk=factor_id)
+        factor.nombre = request.data.get("nombre", factor.nombre)
+        factor.descripcion = request.data.get("descripcion", factor.descripcion)
+        factor.save(update_fields=["nombre", "descripcion"])
+
+        log_action(factor, "update", request.user)
+
+        return Response({"message": "Factor actualizado correctamente"}, status=status.HTTP_200_OK)
 
 class FactorsListCreateCharacteristicsViewSet(APIView):
     permission_classes = [IsAuthenticated]
@@ -111,7 +128,18 @@ class CharacteristicListUpdateViewSet(APIView):
         caracteristica.save()
         serializer = CharacteristicsSerializer(caracteristica)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    def delete(self, request, caracteristica_id):
+        tipo = request.user.tipo_user
+        if tipo != "admin":
+            return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
 
+        caracteristica = get_object_or_404(Characteristics, pk=caracteristica_id)
+        caracteristica.delete()
+
+        return Response(
+            {"message": "Característica e indicadores eliminados"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
 class IndicatorCreateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -216,6 +244,7 @@ def calcular_porcentaje_desde_grado(
     porcentaje = ((grado_numerico - min_puntaje) / (max_puntaje - min_puntaje)) * 100
     return round(porcentaje, 1)
 
+# Actualiza la función characteristic_status para incluir los totales calculados
 def characteristic_status(caracteristica):
     indicators = Indicator.objects.filter(caracteristica=caracteristica)
 
@@ -225,8 +254,15 @@ def characteristic_status(caracteristica):
             i.calificacion for i in indicators if i.calificacion is not None
         ]
         promedio = sum(calificaciones) / len(calificaciones) if calificaciones else 0
+        
+        # ⭐ AGREGAR CÁLCULOS DE TOTALES (igual que en factores)
+        total_metas = sum(i.meta for i in indicators if i.meta is not None)
+        total_puntajes = sum(i.puntos for i in indicators if i.calificacion is not None and i.ponderacion is not None)
+        
     else:
         promedio = 0
+        total_metas = 0
+        total_puntajes = 0
 
     caracteristica_data = CharacteristicsSerializer(caracteristica).data
 
@@ -237,5 +273,10 @@ def characteristic_status(caracteristica):
     caracteristica_data["grado_cumplimiento"] = get_grado_cumplimiento(
         caracteristica_data["cumplimiento"]
     )
+    
+    # ⭐ AGREGAR TOTALES A LA RESPUESTA (igual que en factores)
+    caracteristica_data["total_metas"] = total_metas
+    caracteristica_data["total_puntajes"] = total_puntajes
+    caracteristica_data["cantidad_indicadores"] = indicators.count()
 
     return caracteristica_data

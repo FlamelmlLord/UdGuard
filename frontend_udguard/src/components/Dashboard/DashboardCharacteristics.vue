@@ -41,23 +41,68 @@
                   <div class="characteristic-card-header">
                     <div>
                       <h3 class="characteristic-title">{{ characteristic.nombre }}</h3>
-                      <div class="characteristic-status">
-                        <span>Grado Cumplimiento: {{ characteristic.cumplimiento }}</span><br>
-                        <span :style="{ backgroundColor: characteristic.grado_cumplimiento?.color || '#6b7280' }">
-                          {{ characteristic.grado_cumplimiento?.descripcion || 'Sin evaluar' }}
-                        </span>
+                      
+                      <!-- ⭐ SECCIÓN ACTUALIZADA CON TOTALES -->
+                      <div class="characteristic-metrics">
+                        <div class="metrics-row">
+                          <span class="metric-label">Grado Cumplimiento:</span>
+                          <span class="metric-value">{{ characteristic.cumplimiento || '0.0' }}</span>
+                        </div>
+                        
+                        <div class="metrics-row">
+                          <span class="metric-label">Total Metas:</span>
+                          <span class="metric-value total-metas">{{ characteristic.total_metas || 0 }}</span>
+                        </div>
+                        
+                        <div class="metrics-row">
+                          <span class="metric-label">Total Puntajes:</span>
+                          <span class="metric-value total-puntajes">{{ characteristic.total_puntajes || 0 }}</span>
+                        </div>
+                        
+                        <div class="metrics-row">
+                          <span class="metric-label">Indicadores:</span>
+                          <span class="metric-value indicadores-count">{{ characteristic.cantidad_indicadores || 0 }}</span>
+                        </div>
+                        
+                        <!-- Badge de estado -->
+                        <div class="status-badge-container">
+                          <span 
+                            class="status-badge"
+                            :style="{ 
+                              backgroundColor: characteristic.grado_cumplimiento?.color || '#6b7280',
+                              color: 'white'
+                            }"
+                          >
+                            {{ characteristic.grado_cumplimiento?.grado || 'N/A' }} - 
+                            {{ characteristic.grado_cumplimiento?.descripcion || 'Sin evaluar' }}
+                          </span>
+                        </div>
                       </div>
                     </div>
                     
                     <div class="characteristic-actions">
                       <button 
                         @click="editarCaracteristica(characteristic)" 
-                        class="icon-btn"
+                        class="icon-btn edit-btn"
                         title="Editar característica"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      </button>
+                      
+                      <!-- ⭐ NUEVO BOTÓN ELIMINAR -->
+                      <button 
+                        @click="confirmarEliminarCaracteristica(characteristic)" 
+                        class="icon-btn delete-btn"
+                        title="Eliminar característica"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="3,6 5,6 21,6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          <line x1="10" y1="11" x2="10" y2="17"/>
+                          <line x1="14" y1="11" x2="14" y2="17"/>
                         </svg>
                       </button>
                     </div>
@@ -97,55 +142,160 @@
       </div>
     </div>
 
-    <!-- Modal para agregar/editar característica -->
+    <!-- Modal para agregar/editar característica simplificado -->
     <div class="modal" v-if="mostrarModal" @click.self="cerrarModal">
       <div class="modal-content">
-        <h3>{{ modoEdicion ? 'Editar Característica' : 'Agregar Característica' }}</h3>
+        <div class="modal-header">
+          <h3>{{ modoEdicion ? 'Editar Característica' : 'Agregar Nueva Característica' }}</h3>
+          <button @click="cerrarModal" class="close-btn" title="Cerrar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
         
-        <input 
-          v-model="nuevaCaracteristica.titulo" 
-          placeholder="Título de la característica" 
-          class="input"
-          @keypress.enter="$event.target.blur()"
-        />
-        
-        <textarea 
-          v-model="nuevoDetalle" 
-          placeholder="Agregar detalle descriptivo" 
-          class="input textarea-input"
-          @keypress.ctrl.enter="agregarDetalle"
-        ></textarea>
-        
-        <button @click="agregarDetalle" class="add-detail-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          Agregar Detalle
-        </button>
-        
-        <ul class="feature-details" v-if="nuevaCaracteristica.detalles.length > 0">
-          <li v-for="(detalle, index) in nuevaCaracteristica.detalles" :key="index">
-            <span class="detail-text">{{ detalle }}</span>
-            <button 
-              @click="eliminarDetalle(index)"
-              class="delete-detail-btn"
-              title="Eliminar detalle"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
+        <div class="modal-body">
+          <!-- Campo nombre -->
+          <div class="form-section">
+            <label class="form-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
               </svg>
-            </button>
-          </li>
-        </ul>
+              Nombre de la Característica *
+            </label>
+            <input 
+              v-model="nuevaCaracteristica.titulo" 
+              placeholder="Ej: Misión y Visión Institucional" 
+              class="input"
+              @keypress.enter="$event.target.blur()"
+              maxlength="200"
+            />
+            <div class="input-counter">
+              {{ nuevaCaracteristica.titulo.length }}/200 caracteres
+            </div>
+          </div>
+          
+          <!-- Campo descripción -->
+          <div class="form-section">
+            <label class="form-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10,9 9,9 8,9"/>
+              </svg>
+              Descripción de la Característica *
+            </label>
+            <textarea 
+              v-model="nuevaCaracteristica.descripcion" 
+              placeholder="Describa detalladamente esta característica..." 
+              class="input textarea-input"
+              rows="6"
+              maxlength="1000"
+            ></textarea>
+            <div class="input-counter">
+              {{ (nuevaCaracteristica.descripcion || '').length }}/1000 caracteres
+            </div>
+          </div>
+        </div>
         
         <div class="modal-footer">
-          <button @click="guardarCaracteristica" class="add-btn primary">
-            {{ modoEdicion ? '💾 Guardar Cambios' : '➕ Agregar' }}
+          <button @click="cerrarModal" class="cancel-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Cancelar
           </button>
-          <button @click="cerrarModal" class="add-btn">
-            ✕ Cancelar
+          <button 
+            @click="guardarCaracteristica" 
+            class="save-btn primary"
+            :disabled="!nuevaCaracteristica.titulo.trim() || !nuevaCaracteristica.descripcion?.trim()"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17,21 17,13 7,13 7,21"/>
+              <polyline points="7,3 7,8 15,8"/>
+            </svg>
+            {{ modoEdicion ? 'Guardar Cambios' : 'Crear Característica' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🗑️ MODAL CONFIRMAR ELIMINACIÓN DE CARACTERÍSTICA -->
+    <div class="modal" v-if="mostrarModalEliminar" @click.self="cerrarModalEliminar">
+      <div class="modal-content delete-modal">
+        <div class="modal-header delete-header">
+          <h3>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            Confirmar Eliminación
+          </h3>
+          <button @click="cerrarModalEliminar" class="close-btn" title="Cerrar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="warning-content">
+            <div class="warning-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            
+            <h4>¿Estás seguro?</h4>
+            
+            <p class="warning-text">
+              ¿Deseas eliminar la característica 
+              <strong>"{{ caracteristicaAEliminar?.nombre }}"</strong>?
+            </p>
+            
+            <div v-if="caracteristicaAEliminar?.cantidad_indicadores > 0" class="danger-warning">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <span>
+                Esta característica tiene <strong>{{ caracteristicaAEliminar?.cantidad_indicadores }} indicador(es)</strong> 
+                que también serán eliminados permanentemente.
+              </span>
+            </div>
+            
+            <p class="warning-final">
+              <strong>Esta acción no se puede deshacer.</strong>
+            </p>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button @click="cerrarModalEliminar" class="cancel-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Cancelar
+          </button>
+          <button @click="eliminarCaracteristica" class="delete-btn-confirm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3,6 5,6 21,6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              <line x1="10" y1="11" x2="10" y2="17"/>
+              <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+            Eliminar Permanentemente
           </button>
         </div>
       </div>
@@ -173,12 +323,24 @@ export default {
       error: null,
       nuevaCaracteristica: {
         titulo: '',
-        detalles: []
+        descripcion: ''
       },
-      nuevoDetalle: '',
       mostrarModal: false,
       modoEdicion: false,
-      indiceEdicion: null
+      indiceEdicion: null,
+      
+      // ⭐ NUEVAS VARIABLES PARA ELIMINACIÓN
+      mostrarModalEliminar: false,
+      caracteristicaAEliminar: null
+    }
+  },
+
+  computed: {
+    // Helper para formatear números a 1 decimal
+    formatDecimal() {
+      return (value) => {
+        return parseFloat(value || 0).toFixed(1)
+      }
     }
   },
 
@@ -230,19 +392,6 @@ export default {
       }
     },
 
-    // Método para agregar detalle
-    agregarDetalle() {
-      if (this.nuevoDetalle.trim() !== '') {
-        this.nuevaCaracteristica.detalles.push(this.nuevoDetalle.trim());
-        this.nuevoDetalle = '';
-      }
-    },
-
-    // Método para eliminar detalle
-    eliminarDetalle(index) {
-      this.nuevaCaracteristica.detalles.splice(index, 1);
-    },
-
     // Método para obtener características del API
     async fetchCaracteristica() {
       this.loading = true;
@@ -250,7 +399,7 @@ export default {
       
       try {
         const token = localStorage.getItem('access_token');
-        console.log('Making API request with token');
+        console.log('Fetching characteristics for factor:', this.factorId);
 
         const response = await axios.get(`/factors/${this.factorId}/characteristics/`, {
           headers: {
@@ -258,14 +407,21 @@ export default {
           }
         });
         
-        console.log('API response received Characteristics:', response.data);
+        console.log('Characteristics updated after operation:', response.data);
         this.characteristics = response.data;
+        
+        // ⭐ LOG PARA VERIFICAR DATOS DESPUÉS DE ELIMINACIÓN
+        console.log('Características actuales:', this.characteristics.map(c => ({
+          id: c.id,
+          nombre: c.nombre,
+          indicadores: c.cantidad_indicadores,
+          cumplimiento: c.cumplimiento
+        })));
         
       } catch (error) {
         console.error('Error fetching characteristics:', error);
         this.error = 'Error al cargar las características';
         
-        // Si es error 401, el token expiró
         if (error.response?.status === 401) {
           console.log('Token expired, clearing auth data');
           localStorage.removeItem('access_token');
@@ -280,8 +436,23 @@ export default {
 
     // Método para guardar característica
     async guardarCaracteristica() {
-      if (!this.nuevaCaracteristica.titulo || this.nuevaCaracteristica.detalles.length === 0) {
-        alert('Por favor completa todos los campos requeridos');
+      if (!this.nuevaCaracteristica.titulo.trim()) {
+        this.$swal({
+          title: 'Error',
+          text: 'El nombre de la característica es requerido.',
+          icon: 'warning',
+          confirmButtonText: 'Continuar'
+        });
+        return;
+      }
+
+      if (!this.nuevaCaracteristica.descripcion?.trim()) {
+        this.$swal({
+          title: 'Error',
+          text: 'La descripción de la característica es requerida.',
+          icon: 'warning',
+          confirmButtonText: 'Continuar'
+        });
         return;
       }
 
@@ -289,44 +460,92 @@ export default {
         const token = localStorage.getItem('access_token');
         
         if (this.modoEdicion && this.indiceEdicion !== null) {
-          // Actualizar característica existente
+          // ⭐ ACTUALIZAR CARACTERÍSTICA EXISTENTE
           const characteristic = this.characteristics[this.indiceEdicion];
-          const response = await axios.put(
-            `/factors/${this.factorId}/characteristics/${characteristic.id}/`,
+          const response = await axios.patch(
+            `/characteristics/${characteristic.id}/`,
             {
-              nombre: this.nuevaCaracteristica.titulo,
-              descripcion: this.nuevaCaracteristica.detalles.join('. ')
+              nombre: this.nuevaCaracteristica.titulo.trim(),
+              descripcion: this.nuevaCaracteristica.descripcion.trim() // ⭐ Usar descripcion directamente
             },
             {
               headers: {
-                Authorization: `Bearer ${token}`
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
               }
             }
           );
           
-          this.characteristics[this.indiceEdicion] = response.data;
+          console.log('Characteristic updated:', response.data);
+
+          // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE ACTUALIZAR
+          await this.fetchCaracteristica();
+
+          this.$swal({
+            title: '¡Característica Actualizada!',
+            text: 'La característica se ha actualizado correctamente.',
+            icon: 'success',
+            confirmButtonText: 'Continuar'
+          });
+          
         } else {
-          // Crear nueva característica
+          // ⭐ CREAR NUEVA CARACTERÍSTICA
           const response = await axios.post(
             `/factors/${this.factorId}/characteristics/`,
             {
-              nombre: this.nuevaCaracteristica.titulo,
-              descripcion: this.nuevaCaracteristica.detalles.join('. ')
+              nombre: this.nuevaCaracteristica.titulo.trim(),
+              descripcion: this.nuevaCaracteristica.descripcion.trim() // ⭐ Usar descripcion directamente
             },
             {
               headers: {
-                Authorization: `Bearer ${token}`
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
               }
             }
           );
           
-          this.characteristics.push(response.data);
+          console.log('New characteristic created:', response.data);
+
+          // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE CREAR
+          await this.fetchCaracteristica();
+
+          this.$swal({
+            title: '¡Característica Creada!',
+            text: 'La nueva característica se ha agregado correctamente.',
+            icon: 'success',
+            confirmButtonText: 'Continuar'
+          });
         }
 
         this.cerrarModal();
+
       } catch (error) {
         console.error('Error saving characteristic:', error);
-        alert('Error al guardar la característica');
+        
+        let errorMessage = 'Error al guardar la característica.';
+        
+        if (error.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user_data');
+          this.$router.push('/login');
+        } else if (error.response?.status === 403) {
+          errorMessage = 'No tienes permisos para realizar esta acción.';
+        } else if (error.response?.status === 400) {
+          errorMessage = 'Datos inválidos. Verifique que el nombre no esté duplicado.';
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        }
+
+        this.$swal({
+          title: 'Error',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Continuar'
+        });
       }
     },
 
@@ -334,7 +553,7 @@ export default {
     editarCaracteristica(characteristic) {
       this.nuevaCaracteristica = {
         titulo: characteristic.nombre || characteristic.titulo,
-        detalles: characteristic.descripcion ? [characteristic.descripcion] : []
+        descripcion: characteristic.descripcion || '' // ⭐ Usar descripcion directamente
       };
       this.modoEdicion = true;
       this.indiceEdicion = this.characteristics.findIndex(c => c.id === characteristic.id);
@@ -346,8 +565,10 @@ export default {
       this.mostrarModal = false;
       this.modoEdicion = false;
       this.indiceEdicion = null;
-      this.nuevaCaracteristica = { titulo: '', detalles: [] };
-      this.nuevoDetalle = '';
+      this.nuevaCaracteristica = { 
+        titulo: '', 
+        descripcion: '' // ⭐ Cambiar detalles por descripcion
+      };
     },
 
     // Método para mostrar detalles
@@ -360,6 +581,92 @@ export default {
           factorId: this.factorId
         }
       });
+    },
+
+    // Método para confirmar eliminación de característica
+    confirmarEliminarCaracteristica(characteristic) {
+      this.caracteristicaAEliminar = characteristic;
+      this.mostrarModalEliminar = true;
+      
+      console.log('Preparando eliminación de característica:', {
+        id: characteristic.id,
+        nombre: characteristic.nombre,
+        indicadores: characteristic.cantidad_indicadores
+      });
+    },
+
+    // Método para cerrar modal de eliminación
+    cerrarModalEliminar() {
+      this.mostrarModalEliminar = false;
+      this.caracteristicaAEliminar = null;
+    },
+
+    // Método para eliminar característica
+    async eliminarCaracteristica() {
+      if (!this.caracteristicaAEliminar) {
+        return;
+      }
+      
+      try {
+        const token = localStorage.getItem('access_token');
+        const characteristicId = this.caracteristicaAEliminar.id;
+        
+        console.log('Eliminando característica con ID:', characteristicId);
+
+        // ⭐ ELIMINAR DEL BACKEND
+        await axios.delete(
+          `/characteristics/${characteristicId}/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        console.log('Characteristic deleted from server successfully');
+
+        // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE ELIMINAR
+        await this.fetchCaracteristica();
+        
+        this.$swal({
+          title: '¡Característica Eliminada!',
+          text: `La característica "${this.caracteristicaAEliminar.nombre}" se ha eliminado correctamente.`,
+          icon: 'success',
+          confirmButtonText: 'Continuar'
+        });
+
+        this.cerrarModalEliminar();
+        
+      } catch (error) {
+        console.error('Error deleting characteristic:', error);
+        
+        let errorMessage = 'Error al eliminar la característica.';
+        
+        if (error.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user_data');
+          this.$router.push('/login');
+        } else if (error.response?.status === 403) {
+          errorMessage = 'No tienes permisos para realizar esta acción.';
+        } else if (error.response?.status === 404) {
+          errorMessage = 'La característica no fue encontrada.';
+        } else if (error.response?.status === 409) {
+          errorMessage = 'No se puede eliminar la característica porque tiene dependencias.';
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        }
+
+        this.$swal({
+          title: 'Error',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Continuar'
+        });
+      }
     }
   },
 

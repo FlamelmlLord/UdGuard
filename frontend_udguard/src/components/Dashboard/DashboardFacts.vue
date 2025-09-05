@@ -44,26 +44,73 @@
             >
               <div class="factor-card-header">
                 <h3 class="factor-title">{{ factor.nombre }}</h3>
+                
+                <!-- ⭐ AGREGAR BOTÓN EDITAR FACTOR -->
+                <div class="factor-actions">
+                  <button 
+                    @click="editarFactor(factor)" 
+                    class="icon-btn edit-btn"
+                    title="Editar factor"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                </div>
+                
+                <!-- MANTENER LA ESTRUCTURA ORIGINAL DEL COLOR QUE FUNCIONABA -->
                 <div
                   class="factor-status"
-                  :class="getEstadoColorClass(factor)"
-                  :title="`${getEstadoColor(factor).label} - Promedio: ${getPromedioCumplimiento(factor).toFixed(1)}`"
+                  :style="{ backgroundColor: getEstadoColor(factor).color || '#6b7280' }"
+                  :title="`${getEstadoColor(factor).label} - Promedio: ${factor.estado?.promedio || factor.cumplimiento || 0}`"
                 >
                   <span class="status-indicator">
                     {{ getEstadoColor(factor).label }}
                   </span>
                   <span v-if="factor.caracteristicas && factor.caracteristicas.length > 0" class="status-score">
-                    {{ getPromedioCumplimiento(factor).toFixed(1) }}
+                    {{ factor.estado?.promedio || parseFloat(factor.cumplimiento || 0).toFixed(1) }}
                   </span>
                 </div>
               </div>
               
               <div class="factor-card-body">
-                <ul class="factor-details" v-if="factor.caracteristicas && factor.caracteristicas.length > 0">
-                  <li v-for="caracteristica in factor.caracteristicas" :key="caracteristica.nombre">
-                    {{ caracteristica.nombre }}
-                  </li>
-                </ul>
+                <!-- ⭐ AGREGAR LAS NUEVAS MÉTRICAS DEBAJO DEL CONTENIDO ORIGINAL -->
+                <div class="factor-metrics">
+                  <div class="metrics-row">
+                    <span class="metric-label">Grado Cumplimiento:</span>
+                    <span class="metric-value">{{ parseFloat(factor.cumplimiento || 0).toFixed(1) }}</span>
+                  </div>
+                  
+                  <div class="metrics-row">
+                    <span class="metric-label">Total Metas:</span>
+                    <span class="metric-value total-metas">{{ parseFloat(factor.total_metas || 0).toFixed(1) }}</span>
+                  </div>
+                  
+                  <div class="metrics-row">
+                    <span class="metric-label">Total Puntajes:</span>
+                    <span class="metric-value total-puntajes">{{ parseFloat(factor.total_puntajes || 0).toFixed(1) }}</span>
+                  </div>
+                  
+                  <div class="metrics-row">
+                    <span class="metric-label">Características:</span>
+                    <span class="metric-value caracteristicas-count">{{ factor.cantidad_caracteristicas || 0 }}</span>
+                  </div>
+                </div>
+
+                <!-- ⭐ MANTENER LA LISTA ORIGINAL DE CARACTERÍSTICAS -->
+                <div v-if="factor.caracteristicas && factor.caracteristicas.length > 0" class="characteristics-summary">
+                  <h4 class="characteristics-title">Características:</h4>
+                  <ul class="factor-details">
+                    <li v-for="caracteristica in factor.caracteristicas.slice(0, 3)" :key="caracteristica.nombre">
+                      {{ caracteristica.nombre }}
+                    </li>
+                    <li v-if="factor.caracteristicas.length > 3" class="more-items">
+                      +{{ factor.caracteristicas.length - 3 }} más...
+                    </li>
+                  </ul>
+                </div>
+                
                 <div v-else class="no-data-message">
                   <span class="no-data-icon">📊</span>
                   <p>No hay datos disponibles</p>
@@ -90,10 +137,22 @@
     <!-- Modal Adjuntar Resultados -->
     <div v-if="showAttachResultsModal" class="modal-overlay" @click="closeAttachResultsModal">
       <div class="modal-content attach-results-modal" @click.stop>
+        <!-- Header mejorado -->
         <div class="modal-header">
           <div class="modal-header-content">
-            <h3 class="modal-title">SUBIR RESULTADOS</h3>
-            <button class="modal-close-btn" @click="closeAttachResultsModal">
+            <div class="modal-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+            </div>
+            <div class="modal-title-content">
+              <h3 class="modal-title">Subir Resultados de Encuesta</h3>
+              <p class="modal-subtitle">Cargue los archivos Excel con los resultados de las encuestas aplicadas</p>
+            </div>
+            <button class="modal-close-btn" @click="closeAttachResultsModal" title="Cerrar modal">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"/>
                 <line x1="6" y1="6" x2="18" y2="18"/>
@@ -103,16 +162,38 @@
         </div>
 
         <div class="modal-body">
-          <!-- Selector de tipo de resultados -->
+          <!-- Información de ayuda -->
+          <div class="info-section">
+            <div class="info-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+            </div>
+            <div class="info-text">
+              <p><strong>Instrucciones:</strong> Seleccione el tipo de encuesta y cargue el archivo Excel correspondiente. El sistema procesará automáticamente los datos.</p>
+            </div>
+          </div>
+
+          <!-- Selector de tipo de resultados mejorado -->
           <div class="form-group">
-            <label class="form-label">Seleccione el tipo de resultados</label>
+            <label class="form-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              Tipo de Encuesta *
+            </label>
             <div class="select-wrapper">
               <select v-model="selectedResultType" class="form-select">
-                <option value="empleadores">Empleadores</option>
-                <option value="docentes">Docentes</option>
-                <option value="estudiantes">Estudiantes</option>
-                <option value="egresados">Egresados</option>
-                <option value="administrativos">Administrativos</option>
+                <option value="estudiantes">📚 Encuesta a Estudiantes</option>
+                <option value="docentes">👨‍🏫 Encuesta a Docentes</option>
+                <option value="egresados">🎓 Encuesta a Egresados</option>
+                <option value="empleadores">🏢 Encuesta a Empleadores</option>
+                <option value="administrativos">👥 Encuesta a Personal Administrativo</option>
               </select>
               <div class="select-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -120,51 +201,206 @@
                 </svg>
               </div>
             </div>
+            <div class="form-help">
+              Seleccione el tipo de encuesta que corresponde al archivo que va a cargar
+            </div>
           </div>
 
-          <!-- Documento seleccionado -->
+          <!-- Área de carga de archivos mejorada -->
           <div class="form-group">
-            <label class="form-label">Documento seleccionado</label>
-            <div class="file-input-wrapper">
+            <label class="form-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7,10 12,15 17,10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Archivo Excel *
+            </label>
+            
+            <!-- Drag & Drop Area -->
+            <div 
+              class="file-upload-area"
+              :class="{ 'dragover': isDragOver }"
+              @dragover.prevent="isDragOver = true"
+              @dragleave.prevent="isDragOver = false"
+              @drop.prevent="handleFileDrop"
+              @click="$refs.fileInput.click()"
+            >
               <input 
                 type="file" 
                 ref="fileInput" 
                 @change="handleFileSelect" 
-                accept=".xlsx,.xls" 
+                accept=".xlsx,.xls,.csv" 
                 class="file-input-hidden"
               />
-              <div class="file-input-display" @click="$refs.fileInput.click()">
-                <div class="file-input-content">
-                  <div class="file-icon-container">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M14,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8Z"/>
-                      <polyline points="14,2 14,8 20,8"/>
-                      <line x1="16" y1="13" x2="8" y2="13"/>
-                      <line x1="16" y1="17" x2="8" y2="17"/>
-                      <polyline points="10,9 9,9 8,9"/>
-                    </svg>
-                  </div>
-                  <span class="file-name">{{ selectedFileName || 'Formulario Docentes.xlsx' }}</span>
+              
+              <div v-if="!selectedFile" class="file-upload-content">
+                <div class="upload-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7,10 12,15 17,10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
                 </div>
-                <button class="browse-btn" type="button">
+                <div class="upload-text">
+                  <p class="upload-primary">Arrastre su archivo aquí o <span class="upload-link">haga clic para buscar</span></p>
+                  <p class="upload-secondary">Formatos soportados: Excel (.xlsx, .xls) y CSV</p>
+                </div>
+              </div>
+              
+              <div v-else class="file-selected-content">
+                <div class="file-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                  </svg>
+                </div>
+                <div class="file-info">
+                  <p class="file-name">{{ selectedFileName }}</p>
+                  <p class="file-size">{{ formatFileSize(selectedFile.size) }}</p>
+                </div>
+                <button 
+                  type="button" 
+                  class="remove-file-btn" 
+                  @click.stop="removeFile"
+                  title="Remover archivo"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="9,18 15,12 9,6"/>
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
                   </svg>
                 </button>
               </div>
-              <p class="file-help-text">Solo archivos Excel (.xlsx, .xls)</p>
             </div>
+            
+            <div class="form-help">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              Tamaño máximo: 10MB. Asegúrese de que el archivo tenga el formato correcto.
+            </div>
+          </div>
+
+          <!-- Progress bar (hidden by default) -->
+          <div v-if="isUploading" class="upload-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" :style="{ width: uploadProgress + '%' }"></div>
+            </div>
+            <p class="progress-text">Subiendo archivo... {{ uploadProgress }}%</p>
           </div>
         </div>
 
-        <div class="modal-actions">
-          <button @click="uploadExcel" class="modal-btn modal-btn-primary" :disabled="!selectedFile">
+        <!-- Footer con botones mejorados -->
+        <div class="modal-footer">
+          <button 
+            @click="closeAttachResultsModal" 
+            class="modal-btn modal-btn-secondary"
+            :disabled="isUploading"
+          >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Cancelar
+          </button>
+          
+          <button 
+            @click="uploadExcel" 
+            class="modal-btn modal-btn-primary" 
+            :disabled="!selectedFile || isUploading"
+          >
+            <svg v-if="!isUploading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7,10 12,15 17,10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            Subir Excel
+            <div v-else class="loading-spinner-small"></div>
+            {{ isUploading ? 'Subiendo...' : 'Subir Archivo' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para editar factor -->
+    <div class="modal" v-if="mostrarModalEditarFactor" @click.self="cerrarModalEditarFactor">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Editar Factor</h3>
+          <button @click="cerrarModalEditarFactor" class="close-btn" title="Cerrar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <!-- Campo nombre -->
+          <div class="form-section">
+            <label class="form-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+              Nombre del Factor *
+            </label>
+            <input 
+              v-model="factorEditando.nombre" 
+              placeholder="Ej: Estudiantes" 
+              class="input"
+              @keypress.enter="$event.target.blur()"
+              maxlength="200"
+            />
+            <div class="input-counter">
+              {{ (factorEditando.nombre || '').length }}/200 caracteres
+            </div>
+          </div>
+          
+          <!-- Campo descripción -->
+          <div class="form-section">
+            <label class="form-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10,9 9,9 8,9"/>
+              </svg>
+              Descripción del Factor
+            </label>
+            <textarea 
+              v-model="factorEditando.descripcion" 
+              placeholder="Describa detalladamente este factor..." 
+              class="input textarea-input"
+              rows="6"
+              maxlength="1000"
+            ></textarea>
+            <div class="input-counter">
+              {{ (factorEditando.descripcion || '').length }}/1000 caracteres
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button @click="cerrarModalEditarFactor" class="cancel-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Cancelar
+          </button>
+          <button 
+            @click="guardarFactor" 
+            class="save-btn primary"
+            :disabled="!factorEditando.nombre?.trim()"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17,21 17,13 7,13 7,21"/>
+              <polyline points="7,3 7,8 15,8"/>
+            </svg>
+            Guardar Cambios
           </button>
         </div>
       </div>
@@ -183,11 +419,22 @@ export default {
       factores: [],
       loading: false,
       error: null,
-      // Modal de adjuntar resultados
+      // Modal de adjuntar resultados - variables actualizadas
       showAttachResultsModal: false,
       selectedResultType: 'estudiantes',
       selectedFile: null,
-      selectedFileName: ''
+      selectedFileName: '',
+      isDragOver: false,
+      isUploading: false,
+      uploadProgress: 0,
+      
+      // ⭐ VARIABLES PARA EDITAR FACTOR (mantener las existentes)
+      mostrarModalEditarFactor: false,
+      factorEditando: {
+        id: null,
+        nombre: '',
+        descripcion: ''
+      }
     }
   },
 
@@ -212,7 +459,7 @@ export default {
       
       try {
         const token = localStorage.getItem('access_token')
-        console.log('Making API request with token')
+        console.log('Fetching factors with totals...')
         
         const response = await axios.get('/factors/', {
           headers: {
@@ -220,13 +467,25 @@ export default {
           }
         })
         
-        console.log('API response received Factors:', response.data)
+        console.log('Raw API response:', response.data)
         this.factores = response.data
-        
+
+        // ⭐ DEBUG MEJORADO PARA VERIFICAR LOS NUEVOS DATOS
+        console.log('Factores con totales:', this.factores.map(f => ({
+          id: f.id,
+          nombre: f.nombre,
+          cumplimiento: f.cumplimiento,
+          total_metas: f.total_metas,
+          total_puntajes: f.total_puntajes,
+          cantidad_caracteristicas: f.cantidad_caracteristicas,
+          total_indicadores: f.total_indicadores,
+          grado_cumplimiento: f.grado_cumplimiento,
+          caracteristicas_count: f.caracteristicas?.length || 0
+        })));
+
       } catch (error) {
         console.error('Error fetching factors:', error)
         
-        // Si es error 401, el token expiró
         if (error.response?.status === 401) {
           console.log('Token expired, clearing auth data')
           localStorage.removeItem('access_token')
@@ -242,54 +501,39 @@ export default {
     },
 
     getEstadoColor(factor) {
-      // Si no hay características, estado gris
-      if (!factor.caracteristicas || factor.caracteristicas.length === 0) {
-        return { color: '#6b7280', label: 'Sin datos' }
+      // ⭐ PRIORIZAR LOS DATOS DEL GRADO_CUMPLIMIENTO
+      if (factor.grado_cumplimiento && factor.grado_cumplimiento.color) {
+        return { 
+          color: factor.grado_cumplimiento.color, 
+          label: factor.grado_cumplimiento.descripcion 
+        }
       }
       
-      // Calcula el promedio de cumplimiento usando la nueva función
-      const promedio = this.getPromedioCumplimiento(factor)
-      
-      if (promedio === 0) return { color: '#6b7280', label: 'Sin datos' }
-      
-      // Escala más precisa basada en tu ejemplo (3.9 = verde tirando a amarillo)
-      if (promedio >= 4.5) return { color: '#22c55e', label: 'Alto' }// Verde puro
-      if (promedio >= 4.0) return { color: '#84cc16', label: 'Alto' }// Verde-amarillo
-      if (promedio >= 3.5) return { color: '#eab308', label: 'Medio' }// Amarillo
-      if (promedio >= 3.0) return { color: '#f97316', label: 'Medio' }// Naranja
-      if (promedio >= 2.5) return { color: '#ef4444', label: 'Bajo' } // Rojo
-      return { color: '#dc2626', label: 'Crítico' }// Rojo intenso
+      // Fallback al estado original si existe
+      if (factor.estado && factor.estado.color) {
+        return { 
+          color: factor.estado.color, 
+          label: factor.estado.descripcion 
+        }
+      }
+
+      // Default
+      return { color: '#6b7280', label: 'Sin datos' }
     },
 
+    // ⭐ SIMPLIFICAR EL MÉTODO DE CUMPLIMIENTO PARA USAR DATOS DEL BACKEND
     getPromedioCumplimiento(factor) {
-      // Si no hay características, retorna 0
-      if (!factor.caracteristicas || factor.caracteristicas.length === 0) {
-        return 0
-      }
-      
-      // Calcula el promedio de cumplimiento
-      const cumplimientos = factor.caracteristicas
-        .map(c => Number(c.cumplimiento))
-        .filter(v => !isNaN(v) && v > 0) // Solo valores válidos y positivos
-        
-      if (cumplimientos.length === 0) return 0
-      
-      // Fórmula: suma de cumplimientos / cantidad de características
-      const promedio = cumplimientos.reduce((suma, valor) => suma + valor, 0) / cumplimientos.length
-      
-      console.log(`Factor: ${factor.nombre}, Cumplimientos: [${cumplimientos.join(', ')}], Promedio: ${promedio.toFixed(2)}`)
-      
-      return promedio
+      return parseFloat(factor.cumplimiento) || 0
     },
 
     getEstadoColorClass(factor) {
       const estado = this.getEstadoColor(factor).label
       return {
-        'status-green': estado === 'Alto' && this.getPromedioCumplimiento(factor) >= 4.5,
-        'status-green-yellow': estado === 'Alto' && this.getPromedioCumplimiento(factor) >= 4.0 && this.getPromedioCumplimiento(factor) < 4.5,
-        'status-yellow': estado === 'Medio' && this.getPromedioCumplimiento(factor) >= 3.5,
-        'status-orange': estado === 'Medio' && this.getPromedioCumplimiento(factor) >= 3.0 && this.getPromedioCumplimiento(factor) < 3.5,
-        'status-red': estado === 'Bajo' || estado === 'Crítico',
+        'status-green': estado === 'Se cumple plenamente' && this.getPromedioCumplimiento(factor) >= 4.5,
+        'status-green-yellow': estado === 'Se cumple en alto grado' && this.getPromedioCumplimiento(factor) >= 4.0 && this.getPromedioCumplimiento(factor) < 4.5,
+        'status-yellow': estado === 'Se cumple aceptablemente' && this.getPromedioCumplimiento(factor) >= 3.5,
+        'status-orange': estado === 'Se cumple insatisfactoriamente' && this.getPromedioCumplimiento(factor) >= 3.0 && this.getPromedioCumplimiento(factor) < 3.5,
+        'status-red': estado === 'No se cumple' || estado === 'Crítico',
         'status-gray': estado === 'Sin datos'
       }
     },
@@ -337,11 +581,118 @@ export default {
       // Simular éxito
       alert(`Archivo "${this.selectedFile.name}" subido exitosamente para ${this.selectedResultType}`)
       this.closeAttachResultsModal()
+    },
+
+    // Métodos para el modal de editar factor
+    editarFactor(factor) {
+      this.factorEditando = {
+        id: factor.id,
+        nombre: factor.nombre || '',
+        descripcion: factor.descripcion || ''
+      };
+      this.mostrarModalEditarFactor = true;
+      
+      console.log('Editando factor:', {
+        id: factor.id,
+        nombre: factor.nombre,
+        descripcion: factor.descripcion
+      });
+    },
+
+    cerrarModalEditarFactor() {
+      this.mostrarModalEditarFactor = false;
+      this.factorEditando = {
+        id: null,
+        nombre: '',
+        descripcion: ''
+      };
+    },
+
+    async guardarFactor() {
+      if (!this.factorEditando.nombre?.trim()) {
+        this.$swal({
+          title: 'Error',
+          text: 'El nombre del factor es requerido.',
+          icon: 'warning',
+          confirmButtonText: 'Continuar'
+        });
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('access_token');
+        
+        console.log('Guardando factor:', this.factorEditando);
+
+        // ⭐ CORREGIR EL ENDPOINT - DEBE INCLUIR EL ID
+        const response = await axios.patch(
+          `/factors/${this.factorEditando.id}/`, // ⭐ AGREGAR EL ID AL ENDPOINT
+          {
+            nombre: this.factorEditando.nombre.trim(),
+            descripcion: this.factorEditando.descripcion?.trim() || ''
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        console.log('Factor updated:', response.data);
+
+        // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE ACTUALIZAR
+        await this.fetchFactores();
+
+        this.$swal({
+          title: '¡Factor Actualizado!',
+          text: 'Los cambios se han guardado correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Continuar'
+        });
+
+        this.cerrarModalEditarFactor();
+
+      } catch (error) {
+        console.error('Error updating factor:', error);
+        
+        let errorMessage = 'Error al guardar el factor.';
+        
+        if (error.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user_data');
+          this.$router.push('/login');
+        } else if (error.response?.status === 403) {
+          errorMessage = 'No tienes permisos para realizar esta acción.';
+        } else if (error.response?.status === 400) {
+          errorMessage = 'Datos inválidos. Verifique que el nombre no esté duplicado.';
+        } else if (error.response?.status === 404) {
+          errorMessage = 'El factor no fue encontrado.';
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        }
+
+        this.$swal({
+          title: 'Error',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Continuar'
+        });
+      }
     }
   },
 
   async mounted() {
     console.log('DashboardFacts mounted')
+    
+    // ⭐ VERIFICAR QUE SWEETALERT2 ESTÉ DISPONIBLE
+    if (!this.$swal) {
+      console.warn('SweetAlert2 not available, using browser alert as fallback')
+    }
     
     if (this.checkAuthentication()) {
       console.log('User authenticated, loading data')

@@ -19,7 +19,7 @@ class Indicator(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     caracteristica = models.ForeignKey(Characteristics, on_delete=models.CASCADE)
     nombre = models.CharField(max_length=511, null=False)
-    link_evidencia = models.CharField(max_length=255)
+    link_evidencia = models.CharField(max_length=512)
     ponderacion = models.IntegerField()
     meta = models.IntegerField()
     calificacion = models.FloatField()

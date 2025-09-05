@@ -141,6 +141,20 @@
         <div class="section-header">
           <v-icon class="section-icon mr-3" size="24" color="primary">mdi-clipboard-list-outline</v-icon>
           <h3 class="section-title">Indicadores</h3>
+          
+          <!-- ⭐ NUEVO BOTÓN AGREGAR INDICADOR -->
+          <v-btn 
+            v-if="isAdmin"
+            class="add-indicator-btn ml-3" 
+            color="success" 
+            small 
+            outlined
+            @click="openAddIndicatorModal"
+          >
+            <v-icon left size="16">mdi-plus</v-icon>
+            Agregar Indicador
+          </v-btn>
+          
           <v-spacer></v-spacer>
           <v-chip class="aspect-count-chip" color="primary" outlined small>
             {{ Object.keys(characteristic.indicadores || {}).length }} Aspectos
@@ -408,9 +422,12 @@
     <!-- 📝 MODAL EDITAR INDICADOR -->
     <v-dialog v-model="showEditIndicatorModal" max-width="600px" persistent>
       <v-card class="edit-indicator-modal">
+        <!-- Actualizar el título del modal de editar indicador -->
         <v-card-title class="modal-header">
           <v-icon class="mr-3" size="24" color="primary">mdi-pencil</v-icon>
-          <span class="modal-title">EDICIÓN ASPECTO A EVALUAR #{{ editingIndex + 1 }}</span>
+          <span class="modal-title">
+            {{ editingIndex === -1 ? 'AGREGAR NUEVO INDICADOR' : `EDICIÓN ASPECTO A EVALUAR #${editingIndex + 1}` }}
+          </span>
           <v-spacer></v-spacer>
           <v-btn icon @click="closeEditIndicatorModal">
             <v-icon>mdi-close</v-icon>
@@ -536,8 +553,14 @@
           <v-btn class="cancel-btn" text @click="closeEditIndicatorModal">
             Cancelar
           </v-btn>
-          <v-btn class="save-changes-btn" color="primary" @click="saveIndicatorChanges">
-            Guardar cambios
+          <v-btn 
+            class="save-changes-btn" 
+            color="primary" 
+            @click="saveIndicatorChanges"
+            :disabled="!editingIndicator.nombre.trim()"
+          >
+            <v-icon left>{{ editingIndex === -1 ? 'mdi-plus' : 'mdi-content-save' }}</v-icon>
+            {{ editingIndex === -1 ? 'Crear Indicador' : 'Guardar Cambios' }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -920,46 +943,68 @@ export default {
     },
 
 async saveIndicatorChanges() {
-  if (this.editingIndex >= 0) {
-    try {
-      const indicadorKey = Object.keys(this.characteristic.indicadores)[this.editingIndex]
+  try {
+    const token = localStorage.getItem('access_token')
     
+    // Validar que el nombre no esté vacío
+    if (!this.editingIndicator.nombre.trim()) {
+      this.$swal({
+        title: 'Error',
+        text: 'El nombre del indicador es requerido.',
+        icon: 'warning',
+        confirmButtonText: 'Continuar'
+      })
+      return
+    }
+    
+    // ⭐ CALCULAR LA META EN TIEMPO REAL
+    const metaCalculada = this.calculatedMeta
+
+    // ⭐ PREPARAR DATOS PARA ENVIAR AL BACKEND
+    const indicatorData = {
+      nombre: this.editingIndicator.nombre.trim(),
+      calificacion: this.editingIndicator.calificacion,
+      ponderacion: this.editingIndicator.ponderacion,
+      meta: metaCalculada,
+      link_evidencia: this.editingIndicator.tipoEvidencia === 'documental' ? this.editingIndicator.link_evidencia : '',
+      palabra_clave: this.editingIndicator.tipoEvidencia === 'encuesta' ? this.editingIndicator.palabraClave : '',
+      tipo_evidencia: this.editingIndicator.tipoEvidencia
+    }
+
+    if (this.editingIndex === -1) {
+      // ⭐ CREAR NUEVO INDICADOR
+      console.log('Creating new indicator:', indicatorData)
+      
+      const response = await axios.post(
+        `/characteristics/${this.characteristicsId}/indicators/`,
+        indicatorData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+      
+      console.log('New indicator created:', response.data)
+
+      this.$swal({
+        title: '¡Indicador Creado!',
+        text: 'El nuevo indicador se ha agregado correctamente.',
+        icon: 'success',
+        confirmButtonText: 'Continuar'
+      })
+      
+    } else {
+      // ⭐ ACTUALIZAR INDICADOR EXISTENTE
+      const indicadorKey = Object.keys(this.characteristic.indicadores)[this.editingIndex]
+      
       if (indicadorKey) {
-        const token = localStorage.getItem('access_token')
+        console.log('Updating existing indicator:', indicatorData)
         
-        // ⭐ USAR LA META CALCULADA EN TIEMPO REAL
-        const metaCalculada = this.calculatedMeta // En lugar de this.editingIndicator.meta
-        
-        // Actualizar el indicador existente
-        this.characteristic.indicadores[indicadorKey] = {
-          ...this.characteristic.indicadores[indicadorKey],
-          nombre: this.editingIndicator.nombre,
-          calificacion: this.editingIndicator.calificacion,
-          ponderacion: this.editingIndicator.ponderacion,
-          meta: metaCalculada, // ⭐ Usar la meta calculada
-          link_evidencia: this.editingIndicator.tipoEvidencia === 'documental' ? this.editingIndicator.link_evidencia : '',
-          palabraClave: this.editingIndicator.tipoEvidencia === 'encuesta' ? this.editingIndicator.palabraClave : '',
-          puntos: this.calculatedPuntaje,
-          porcentaje: this.calculatedPorcentaje
-        }
-
-        // ⭐ PREPARAR DATOS PARA ENVIAR AL BACKEND CON META CALCULADA
-        const indicatorDataToSend = {
-          nombre: this.editingIndicator.nombre,
-          calificacion: this.editingIndicator.calificacion,
-          ponderacion: this.editingIndicator.ponderacion,
-          meta: metaCalculada, // ⭐ Usar meta calculada, no this.editingIndicator.meta
-          link_evidencia: this.editingIndicator.tipoEvidencia === 'documental' ? this.editingIndicator.link_evidencia : '',
-          palabra_clave: this.editingIndicator.tipoEvidencia === 'encuesta' ? this.editingIndicator.palabraClave : '',
-          tipo_evidencia: this.editingIndicator.tipoEvidencia
-        }
-
-        console.log('Meta calculada enviando al backend:', metaCalculada)
-        console.log('Datos completos enviando:', indicatorDataToSend)
-        
-        const data = await axios.patch(
+        const response = await axios.patch(
           `/indicators/${this.characteristic.indicadores[indicadorKey].id}/`,
-          indicatorDataToSend, // ⭐ Usar los datos preparados
+          indicatorData,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -968,29 +1013,49 @@ async saveIndicatorChanges() {
           }
         )
         
-        console.log('Indicator updated on server:', data.data)
-
-        // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE GUARDAR
-        await this.fetchCaracteristica()
+        console.log('Indicator updated on server:', response.data)
 
         this.$swal({
           title: '¡Indicador Actualizado!',
-          text: `Los cambios se han guardado correctamente.`,
+          text: 'Los cambios se han guardado correctamente.',
           icon: 'success',
           confirmButtonText: 'Continuar'
         })
       }
-    } catch (error) {
-      console.error('Error updating indicator:', error)
-      this.$swal({
-        title: 'Error',
-        text: 'Hubo un problema al guardar los cambios. Inténtalo de nuevo.',
-        icon: 'error',
-        confirmButtonText: 'Continuar'
-      })
     }
+
+    // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE CREAR/ACTUALIZAR
+    await this.fetchCaracteristica()
+    this.closeEditIndicatorModal()
+
+  } catch (error) {
+    console.error('Error saving indicator:', error)
+    
+    let errorMessage = 'Hubo un problema al guardar el indicador.'
+    
+    if (error.response?.status === 401) {
+      errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.'
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      localStorage.removeItem('user_data')
+      this.$router.push('/login')
+    } else if (error.response?.status === 403) {
+      errorMessage = 'No tienes permisos para realizar esta acción.'
+    } else if (error.response?.status === 400) {
+      errorMessage = 'Datos inválidos. Verifique que toda la información sea correcta.'
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message
+    } else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error
+    }
+
+    this.$swal({
+      title: 'Error',
+      text: errorMessage,
+      icon: 'error',
+      confirmButtonText: 'Continuar'
+    })
   }
-  this.closeEditIndicatorModal()
 },
 
 
@@ -1168,6 +1233,21 @@ async saveIndicatorChanges() {
           confirmButtonText: 'Continuar'
         })
       }
+    },
+
+    // ⭐ MÉTODO PARA ABRIR MODAL DE AGREGAR INDICADOR
+    openAddIndicatorModal() {
+      this.editingIndex = -1 // -1 indica que es un nuevo indicador
+      this.editingIndicator = {
+        nombre: '',
+        calificacion: 0,
+        ponderacion: 0,
+        meta: 0,
+        link_evidencia: '',
+        palabraClave: '',
+        tipoEvidencia: 'documental'
+      }
+      this.showEditIndicatorModal = true
     },
   },
 
