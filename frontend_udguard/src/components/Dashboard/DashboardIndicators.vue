@@ -197,16 +197,46 @@
                   </div>
                 </td>
                 <td class="evidence-cell">
-                  <v-btn
-                    class="evidence-btn"
-                    color="info"
-                    text
-                    small
-                    @click="viewEvidence(index)"
-                  >
-                    <v-icon left size="16">mdi-file-eye-outline</v-icon>
-                    Evidencia {{ item.link_evidencia }}
-                  </v-btn>
+                  <div v-if="item.link_evidencia && item.link_evidencia.trim() !== ''" class="evidence-container">
+                    <v-btn
+                      class="evidence-btn"
+                      color="info"
+                      text
+                      small
+                      @click="openEvidence(item.link_evidencia)"
+                      :title="`Abrir evidencia: ${item.link_evidencia}`"
+                    >
+                      <v-icon left size="16">mdi-file-eye-outline</v-icon>
+                      Evidencia
+                    </v-btn>
+                  </div>
+                  
+                  <div v-else-if="item.palabra_clave && item.palabra_clave.trim() !== ''" class="evidence-container">
+                    <v-btn
+                      class="evidence-btn encuesta-btn"
+                      color="purple"
+                      text
+                      small
+                      @click="showEncuestaInfo(item.palabra_clave)"
+                      :title="`Palabra clave: ${item.palabra_clave}`"
+                    >
+                      <v-icon left size="16">mdi-poll</v-icon>
+                      Encuesta
+                    </v-btn>
+                  </div>
+                  
+                  <div v-else class="no-evidence">
+                    <v-chip
+                      class="no-evidence-chip"
+                      color="grey"
+                      text-color="white"
+                      x-small
+                      outlined
+                    >
+                      <v-icon left size="12">mdi-alert-circle-outline</v-icon>
+                      Sin evidencia
+                    </v-chip>
+                  </div>
                 </td>
                 <td class="rating-cell">
                   <div class="rating-input-wrapper">
@@ -1117,72 +1147,130 @@ async saveIndicatorChanges() {
       this.closeDeleteConfirmModal()
     },
 
-    viewEvidence (index) {
-      console.log('Ver evidencia del aspecto:', index)
+    openEvidence (linkEvidencia) {
+      if (!linkEvidencia || linkEvidencia.trim() === '') {
+        this.$swal({
+          title: 'Sin enlace',
+          text: 'No hay enlace de evidencia disponible.',
+          icon: 'warning',
+          confirmButtonText: 'Continuar'
+        })
+        return
+      }
+
+      try {
+        let url = linkEvidencia.trim()
+        
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+          url = 'https://' + url
+        }
+
+        // eslint-disable-next-line no-new
+        new URL(url)
+        window.open(url, '_blank', 'noopener,noreferrer')
+        
+      } catch (error) {
+        this.$swal({
+          title: 'URL inválida',
+          text: 'El enlace de evidencia no es válido.',
+          icon: 'error',
+          confirmButtonText: 'Continuar'
+        })
+      }
     },
 
-    async saveEvaluation() {
-      // ⭐ REFRESCAR DATOS DEL BACKEND
-      await this.fetchCaracteristica()
-      
+    showEncuestaInfo (palabraClave) {
       this.$swal({
-        title: '¡Evaluación Guardada!',
-        text: 'La evaluación se ha guardado exitosamente.',
-        icon: 'success',
-        confirmButtonText: 'Continuar'
+        title: 'Evidencia de Encuesta',
+        html: `
+          <div style="text-align: left; padding: 10px;">
+            <p><strong>Tipo:</strong> Encuesta</p>
+            <p><strong>Palabra clave:</strong> "${palabraClave}"</p>
+            <p><strong>Información:</strong> Esta evidencia se obtiene de las respuestas de encuestas.</p>
+          </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Entendido'
       })
     },
 
-    // ⭐ MÉTODOS PARA EDITAR DESCRIPCIÓN
+    viewEvidence (index) {
+      const indicadoresArray = Object.values(this.characteristic.indicadores || {})
+      const item = indicadoresArray[index]
+      
+      if (!item) return
+
+      if (item.link_evidencia && item.link_evidencia.trim() !== '') {
+        this.openEvidence(item.link_evidencia)
+      } else if (item.palabra_clave && item.palabra_clave.trim() !== '') {
+        this.showEncuestaInfo(item.palabra_clave)
+      } else {
+        this.$swal({
+          title: 'Sin evidencia',
+          text: 'Este indicador no tiene evidencia configurada.',
+          icon: 'info',
+          confirmButtonText: 'Continuar'
+        })
+      }
+    },
+
+    // ⭐ MÉTODO FALTANTE PARA ABRIR MODAL DE AGREGAR INDICADOR
+    openAddIndicatorModal() {
+      this.editingIndex = -1 // Indicar que es nuevo
+      this.editingIndicator = {
+        nombre: '',
+        calificacion: 0,
+        ponderacion: 0,
+        meta: 0,
+        link_evidencia: '',
+        palabraClave: '',
+        tipoEvidencia: 'documental'
+      }
+      this.showEditIndicatorModal = true
+    },
+
+    // ⭐ MÉTODO FALTANTE PARA ABRIR MODAL DE EDITAR DESCRIPCIÓN
     openEditDescriptionModal() {
-      this.editingDescription = this.characteristic.descripcion || ''
       this.editingNombre = this.characteristic.nombre || ''
+      this.editingDescription = this.characteristic.descripcion || ''
       this.showEditDescriptionModal = true
     },
 
+    // ⭐ MÉTODO FALTANTE PARA CERRAR MODAL DE EDITAR DESCRIPCIÓN
     closeEditDescriptionModal() {
       this.showEditDescriptionModal = false
-      this.editingDescription = ''
       this.editingNombre = ''
+      this.editingDescription = ''
     },
 
+    // ⭐ MÉTODO FALTANTE PARA GUARDAR CAMBIOS DE DESCRIPCIÓN
     async saveDescriptionChanges() {
       try {
         const token = localStorage.getItem('access_token')
         
-        // Validar que hay contenido en ambos campos
-        if (!this.editingNombre || this.editingNombre.trim() === '') {
+        // Validar que los campos no estén vacíos
+        if (!this.editingNombre.trim() || !this.editingDescription.trim()) {
           this.$swal({
             title: 'Error',
-            text: 'El nombre no puede estar vacío.',
+            text: 'El nombre y la descripción son requeridos.',
             icon: 'warning',
             confirmButtonText: 'Continuar'
           })
           return
         }
 
-        if (!this.editingDescription || this.editingDescription.trim() === '') {
-          this.$swal({
-            title: 'Error',
-            text: 'La descripción no puede estar vacía.',
-            icon: 'warning',
-            confirmButtonText: 'Continuar'
-          })
-          return
-        }
-
-        // ⭐ PREPARAR DATOS CON NOMBRE Y DESCRIPCIÓN
-        const updateData = {
+        // Preparar datos para enviar al backend
+        const updatedData = {
           nombre: this.editingNombre.trim(),
           descripcion: this.editingDescription.trim()
         }
 
-        console.log('Updating characteristic:', updateData)
+        console.log('Updating characteristic:', updatedData)
 
-        // Enviar al backend
+        // Llamada al API para actualizar la característica
         const response = await axios.patch(
           `/characteristics/${this.characteristicsId}/`,
-          updateData,
+          updatedData,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -1190,25 +1278,24 @@ async saveIndicatorChanges() {
             }
           }
         )
-        
-        console.log('Characteristic updated on server:', response.data)
 
-        // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE GUARDAR
-        await this.fetchCaracteristica()
+        console.log('Characteristic updated:', response.data)
 
         this.$swal({
           title: '¡Característica Actualizada!',
-          text: 'El nombre y la descripción se han actualizado correctamente.',
+          text: 'Los cambios se han guardado correctamente.',
           icon: 'success',
           confirmButtonText: 'Continuar'
         })
 
+        // Recargar los datos para mostrar los cambios
+        await this.fetchCaracteristica()
         this.closeEditDescriptionModal()
 
       } catch (error) {
         console.error('Error updating characteristic:', error)
         
-        let errorMessage = 'Hubo un problema al actualizar la característica.'
+        let errorMessage = 'Error al actualizar la característica.'
         
         if (error.response?.status === 401) {
           errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.'
@@ -1218,8 +1305,8 @@ async saveIndicatorChanges() {
           this.$router.push('/login')
         } else if (error.response?.status === 403) {
           errorMessage = 'No tienes permisos para realizar esta acción.'
-        } else if (error.response?.status === 400) {
-          errorMessage = 'Datos inválidos. Verifique que el nombre no esté duplicado.'
+        } else if (error.response?.status === 404) {
+          errorMessage = 'La característica no fue encontrada.'
         } else if (error.response?.data?.message) {
           errorMessage = error.response.data.message
         } else if (error.response?.data?.error) {
@@ -1233,21 +1320,6 @@ async saveIndicatorChanges() {
           confirmButtonText: 'Continuar'
         })
       }
-    },
-
-    // ⭐ MÉTODO PARA ABRIR MODAL DE AGREGAR INDICADOR
-    openAddIndicatorModal() {
-      this.editingIndex = -1 // -1 indica que es un nuevo indicador
-      this.editingIndicator = {
-        nombre: '',
-        calificacion: 0,
-        ponderacion: 0,
-        meta: 0,
-        link_evidencia: '',
-        palabraClave: '',
-        tipoEvidencia: 'documental'
-      }
-      this.showEditIndicatorModal = true
     },
   },
 
