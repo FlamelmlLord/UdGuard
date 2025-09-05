@@ -115,6 +115,19 @@
                   <v-icon left size="16">mdi-calendar-clock</v-icon>
                   Última actualización: {{ lastUpdate }}
                 </v-chip>
+                
+                <!-- Nuevo botón para editar descripción -->
+                <v-btn 
+                  v-if="isAdmin"
+                  class="edit-description-btn ml-2" 
+                  color="primary" 
+                  small 
+                  outlined
+                  @click="openEditDescriptionModal"
+                >
+                  <v-icon left size="16">mdi-pencil</v-icon>
+                  Editar Característica
+                </v-btn>
               </div>
             </div>
           </v-col>
@@ -499,7 +512,7 @@
               <v-col cols="4">
                 <div class="result-field">
                   <label class="result-label">Meta</label>
-                  <div class="result-value">{{ editingIndicator.meta || '00' }}</div>
+                  <div class="result-value">{{ calculatedMeta }}</div>
                 </div>
               </v-col>
               <v-col cols="4">
@@ -525,6 +538,78 @@
           </v-btn>
           <v-btn class="save-changes-btn" color="primary" @click="saveIndicatorChanges">
             Guardar cambios
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- 📝 MODAL EDITAR DESCRIPCIÓN -->
+    <v-dialog v-model="showEditDescriptionModal" max-width="700px" persistent>
+      <v-card class="edit-description-modal">
+        <v-card-title class="modal-header">
+          <v-icon class="mr-3" size="24" color="primary">mdi-text-box-edit</v-icon>
+          <span class="modal-title">Editar Característica</span>
+          <v-spacer></v-spacer>
+          <v-btn icon @click="closeEditDescriptionModal">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="edit-description-content">
+          <!-- NOMBRE DE LA CARACTERÍSTICA -->
+          <div class="form-section">
+            <h3 class="section-title">NOMBRE DE LA CARACTERÍSTICA</h3>
+            <v-text-field
+              v-model="editingNombre"
+              label="Nombre"
+              outlined
+              dense
+              counter="200"
+              placeholder="Ingrese el nombre de la característica..."
+              class="name-input"
+              :rules="[v => !!v || 'El nombre es requerido']"
+              prepend-inner-icon="mdi-format-title"
+            ></v-text-field>
+          </div>
+
+          <!-- DESCRIPCIÓN DE LA CARACTERÍSTICA -->
+          <div class="form-section">
+            <h3 class="section-title">DESCRIPCIÓN DE LA CARACTERÍSTICA</h3>
+            <v-textarea
+              v-model="editingDescription"
+              label="Descripción"
+              outlined
+              rows="6"
+              counter="1000"
+              placeholder="Ingrese la descripción de la característica..."
+              class="description-textarea"
+              :rules="[v => !!v || 'La descripción es requerida']"
+              prepend-inner-icon="mdi-text"
+            ></v-textarea>
+            
+            <div class="description-info">
+              <v-icon left size="16" color="info">mdi-information</v-icon>
+              <span class="info-text">
+                Proporcione un nombre claro y una descripción detallada de esta característica para facilitar la evaluación.
+              </span>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="modal-actions">
+          <v-spacer></v-spacer>
+          <v-btn class="cancel-btn" text @click="closeEditDescriptionModal">
+            Cancelar
+          </v-btn>
+          <v-btn 
+            class="save-changes-btn" 
+            color="primary" 
+            @click="saveDescriptionChanges"
+            :disabled="!editingDescription || !editingNombre || 
+                       editingDescription.trim() === '' || editingNombre.trim() === ''"
+          >
+            <v-icon left>mdi-content-save</v-icon>
+            Guardar Cambios
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -576,11 +661,13 @@ export default {
       showManageModal: false,
       showEditIndicatorModal: false,
       showDeleteConfirmModal: false,
+      showEditDescriptionModal: false, // ⭐ NUEVA VARIABLE
       activeTab: 0,
       characteristicsId: 0,
       characteristic: {},
-      isAdmin: true, // Cambiar según el rol del usuario
+      isAdmin: true,
       lastUpdate: '15 de Agosto, 2025',
+
 
       // Estados para CRUD de indicadores
       editingIndicator: {
@@ -590,10 +677,14 @@ export default {
         meta: 0,
         link_evidencia: '',
         palabraClave: '',
-        tipoEvidencia: 'documental' // por defecto
+        tipoEvidencia: 'documental'
       },
       editingIndex: -1,
       indicatorToDelete: -1,
+
+      // ⭐ NUEVA VARIABLE PARA DESCRIPCIÓN
+      editingDescription: '',
+      editingNombre: '',
 
       factors: [],
       aspectos: [],
@@ -620,10 +711,13 @@ export default {
       const calificacion = this.editingIndicator.calificacion || 0
       return Math.round(ponderacion * calificacion) || '00'
     },
+    calculatedMeta () {
+      return this.editingIndicator.ponderacion * 5
+    },
 
     calculatedPorcentaje() {
       const puntaje = this.calculatedPuntaje
-      const meta = this.editingIndicator.meta || 1
+      const meta = this.calculatedMeta
       return meta > 0 ? Math.round((puntaje / meta) * 100) || '00' : '00'
     }
   },
@@ -792,14 +886,14 @@ export default {
       if (indicadoresArray[index]) {
         this.editingIndex = index
         const indicador = indicadoresArray[index]
-        
+
         this.editingIndicator = {
           nombre: indicador.nombre || '',
           calificacion: indicador.calificacion || 0,
           ponderacion: indicador.ponderacion || 0,
-          meta: indicador.meta || 0,
+          meta: indicador.ponderacion * 5 || 0,
           link_evidencia: indicador.link_evidencia || '',
-          palabraClave: indicador.palabraClave || '',
+          palabraClave: indicador.palabra_clave || '', // ⭐ Corregido el nombre del campo
           tipoEvidencia: indicador.link_evidencia ? 'documental' : 'encuesta'
         }
         this.showEditIndicatorModal = true
@@ -826,60 +920,78 @@ export default {
     },
 
 async saveIndicatorChanges() {
-      if (this.editingIndex >= 0) {
-        try {
-          const indicadorKey = Object.keys(this.characteristic.indicadores)[this.editingIndex]
+  if (this.editingIndex >= 0) {
+    try {
+      const indicadorKey = Object.keys(this.characteristic.indicadores)[this.editingIndex]
+    
+      if (indicadorKey) {
+        const token = localStorage.getItem('access_token')
         
-          if (indicadorKey) {
-            const token = localStorage.getItem('access_token')
-            
-            // Actualizar el indicador existente
-            this.characteristic.indicadores[indicadorKey] = {
-              ...this.characteristic.indicadores[indicadorKey],
-              nombre: this.editingIndicator.nombre,
-              calificacion: this.editingIndicator.calificacion,
-              ponderacion: this.editingIndicator.ponderacion,
-              meta: this.editingIndicator.meta,
-              link_evidencia: this.editingIndicator.tipoEvidencia === 'documental' ? this.editingIndicator.link_evidencia : '',
-              palabraClave: this.editingIndicator.tipoEvidencia === 'encuesta' ? this.editingIndicator.palabraClave : '',
-              puntos: this.calculatedPuntaje,
-              porcentaje: this.calculatedPorcentaje
-            }
-            
-            const data = await axios.patch(
-              `/indicators/${this.characteristic.indicadores[indicadorKey].id}/`,
-              this.characteristic.indicadores[indicadorKey],
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`
-                }
-              }
-            )
-            
-            console.log('Indicator updated on server:', data.data)
-
-            // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE GUARDAR
-            await this.fetchCaracteristica()
-
-            this.$swal({
-              title: '¡Indicador Actualizado!',
-              text: 'Los cambios se han guardado correctamente.',
-              icon: 'success',
-              confirmButtonText: 'Continuar'
-            })
-          }
-        } catch (error) {
-          console.error('Error updating indicator:', error)
-          this.$swal({
-            title: 'Error',
-            text: 'Hubo un problema al guardar los cambios. Inténtalo de nuevo.',
-            icon: 'error',
-            confirmButtonText: 'Continuar'
-          })
+        // ⭐ USAR LA META CALCULADA EN TIEMPO REAL
+        const metaCalculada = this.calculatedMeta // En lugar de this.editingIndicator.meta
+        
+        // Actualizar el indicador existente
+        this.characteristic.indicadores[indicadorKey] = {
+          ...this.characteristic.indicadores[indicadorKey],
+          nombre: this.editingIndicator.nombre,
+          calificacion: this.editingIndicator.calificacion,
+          ponderacion: this.editingIndicator.ponderacion,
+          meta: metaCalculada, // ⭐ Usar la meta calculada
+          link_evidencia: this.editingIndicator.tipoEvidencia === 'documental' ? this.editingIndicator.link_evidencia : '',
+          palabraClave: this.editingIndicator.tipoEvidencia === 'encuesta' ? this.editingIndicator.palabraClave : '',
+          puntos: this.calculatedPuntaje,
+          porcentaje: this.calculatedPorcentaje
         }
+
+        // ⭐ PREPARAR DATOS PARA ENVIAR AL BACKEND CON META CALCULADA
+        const indicatorDataToSend = {
+          nombre: this.editingIndicator.nombre,
+          calificacion: this.editingIndicator.calificacion,
+          ponderacion: this.editingIndicator.ponderacion,
+          meta: metaCalculada, // ⭐ Usar meta calculada, no this.editingIndicator.meta
+          link_evidencia: this.editingIndicator.tipoEvidencia === 'documental' ? this.editingIndicator.link_evidencia : '',
+          palabra_clave: this.editingIndicator.tipoEvidencia === 'encuesta' ? this.editingIndicator.palabraClave : '',
+          tipo_evidencia: this.editingIndicator.tipoEvidencia
+        }
+
+        console.log('Meta calculada enviando al backend:', metaCalculada)
+        console.log('Datos completos enviando:', indicatorDataToSend)
+        
+        const data = await axios.patch(
+          `/indicators/${this.characteristic.indicadores[indicadorKey].id}/`,
+          indicatorDataToSend, // ⭐ Usar los datos preparados
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+        
+        console.log('Indicator updated on server:', data.data)
+
+        // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE GUARDAR
+        await this.fetchCaracteristica()
+
+        this.$swal({
+          title: '¡Indicador Actualizado!',
+          text: `Los cambios se han guardado correctamente.`,
+          icon: 'success',
+          confirmButtonText: 'Continuar'
+        })
       }
-      this.closeEditIndicatorModal()
-    },
+    } catch (error) {
+      console.error('Error updating indicator:', error)
+      this.$swal({
+        title: 'Error',
+        text: 'Hubo un problema al guardar los cambios. Inténtalo de nuevo.',
+        icon: 'error',
+        confirmButtonText: 'Continuar'
+      })
+    }
+  }
+  this.closeEditIndicatorModal()
+},
 
 
 
@@ -949,7 +1061,109 @@ async saveIndicatorChanges() {
         icon: 'success',
         confirmButtonText: 'Continuar'
       })
-    }
+    },
+
+    // ⭐ MÉTODOS PARA EDITAR DESCRIPCIÓN
+    openEditDescriptionModal() {
+      this.editingDescription = this.characteristic.descripcion || ''
+      this.editingNombre = this.characteristic.nombre || ''
+      this.showEditDescriptionModal = true
+    },
+
+    closeEditDescriptionModal() {
+      this.showEditDescriptionModal = false
+      this.editingDescription = ''
+      this.editingNombre = ''
+    },
+
+    async saveDescriptionChanges() {
+      try {
+        const token = localStorage.getItem('access_token')
+        
+        // Validar que hay contenido en ambos campos
+        if (!this.editingNombre || this.editingNombre.trim() === '') {
+          this.$swal({
+            title: 'Error',
+            text: 'El nombre no puede estar vacío.',
+            icon: 'warning',
+            confirmButtonText: 'Continuar'
+          })
+          return
+        }
+
+        if (!this.editingDescription || this.editingDescription.trim() === '') {
+          this.$swal({
+            title: 'Error',
+            text: 'La descripción no puede estar vacía.',
+            icon: 'warning',
+            confirmButtonText: 'Continuar'
+          })
+          return
+        }
+
+        // ⭐ PREPARAR DATOS CON NOMBRE Y DESCRIPCIÓN
+        const updateData = {
+          nombre: this.editingNombre.trim(),
+          descripcion: this.editingDescription.trim()
+        }
+
+        console.log('Updating characteristic:', updateData)
+
+        // Enviar al backend
+        const response = await axios.patch(
+          `/characteristics/${this.characteristicsId}/`,
+          updateData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+        
+        console.log('Characteristic updated on server:', response.data)
+
+        // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE GUARDAR
+        await this.fetchCaracteristica()
+
+        this.$swal({
+          title: '¡Característica Actualizada!',
+          text: 'El nombre y la descripción se han actualizado correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Continuar'
+        })
+
+        this.closeEditDescriptionModal()
+
+      } catch (error) {
+        console.error('Error updating characteristic:', error)
+        
+        let errorMessage = 'Hubo un problema al actualizar la característica.'
+        
+        if (error.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.'
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('user_data')
+          this.$router.push('/login')
+        } else if (error.response?.status === 403) {
+          errorMessage = 'No tienes permisos para realizar esta acción.'
+        } else if (error.response?.status === 400) {
+          errorMessage = 'Datos inválidos. Verifique que el nombre no esté duplicado.'
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error
+        }
+
+        this.$swal({
+          title: 'Error',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Continuar'
+        })
+      }
+    },
   },
 
   async mounted() {

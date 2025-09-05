@@ -1192,25 +1192,143 @@ a:focus {
   box-shadow: 0 4px 12px rgba(70, 175, 234, 0.3) !important;
 }
 
+/* ===== ESTILOS PARA BOTÓN EDITAR DESCRIPCIÓN ===== */
+.edit-description-btn {
+  font-size: 0.75rem !important;
+  height: 28px !important;
+  border-radius: 14px !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+}
+
+.edit-description-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(70, 175, 234, 0.3) !important;
+}
+
+/* ===== ESTILOS PARA MODAL EDITAR DESCRIPCIÓN ===== */
+.edit-description-modal .modal-header {
+  background: linear-gradient(135deg, #46AFEA 0%, #134367 100%) !important;
+  color: white !important;
+  padding: 16px 24px !important;
+}
+
+.edit-description-modal .modal-title {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+}
+
+.edit-description-content {
+  padding: 20px !important;
+  background: #f8fafc !important;
+}
+
+.edit-description-content .form-section {
+  background: white !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.edit-description-content .section-title {
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  color: #374151 !important;
+  margin: 0 0 16px 0 !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.description-info {
+  display: flex !important;
+  align-items: center !important;
+  margin-top: 12px !important;
+  padding: 12px !important;
+  background: #eff6ff !important;
+  border-radius: 8px !important;
+  border-left: 4px solid #3b82f6 !important;
+}
+
+.description-info .info-text {
+  font-size: 0.85rem !important;
+  color: #4b5563 !important;
+  line-height: 1.4 !important;
+}
+
+.edit-description-modal .cancel-btn {
+  color: #64748b !important;
+  font-weight: 600 !important;
+}
+
+.edit-description-modal .save-changes-btn {
+  background: linear-gradient(135deg, #46AFEA 0%, #134367 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  padding: 0 24px !important;
+}
+
+.edit-description-modal .save-changes-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(70, 175, 234, 0.3) !important;
+}
+
+.edit-description-modal .save-changes-btn:disabled {
+  background: #9ca3af !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
-  .edit-indicator-modal {
+  .edit-description-btn {
+    font-size: 0.7rem !important;
+    height: 26px !important;
+    margin-left: 0 !important;
+    margin-top: 8px !important;
+  }
+  
+  .edit-description-modal {
     margin: 8px !important;
   }
   
-  .edit-modal-content {
+  .edit-description-content {
     padding: 16px !important;
   }
   
-  .form-section {
-    padding: 12px !important;
+  .edit-description-content .form-section {
+    padding: 16px !important;
   }
-  
-  .result-field {
-    padding: 8px !important;
-  }
-  
-  .result-value {
-    font-size: 1.2rem !important;
-  }
+}
+
+/* ===== ESTILOS ADICIONALES PARA CAMPO NOMBRE ===== */
+.name-input .v-input__control {
+  background: white !important;
+}
+
+.name-input .v-text-field__details {
+  margin-top: 4px !important;
+}
+
+/* Ajustar el ancho del modal */
+.edit-description-modal {
+  max-width: 700px !important;
+}
+
+/* Espaciado entre secciones */
+.edit-description-content .form-section:not(:last-child) {
+  margin-bottom: 20px !important;
+}
+
+/* Estilo para el icono interno del campo nombre */
+.name-input .v-input__prepend-inner {
+  margin-top: 8px !important;
+  margin-right: 8px !important;
+}
+
+.description-textarea .v-input__prepend-inner {
+  margin-top: 8px !important;
+  margin-right: 8px !important;
+  align-self: flex-start !important;
 }
