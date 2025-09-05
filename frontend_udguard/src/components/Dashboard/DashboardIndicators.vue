@@ -1013,16 +1013,21 @@ async saveIndicatorChanges() {
           
           if (indicadorKey) {
             const token = localStorage.getItem('access_token')
+            const indicadorId = this.characteristic.indicadores[indicadorKey].id
 
-            // Eliminar del backend
+            console.log('Deleting indicator with ID:', indicadorId)
+
+            // ⭐ ELIMINAR DEL BACKEND CON EL ENDPOINT CORRECTO
             await axios.delete(
-              `/indicators/${this.characteristic.indicadores[indicadorKey].id}/`,
+              `/indicators/${indicadorId}/`,
               {
                 headers: {
                   Authorization: `Bearer ${token}`
                 }
               }
             )
+
+            console.log('Indicator deleted from server successfully')
 
             // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE ELIMINAR
             await this.fetchCaracteristica()

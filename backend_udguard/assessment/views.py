@@ -148,6 +148,18 @@ class IndicatorUpdateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+    def delete(self, request, indicador_id):
+        tipo = request.user.tipo_user
+        if tipo != "admin":
+            return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
+        indicador = get_object_or_404(Indicator, pk=indicador_id)
+        indicador.delete()
+
+        return Response(
+            {"message": "indicador eliminado"},
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
 def get_grado_cumplimiento(grado_numerico):
     """
     Determina el grado de cumplimiento basado en la escala numérica 1-5
