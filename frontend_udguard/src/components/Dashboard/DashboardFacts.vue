@@ -10,6 +10,15 @@
               Visualiza y gestiona el estado de los factores clave del programa. Haz clic en <strong>Ver</strong> para profundizar en cada uno.
             </p>
           </div>
+          <!-- Botón Adjuntar Resultados -->
+          <div class="header-actions">
+            <button @click="showAttachResultsModal = true" class="attach-results-btn" title="Abrir modal para subir resultados de encuestas">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.64 16.2a2 2 0 0 1-2.83-2.83l8.49-8.49"/>
+              </svg>
+              <span>Adjuntar Resultados de Encuesta</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -77,6 +86,89 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Adjuntar Resultados -->
+    <div v-if="showAttachResultsModal" class="modal-overlay" @click="closeAttachResultsModal">
+      <div class="modal-content attach-results-modal" @click.stop>
+        <div class="modal-header">
+          <div class="modal-header-content">
+            <h3 class="modal-title">SUBIR RESULTADOS</h3>
+            <button class="modal-close-btn" @click="closeAttachResultsModal">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <!-- Selector de tipo de resultados -->
+          <div class="form-group">
+            <label class="form-label">Seleccione el tipo de resultados</label>
+            <div class="select-wrapper">
+              <select v-model="selectedResultType" class="form-select">
+                <option value="empleadores">Empleadores</option>
+                <option value="docentes">Docentes</option>
+                <option value="estudiantes">Estudiantes</option>
+                <option value="egresados">Egresados</option>
+                <option value="administrativos">Administrativos</option>
+              </select>
+              <div class="select-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6,9 12,15 18,9"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Documento seleccionado -->
+          <div class="form-group">
+            <label class="form-label">Documento seleccionado</label>
+            <div class="file-input-wrapper">
+              <input 
+                type="file" 
+                ref="fileInput" 
+                @change="handleFileSelect" 
+                accept=".xlsx,.xls" 
+                class="file-input-hidden"
+              />
+              <div class="file-input-display" @click="$refs.fileInput.click()">
+                <div class="file-input-content">
+                  <div class="file-icon-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14,2H6A2,2,0,0,0,4,4V20a2,2,0,0,0,2,2H18a2,2,0,0,0,2-2V8Z"/>
+                      <polyline points="14,2 14,8 20,8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                      <line x1="16" y1="17" x2="8" y2="17"/>
+                      <polyline points="10,9 9,9 8,9"/>
+                    </svg>
+                  </div>
+                  <span class="file-name">{{ selectedFileName || 'Formulario Docentes.xlsx' }}</span>
+                </div>
+                <button class="browse-btn" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9,18 15,12 9,6"/>
+                  </svg>
+                </button>
+              </div>
+              <p class="file-help-text">Solo archivos Excel (.xlsx, .xls)</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button @click="uploadExcel" class="modal-btn modal-btn-primary" :disabled="!selectedFile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7,10 12,15 17,10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Subir Excel
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -90,7 +182,12 @@ export default {
     return {
       factores: [],
       loading: false,
-      error: null
+      error: null,
+      // Modal de adjuntar resultados
+      showAttachResultsModal: false,
+      selectedResultType: 'estudiantes',
+      selectedFile: null,
+      selectedFileName: ''
     }
   },
 
@@ -205,6 +302,41 @@ export default {
           titulo: factor.nombre 
         }
       })
+    },
+
+    // Métodos para el modal de adjuntar resultados
+    closeAttachResultsModal() {
+      this.showAttachResultsModal = false
+      this.resetAttachResultsForm()
+    },
+
+    resetAttachResultsForm() {
+      this.selectedResultType = 'estudiantes'
+      this.selectedFile = null
+      this.selectedFileName = ''
+    },
+
+    handleFileSelect(event) {
+      const file = event.target.files[0]
+      if (file) {
+        this.selectedFile = file
+        this.selectedFileName = file.name
+      }
+    },
+
+    uploadExcel() {
+      if (!this.selectedFile) {
+        alert('Por favor seleccione un archivo Excel')
+        return
+      }
+
+      // Por el momento solo mostramos un mensaje
+      console.log('Uploading file:', this.selectedFile.name)
+      console.log('Result type:', this.selectedResultType)
+      
+      // Simular éxito
+      alert(`Archivo "${this.selectedFile.name}" subido exitosamente para ${this.selectedResultType}`)
+      this.closeAttachResultsModal()
     }
   },
 

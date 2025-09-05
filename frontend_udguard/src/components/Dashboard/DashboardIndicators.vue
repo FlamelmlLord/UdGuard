@@ -130,7 +130,7 @@
           <h3 class="section-title">Indicadores</h3>
           <v-spacer></v-spacer>
           <v-chip class="aspect-count-chip" color="primary" outlined small>
-            {{ Object.keys(characteristic.indicadores).length }} Aspectos
+            {{ Object.keys(characteristic.indicadores || {}).length }} Aspectos
           </v-chip>
         </div>
 
@@ -142,13 +142,17 @@
                   <v-icon class="mr-2" size="18">mdi-format-list-bulleted</v-icon>
                   ASPECTOS A EVALUAR
                 </th>
-                <th class="text-left evidence-header">
+                <th class="text-center evidence-header">
                   <v-icon class="mr-2" size="18">mdi-file-document-outline</v-icon>
                   EVIDENCIA
                 </th>
-                <th class="text-left rating-header">
+                <th class="text-center rating-header">
                   <v-icon class="mr-2" size="18">mdi-star-outline</v-icon>
                   CALIFICACIÓN
+                </th>
+                <th class="text-center actions-header">
+                  <v-icon class="mr-2" size="18">mdi-cog</v-icon>
+                  ACCIONES
                 </th>
               </tr>
             </thead>
@@ -196,6 +200,43 @@
                         <v-icon size="16" color="warning">mdi-star</v-icon>
                       </template>
                     </v-text-field>
+                  </div>
+                </td>
+                <td class="actions-cell">
+                  <div class="indicator-actions-vertical">
+                    <!-- Botón Editar -->
+                    <v-tooltip left>
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-btn 
+                          icon 
+                          small 
+                          class="action-btn edit-btn"
+                          v-bind="attrs"
+                          v-on="on"
+                          @click="editIndicator(index)"
+                        >
+                          <v-icon size="16" color="primary">mdi-pencil</v-icon>
+                        </v-btn>
+                      </template>
+                      <span>Editar</span>
+                    </v-tooltip>
+                    
+                    <!-- Botón Eliminar -->
+                    <v-tooltip left>
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-btn 
+                          icon 
+                          small 
+                          class="action-btn delete-btn"
+                          v-bind="attrs"
+                          v-on="on"
+                          @click="confirmDeleteIndicator(index)"
+                        >
+                          <v-icon size="16" color="error">mdi-delete</v-icon>
+                        </v-btn>
+                      </template>
+                      <span>Eliminar</span>
+                    </v-tooltip>
                   </div>
                 </td>
               </tr>
@@ -350,6 +391,176 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- 📝 MODAL EDITAR INDICADOR -->
+    <v-dialog v-model="showEditIndicatorModal" max-width="600px" persistent>
+      <v-card class="edit-indicator-modal">
+        <v-card-title class="modal-header">
+          <v-icon class="mr-3" size="24" color="primary">mdi-pencil</v-icon>
+          <span class="modal-title">EDICIÓN ASPECTO A EVALUAR #{{ editingIndex + 1 }}</span>
+          <v-spacer></v-spacer>
+          <v-btn icon @click="closeEditIndicatorModal">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="edit-modal-content">
+          <!-- DEFINICIÓN -->
+          <div class="form-section">
+            <h3 class="section-title">DEFINICIÓN</h3>
+            <v-textarea
+              v-model="editingIndicator.nombre"
+              outlined
+              rows="3"
+              hide-details
+              class="definition-textarea"
+              placeholder="Descripción del aspecto a evaluar..."
+            ></v-textarea>
+          </div>
+
+          <!-- TIPO EVIDENCIA -->
+          <div class="form-section">
+            <h3 class="section-title">TIPO EVIDENCIA</h3>
+            <div class="evidence-type-group">
+              <v-radio-group v-model="editingIndicator.tipoEvidencia" row hide-details>
+                <v-radio label="Documental" value="documental" color="primary"></v-radio>
+                <v-radio label="Encuesta" value="encuesta" color="primary"></v-radio>
+              </v-radio-group>
+            </div>
+
+            <!-- Campo condicional para Documental -->
+            <v-text-field
+              v-if="editingIndicator.tipoEvidencia === 'documental'"
+              v-model="editingIndicator.link_evidencia"
+              label="Ingrese el link en donde almacenan la evidencia para este indicador"
+              outlined
+              dense
+              hide-details
+              class="evidence-field"
+              placeholder="https://ejemplo.com/evidencia"
+              prepend-inner-icon="mdi-link"
+            ></v-text-field>
+
+            <!-- Campo condicional para Encuesta -->
+            <v-text-field
+              v-if="editingIndicator.tipoEvidencia === 'encuesta'"
+              v-model="editingIndicator.palabraClave"
+              label="Ingrese el texto o palabra clave que pertenezca a la pregunta que satisfaga este aspecto a evaluar"
+              outlined
+              dense
+              hide-details
+              class="evidence-field"
+              placeholder="Palabra clave o pregunta relacionada"
+              prepend-inner-icon="mdi-text-search"
+            ></v-text-field>
+          </div>
+
+          <!-- INGRESO DE DATOS -->
+          <div class="form-section">
+            <h3 class="section-title">INGRESO DE DATOS</h3>
+            <v-row>
+              <v-col cols="6">
+                <v-text-field
+                  v-model.number="editingIndicator.ponderacion"
+                  label="Ponderación"
+                  type="number"
+                  outlined
+                  dense
+                  hide-details
+                  min="0"
+                  max="100"
+                  suffix=""
+                  class="data-input"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="6">
+                <v-text-field
+                  v-model.number="editingIndicator.calificacion"
+                  label="Calificación"
+                  type="number"
+                  outlined
+                  dense
+                  hide-details
+                  min="0"
+                  max="5"
+                  step="0.1"
+                  suffix=""
+                  class="data-input"
+                  @input="calculateResults"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </div>
+
+          <!-- ALCANCE OBTENIDO -->
+          <div class="form-section">
+            <h3 class="section-title">ALCANCE OBTENIDO</h3>
+            <v-row>
+              <v-col cols="4">
+                <div class="result-field">
+                  <label class="result-label">Meta</label>
+                  <div class="result-value">{{ editingIndicator.meta || '00' }}</div>
+                </div>
+              </v-col>
+              <v-col cols="4">
+                <div class="result-field">
+                  <label class="result-label">Puntaje</label>
+                  <div class="result-value">{{ calculatedPuntaje }}</div>
+                </div>
+              </v-col>
+              <v-col cols="4">
+                <div class="result-field">
+                  <label class="result-label">Grado Cumplimiento %</label>
+                  <div class="result-value">{{ calculatedPorcentaje }}</div>
+                </div>
+              </v-col>
+            </v-row>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="modal-actions">
+          <v-spacer></v-spacer>
+          <v-btn class="cancel-btn" text @click="closeEditIndicatorModal">
+            Cancelar
+          </v-btn>
+          <v-btn class="save-changes-btn" color="primary" @click="saveIndicatorChanges">
+            Guardar cambios
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- 🗑️ MODAL CONFIRMAR ELIMINACIÓN -->
+    <v-dialog v-model="showDeleteConfirmModal" max-width="400px" persistent>
+      <v-card class="delete-confirm-modal">
+        <v-card-title class="modal-header error">
+          <v-icon class="mr-3" size="24" color="white">mdi-alert</v-icon>
+          <span class="modal-title">Confirmar Eliminación</span>
+        </v-card-title>
+
+        <v-card-text class="delete-modal-content">
+          <div class="warning-content">
+            <v-icon size="48" color="error" class="warning-icon">mdi-alert-circle</v-icon>
+            <h3>¿Estás seguro?</h3>
+            <p>
+              ¿Deseas eliminar este indicador?<br>
+              <strong>Esta acción no se puede deshacer.</strong>
+            </p>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="modal-actions">
+          <v-spacer></v-spacer>
+          <v-btn text @click="closeDeleteConfirmModal">
+            Cancelar
+          </v-btn>
+          <v-btn color="error" @click="deleteIndicator">
+            <v-icon left>mdi-delete</v-icon>
+            Eliminar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -363,16 +574,28 @@ export default {
     return {
       selectedFactor: 1,
       showManageModal: false,
+      showEditIndicatorModal: false,
+      showDeleteConfirmModal: false,
       activeTab: 0,
       characteristicsId: 0,
       characteristic: {},
       isAdmin: true, // Cambiar según el rol del usuario
       lastUpdate: '15 de Agosto, 2025',
 
-      factors: [
+      // Estados para CRUD de indicadores
+      editingIndicator: {
+        nombre: '',
+        calificacion: 0,
+        ponderacion: 0,
+        meta: 0,
+        link_evidencia: '',
+        palabraClave: '',
+        tipoEvidencia: 'documental' // por defecto
+      },
+      editingIndex: -1,
+      indicatorToDelete: -1,
 
-      ],
-
+      factors: [],
       aspectos: [],
       editableDescription: '',
       editableAspects: [],
@@ -390,6 +613,18 @@ export default {
       if (ratings.length === 0) return '0.0'
       const sum = ratings.reduce((acc, aspect) => acc + parseFloat(aspect.calificacion), 0)
       return (sum / ratings.length).toFixed(1)
+    },
+
+    calculatedPuntaje() {
+      const ponderacion = this.editingIndicator.ponderacion || 0
+      const calificacion = this.editingIndicator.calificacion || 0
+      return Math.round(ponderacion * calificacion) || '00'
+    },
+
+    calculatedPorcentaje() {
+      const puntaje = this.calculatedPuntaje
+      const meta = this.editingIndicator.meta || 1
+      return meta > 0 ? Math.round((puntaje / meta) * 100) || '00' : '00'
     }
   },
 
@@ -460,23 +695,26 @@ export default {
         }]
       })
     },
+
     navigateToCharacteristic(caracteristicaId) {
       this.$router.replace({
         name: 'DashboardIndicators',
         params: { caracteristicaId }
       }).catch(err => { console.log(err) });
     },
-      async characteristicsByFactor(factor) {
-        const token = localStorage.getItem('access_token')
-        const response = await axios.get(`/factors/${factor}/characteristics/`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-        console.log('API response received Characteristics by factor:', response.data)
-        this.factors = response.data
-      },
-      async fetchCaracteristica () {
+
+    async characteristicsByFactor(factor) {
+      const token = localStorage.getItem('access_token')
+      const response = await axios.get(`/factors/${factor}/characteristics/`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      console.log('API response received Characteristics by factor:', response.data)
+      this.factors = response.data
+    },
+
+    async fetchCaracteristica () {
       console.log(this.characteristicsId)
       this.loading = true
       this.error = null
@@ -519,7 +757,7 @@ export default {
     toggleManageModal () {
       this.showManageModal = !this.showManageModal
       if (this.showManageModal) {
-        this.editableDescription = this.currentFactorDescription
+        this.editableDescription = this.characteristic.descripcion || ''
         this.editableAspects = JSON.parse(JSON.stringify(this.aspectos))
       }
     },
@@ -536,7 +774,7 @@ export default {
     },
 
     saveChanges () {
-      this.currentFactorDescription = this.editableDescription
+      this.characteristic.descripcion = this.editableDescription
       this.aspectos = JSON.parse(JSON.stringify(this.editableAspects))
       this.showManageModal = false
 
@@ -548,11 +786,163 @@ export default {
       })
     },
 
+    // Métodos para CRUD de indicadores
+    editIndicator(index) {
+      const indicadoresArray = Object.values(this.characteristic.indicadores || {})
+      if (indicadoresArray[index]) {
+        this.editingIndex = index
+        const indicador = indicadoresArray[index]
+        
+        this.editingIndicator = {
+          nombre: indicador.nombre || '',
+          calificacion: indicador.calificacion || 0,
+          ponderacion: indicador.ponderacion || 0,
+          meta: indicador.meta || 0,
+          link_evidencia: indicador.link_evidencia || '',
+          palabraClave: indicador.palabraClave || '',
+          tipoEvidencia: indicador.link_evidencia ? 'documental' : 'encuesta'
+        }
+        this.showEditIndicatorModal = true
+      }
+    },
+
+    closeEditIndicatorModal() {
+      this.showEditIndicatorModal = false
+      this.editingIndex = -1
+      this.editingIndicator = {
+        nombre: '',
+        calificacion: 0,
+        ponderacion: 0,
+        meta: 0,
+        link_evidencia: '',
+        palabraClave: '',
+        tipoEvidencia: 'documental'
+      }
+    },
+
+    calculateResults() {
+      // Este método se llama automáticamente cuando cambia la calificación
+      // Los computed properties se actualizan automáticamente
+    },
+
+async saveIndicatorChanges() {
+      if (this.editingIndex >= 0) {
+        try {
+          const indicadorKey = Object.keys(this.characteristic.indicadores)[this.editingIndex]
+        
+          if (indicadorKey) {
+            const token = localStorage.getItem('access_token')
+            
+            // Actualizar el indicador existente
+            this.characteristic.indicadores[indicadorKey] = {
+              ...this.characteristic.indicadores[indicadorKey],
+              nombre: this.editingIndicator.nombre,
+              calificacion: this.editingIndicator.calificacion,
+              ponderacion: this.editingIndicator.ponderacion,
+              meta: this.editingIndicator.meta,
+              link_evidencia: this.editingIndicator.tipoEvidencia === 'documental' ? this.editingIndicator.link_evidencia : '',
+              palabraClave: this.editingIndicator.tipoEvidencia === 'encuesta' ? this.editingIndicator.palabraClave : '',
+              puntos: this.calculatedPuntaje,
+              porcentaje: this.calculatedPorcentaje
+            }
+            
+            const data = await axios.patch(
+              `/indicators/${this.characteristic.indicadores[indicadorKey].id}/`,
+              this.characteristic.indicadores[indicadorKey],
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
+              }
+            )
+            
+            console.log('Indicator updated on server:', data.data)
+
+            // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE GUARDAR
+            await this.fetchCaracteristica()
+
+            this.$swal({
+              title: '¡Indicador Actualizado!',
+              text: 'Los cambios se han guardado correctamente.',
+              icon: 'success',
+              confirmButtonText: 'Continuar'
+            })
+          }
+        } catch (error) {
+          console.error('Error updating indicator:', error)
+          this.$swal({
+            title: 'Error',
+            text: 'Hubo un problema al guardar los cambios. Inténtalo de nuevo.',
+            icon: 'error',
+            confirmButtonText: 'Continuar'
+          })
+        }
+      }
+      this.closeEditIndicatorModal()
+    },
+
+
+
+
+  confirmDeleteIndicator(index) {
+  this.indicatorToDelete = index
+  this.showDeleteConfirmModal = true
+},
+
+    closeDeleteConfirmModal() {
+      this.showDeleteConfirmModal = false
+      this.indicatorToDelete = -1
+    },
+
+    async deleteIndicator() {
+      if (this.indicatorToDelete >= 0) {
+        try {
+          const indicadorKey = Object.keys(this.characteristic.indicadores)[this.indicatorToDelete]
+          
+          if (indicadorKey) {
+            const token = localStorage.getItem('access_token')
+
+            // Eliminar del backend
+            await axios.delete(
+              `/indicators/${this.characteristic.indicadores[indicadorKey].id}/`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
+              }
+            )
+
+            // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE ELIMINAR
+            await this.fetchCaracteristica()
+            
+            this.$swal({
+              title: '¡Indicador Eliminado!',
+              text: 'El indicador se ha eliminado correctamente.',
+              icon: 'success',
+              confirmButtonText: 'Continuar'
+            })
+          }
+        } catch (error) {
+          console.error('Error deleting indicator:', error)
+          this.$swal({
+            title: 'Error',
+            text: 'Error al eliminar el indicador.',
+            icon: 'error',
+            confirmButtonText: 'Continuar'
+          })
+        }
+      }
+      this.closeDeleteConfirmModal()
+    },
+
     viewEvidence (index) {
       console.log('Ver evidencia del aspecto:', index)
     },
 
-    saveEvaluation () {
+    async saveEvaluation() {
+      // ⭐ REFRESCAR DATOS DEL BACKEND
+      await this.fetchCaracteristica()
+      
       this.$swal({
         title: '¡Evaluación Guardada!',
         text: 'La evaluación se ha guardado exitosamente.',
@@ -561,11 +951,11 @@ export default {
       })
     }
   },
-    async mounted() {
-      console.log(this.$route.params.caracteristicaId)
-      this.characteristicsId = this.$route.params.caracteristicaId
+
+  async mounted() {
+    console.log(this.$route.params.caracteristicaId)
+    this.characteristicsId = this.$route.params.caracteristicaId
     await this.fetchCaracteristica()
-      
   }
 }
 </script>

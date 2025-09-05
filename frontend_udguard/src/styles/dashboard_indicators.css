@@ -993,3 +993,224 @@ a:focus {
   outline: 2px solid rgba(49, 130, 206, 0.5);
   outline-offset: 2px;
 }
+
+/* ===== COLUMNA DE ACCIONES PARA ASPECTOS ===== */
+.actions-header {
+  width: 120px !important;
+  text-align: center !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 1.25rem 1rem !important;
+  border-bottom: none !important;
+}
+
+.actions-cell {
+  width: 120px !important;
+  padding: 1.5rem 0.5rem !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.indicator-actions-vertical {
+  display: flex;
+  flex-direction: column !important;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ===== BOTONES DE ACCIÓN COMPACTOS ===== */
+.action-btn {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: 1px solid transparent !important;
+  min-width: 32px !important;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Botón editar */
+.edit-btn {
+  background: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.edit-btn:hover {
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+}
+
+/* Botón eliminar */
+.delete-btn {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+}
+
+/* ===== MODALES DE INDICADORES ===== */
+.edit-indicator-modal {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+.edit-indicator-modal .modal-header {
+  background: linear-gradient(135deg, #46AFEA 0%, #134367 100%) !important;
+  color: white !important;
+  padding: 16px 24px !important;
+}
+
+.edit-indicator-modal .modal-title {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  width: 100% !important;
+}
+
+.edit-modal-content {
+  padding: 20px !important;
+  background: #f8fafc !important;
+}
+
+/* Secciones del formulario */
+.form-section {
+  background: white !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  margin-bottom: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.section-title {
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  color: #374151 !important;
+  margin: 0 0 12px 0 !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* Campo de definición */
+.definition-textarea .v-input__control {
+  background: white !important;
+}
+
+/* Grupo de radio buttons */
+.evidence-type-group {
+  display: flex !important;
+  justify-content: center !important;
+  margin-bottom: 12px !important;
+}
+
+.evidence-type-group .v-input--radio-group {
+  margin: 0 !important;
+}
+
+.evidence-type-group .v-radio {
+  margin: 0 20px !important;
+}
+
+/* Campo de evidencia condicional */
+.evidence-field {
+  margin-top: 12px !important;
+}
+
+.evidence-field .v-input__control {
+  background: white !important;
+}
+
+/* Campos de ingreso de datos */
+.data-input .v-input__control {
+  background: white !important;
+}
+
+.data-input .v-text-field__details {
+  display: none !important;
+}
+
+/* Campos de resultados (solo lectura) */
+.result-field {
+  text-align: center !important;
+  padding: 12px !important;
+  background: #f1f5f9 !important;
+  border-radius: 8px !important;
+  border: 2px solid #e2e8f0 !important;
+}
+
+.result-label {
+  display: block !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  margin-bottom: 4px !important;
+}
+
+.result-value {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  line-height: 1 !important;
+}
+
+/* Acciones del modal */
+.edit-indicator-modal .modal-actions {
+  background: white !important;
+  padding: 16px 24px !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+.cancel-btn {
+  color: #64748b !important;
+  font-weight: 600 !important;
+}
+
+.save-changes-btn {
+  background: linear-gradient(135deg, #46AFEA 0%, #134367 100%) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  padding: 0 24px !important;
+}
+
+.save-changes-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(70, 175, 234, 0.3) !important;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .edit-indicator-modal {
+    margin: 8px !important;
+  }
+  
+  .edit-modal-content {
+    padding: 16px !important;
+  }
+  
+  .form-section {
+    padding: 12px !important;
+  }
+  
+  .result-field {
+    padding: 8px !important;
+  }
+  
+  .result-value {
+    font-size: 1.2rem !important;
+  }
+}
