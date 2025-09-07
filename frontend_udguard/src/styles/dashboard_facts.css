@@ -58,30 +58,82 @@
   --gradient-card: linear-gradient(145deg, #1e293b 0%, #334155 100%) !important;
 }
 
-/* Wrapper principal */
-.dashboard-facts-wrapper {
-  background-color: var(--bg-primary);
-  transition: var(--transition-slow);
-  min-height: 100vh;
-  padding: var(--spacing-lg);
-}
-
-/* Contenedor principal con las características solicitadas */
+/* Contenedor principal */
 .dashboard-facts-container {
-  margin: -1.8rem;
-  padding: 24px;
-  font-family: var(--font-family);
+  position: relative;
+  margin: 1rem auto;
+  width: 100%;
+  max-width: 1920px;
+  min-height: calc(100vh - 2rem);
+  padding: 1.5rem;
   background: var(--bg-secondary);
-  min-height: calc(100vh - 10px);
-  max-height: calc(100vh - 10px);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
-  transition: var(--transition-slow);
-  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  overflow: hidden;
+}
+
+/* Efecto de profundidad y hover */
+.dashboard-facts-container::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05)
+  );
+  border-radius: inherit;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.dashboard-facts-container:hover::before {
+  opacity: 1;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 1536px) {
+  .dashboard-facts-container {
+    margin: 0.8rem auto;
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 1280px) {
+  .dashboard-facts-container {
+    margin: 0.6rem auto;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-facts-container {
+    margin: 0.5rem auto;
+    padding: 0.8rem;
+  }
+}
+
+/* Soporte para modo oscuro */
+.dark .dashboard-facts-container {
+  background: rgba(30, 41, 59, 0.98);
+  border-color: rgba(71, 85, 105, 0.3);
+}
+
+/* Optimización para diferentes dispositivos */
+@supports ((-webkit-backdrop-filter: none) or (backdrop-filter: none)) {
+  .dashboard-facts-container {
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  .dark .dashboard-facts-container {
+    background: rgba(30, 41, 59, 0.95);
+  }
 }
 
 /* Header mejorado y centrado - FIXED CSS estable */

@@ -17,17 +17,44 @@ Vue.config.productionTip = false
 Vue.use(VueSweetalert2)
 Vue.prototype.$axios = axios
 
+// Configurar Event Bus global para comunicación entre componentes
+Vue.prototype.$eventBus = new Vue()
+
+// Declaración de tipos para TypeScript
+declare module 'vue/types/vue' {
+  interface Vue {
+    $eventBus: Vue
+  }
+}
+
+// Inicializar dark mode antes de montar la aplicación
+const savedDarkMode = localStorage.getItem('darkMode')
+if (savedDarkMode) {
+  const isDark = JSON.parse(savedDarkMode)
+  document.documentElement.classList.toggle('dark-mode', isDark)
+  document.body.classList.toggle('dark-mode', isDark)
+} else {
+  // Detectar preferencia del sistema
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  document.documentElement.classList.toggle('dark-mode', prefersDark)
+  document.body.classList.toggle('dark-mode', prefersDark)
+}
+
 new Vue({
   router,
   store,
   vuetify,
-  render: h => h(App)
-}).$mount('#app')
-
-/*export default {
-  name: 'DashboardHome',
-  components: {
-    FullCalendar
+  render: h => h(App),
+  created() {
+    // Inicializar dark mode en el store al crear la app
+    this.$store.dispatch('initDarkMode')
+    
+    // Listener global para cambios de tema del sistema
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('darkMode')) {
+        // Solo aplicar preferencia del sistema si el usuario no ha configurado manualmente
+        this.$store.commit('SET_DARK_MODE', e.matches)
+      }
+    })
   }
-  // ... resto del código
-}*/
+}).$mount('#app')

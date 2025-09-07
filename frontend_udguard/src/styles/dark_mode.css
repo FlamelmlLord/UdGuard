@@ -1,156 +1,276 @@
+/* dark-mode.css - Versión mejorada y escalable */
+
+/* Variables CSS organizadas por contexto */
 :root {
-  /* Light mode colors */
+  /* Light mode colors - Base */
   --bg-primary: #ffffff;
   --bg-secondary: #f4f6f9;
+  --bg-tertiary: #e5e7eb;
+  
+  /* Text colors */
   --text-primary: #09090A;
   --text-secondary: #666666;
-  --card-bg: #fff;
-  --card-border: #e5e7eb;
-  --btn-primary-bg: #38bdf8;
-  --btn-primary-text: #fff;
-  --btn-secondary-bg: #e0e7ef;
-  --btn-secondary-text: #22223b;
-  --modal-bg: #fff;
+  --text-tertiary: #9CA3AF;
+  --text-inverse: #ffffff;
+  
+  /* Component backgrounds */
+  --card-bg: #ffffff;
+  --modal-bg: #ffffff;
+  --sidebar-bg: #ffffff;
+  --header-bg: #ffffff;
+  
+  /* Borders and dividers */
+  --border-primary: #e5e7eb;
+  --border-secondary: #d1d5db;
+  --border-focus: #38bdf8;
+  
+  /* Form elements */
   --input-bg: #f4f6f9;
   --input-text: #09090A;
-  --calendar-bg: #fff;
-}
-
-.dark-mode {
-  /* Dark mode colors */
-  --bg-primary: #121212;
-  --bg-secondary: #1E1E1E;
-  --text-primary: #FFFFFF;
-  --text-secondary: #B0B0B0;
-  --card-bg: #181C23;
-  --card-border: #23272f;
+  --input-border: #d1d5db;
+  --input-focus-border: #38bdf8;
+  
+  /* Buttons */
   --btn-primary-bg: #38bdf8;
-  --btn-primary-text: #181C23;
-  --btn-secondary-bg: #23272f;
-  --btn-secondary-text: #fff;
-  --modal-bg: #23272f;
-  --input-bg: #23272f;
-  --input-text: #fff;
-  --calendar-bg: #181C23;
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: #0ea5e9;
+  --btn-secondary-bg: #e0e7ef;
+  --btn-secondary-text: #22223b;
+  --btn-secondary-hover: #d1d9e0;
+  
+  /* Status colors */
+  --success-bg: #10b981;
+  --success-light: #d1fae5;
+  --warning-bg: #f59e0b;
+  --warning-light: #fef3c7;
+  --error-bg: #ef4444;
+  --error-light: #fee2e2;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 300ms ease-in-out;
+  --transition-slow: 500ms ease-in-out;
 }
 
-/* Apply dark mode to body or specific elements */
-body.dark-mode {
+/* Dark mode variables */
+html.dark-mode,
+.dark-mode {
+  /* Dark mode colors - Base */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  
+  /* Text colors */
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-inverse: #0f172a;
+  
+  /* Component backgrounds */
+  --card-bg: #1e293b;
+  --modal-bg: #1e293b;
+  --sidebar-bg: #0f172a;
+  --header-bg: #1e293b;
+  
+  /* Borders and dividers */
+  --border-primary: #334155;
+  --border-secondary: #475569;
+  --border-focus: #38bdf8;
+  
+  /* Form elements */
+  --input-bg: #334155;
+  --input-text: #f8fafc;
+  --input-border: #475569;
+  --input-focus-border: #38bdf8;
+  
+  /* Buttons - Dark mode specific */
+  --btn-primary-bg: linear-gradient(135deg, #46AFEA 0%, #134367 50%, #0D2B44 100%);
+  --btn-primary-text: #ffffff;
+  --btn-primary-hover: #134367;
+  --btn-secondary-bg: #334155;
+  --btn-secondary-text: #f8fafc;
+  --btn-secondary-hover: #475569;
+  
+  /* Status colors - adjusted for dark mode */
+  --success-bg: #059669;
+  --success-light: rgba(16, 185, 129, 0.1);
+  --warning-bg: #d97706;
+  --warning-light: rgba(245, 158, 11, 0.1);
+  --error-bg: #dc2626;
+  --error-light: rgba(239, 68, 68, 0.1);
+  
+  /* Shadows for dark mode */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+}
+
+/* Base styles que se aplicarán automáticamente */
+* {
+  transition: background-color var(--transition-normal), 
+              color var(--transition-normal), 
+              border-color var(--transition-normal),
+              box-shadow var(--transition-normal);
+}
+
+/* Aplicación global de estilos */
+html,
+body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
 }
 
-/* Aplica a body y todos los elementos */
-body, .dashboard-container, .main-grid, .calendar-panel, .info-panel, .event-counters, .event-counter-card, .info-carousel-modern, .modal-content, .event-form, .events-list, .events-table, .event-item, .slide-overlay-modern {
-  background-color: var(--bg-primary) !important;
-  color: var(--text-primary) !important;
+/* Componentes base */
+.card,
+.modal,
+.panel,
+.container {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--border-primary);
 }
 
-.event-counter-card, .info-carousel-modern, .modal-content, .event-form, .events-list, .events-table, .event-item {
-  background-color: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
+/* Headers y títulos */
+h1, h2, h3, h4, h5, h6,
+.title, .subtitle, .header-title {
+  color: var(--text-primary);
 }
 
-input, textarea, select {
-  background: var(--input-bg) !important;
-  color: var(--input-text) !important;
-  border-color: var(--card-border) !important;
+/* Formularios */
+input,
+textarea,
+select,
+.form-control {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--input-border);
 }
 
-.btn-primary {
-  background: var(--btn-primary-bg) !important;
-  color: var(--btn-primary-text) !important;
+input:focus,
+textarea:focus,
+select:focus,
+.form-control:focus {
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
 }
 
-.btn-secondary {
-  background: var(--btn-secondary-bg) !important;
-  color: var(--btn-secondary-text) !important;
+/* Botones */
+.btn-primary,
+.button-primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: none;
 }
 
-.slide-overlay-modern {
-  background: linear-gradient(0deg, rgba(30,41,59,0.85) 70%, rgba(30,41,59,0.1) 100%) !important;
-  color: #fff !important;
+.btn-primary:hover,
+.button-primary:hover {
+  background: var(--btn-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
-body.dark-mode,
-.dark-mode {
-  background: var(--bg-primary) !important;
-  color: var(--text-primary) !important;
+.btn-secondary,
+.button-secondary {
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-color: var(--border-primary);
 }
 
-body.dark-mode .dashboard-header,
-body.dark-mode .calendar-panel,
-body.dark-mode .main-grid,
-body.dark-mode .info-panel,
-body.dark-mode .event-counters,
-body.dark-mode .event-counter-card,
-body.dark-mode .info-carousel-modern,
-body.dark-mode .modal-content,
-body.dark-mode .event-form,
-body.dark-mode .events-list,
-body.dark-mode .events-table,
-body.dark-mode .event-item,
-body.dark-mode .slide-overlay-modern {
-  background-color: var(--bg-primary) !important;
-  color: var(--text-primary) !important;
+.btn-secondary:hover,
+.button-secondary:hover {
+  background-color: var(--btn-secondary-hover);
 }
 
-body.dark-mode .event-counter-card,
-body.dark-mode .info-carousel-modern,
-body.dark-mode .modal-content,
-body.dark-mode .event-form,
-body.dark-mode .events-list,
-body.dark-mode .events-table,
-body.dark-mode .event-item {
-  background-color: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
+/* Sidebar específico */
+.sidebar {
+  background-color: var(--sidebar-bg);
+  border-color: var(--border-primary);
 }
 
-body.dark-mode input,
-body.dark-mode textarea,
-body.dark-mode select {
-  background: var(--input-bg) !important;
-  color: var(--input-text) !important;
-  border-color: var(--card-border) !important;
+/* Tables y listas */
+.table,
+.list,
+.data-table {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
 }
 
-body.dark-mode .btn-primary {
-  background: linear-gradient(135deg, #46AFEA 0%, #134367 50%, #0D2B44 100%) !important;
-  color: #fff !important;
+.table th,
+.table td,
+.list-item {
+  border-color: var(--border-primary);
+  color: var(--text-primary);
 }
 
-body.dark-mode .btn-secondary {
-  background: var(--btn-secondary-bg) !important;
-  color: var(--btn-secondary-text) !important;
+.table tbody tr:hover,
+.list-item:hover {
+  background-color: var(--bg-secondary);
 }
 
-/* FullCalendar dark mode */
-body.dark-mode .fc {
-  background: var(--calendar-bg) !important;
-  color: var(--text-primary) !important;
+/* Estados específicos */
+.success {
+  background-color: var(--success-light);
+  color: var(--success-bg);
+  border-color: var(--success-bg);
 }
-body.dark-mode .fc-daygrid-day,
-body.dark-mode .fc-scrollgrid,
-body.dark-mode .fc-col-header-cell,
-body.dark-mode .fc-daygrid-day-number {
-  background: var(--calendar-bg) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--card-border) !important;
+
+.warning {
+  background-color: var(--warning-light);
+  color: var(--warning-bg);
+  border-color: var(--warning-bg);
 }
-body.dark-mode .fc-toolbar-title,
-body.dark-mode .fc-button,
-body.dark-mode .fc-button-primary {
-  color: var(--text-primary) !important;
-  background: var(--card-bg) !important;
-  border-color: var(--card-border) !important;
+
+.error {
+  background-color: var(--error-light);
+  color: var(--error-bg);
+  border-color: var(--error-bg);
 }
-body.dark-mode .fc-button-primary:not(:disabled):hover {
-  background: #134367 !important;
-  color: #fff !important;
+
+/* FullCalendar específico para dark mode */
+.dark-mode .fc {
+  background: var(--card-bg);
+  color: var(--text-primary);
 }
-body.dark-mode .fc-day-today {
-  background: rgba(70,175,234,0.12) !important;
+
+.dark-mode .fc-daygrid-day,
+.dark-mode .fc-scrollgrid,
+.dark-mode .fc-col-header-cell,
+.dark-mode .fc-daygrid-day-number {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border-color: var(--border-primary);
 }
-body.dark-mode .fc-event {
-  color: #fff !important;
+
+.dark-mode .fc-toolbar-title,
+.dark-mode .fc-button,
+.dark-mode .fc-button-primary {
+  color: var(--text-primary);
+  background: var(--btn-secondary-bg);
+  border-color: var(--border-primary);
 }
+
+.dark-mode .fc-button-primary:not(:disabled):hover {
+  background: var(--btn-primary-hover);
+  color: var(--btn-primary-text);
+}
+
+.dark-mode .fc-day-today {
+  background-color: rgba(56, 189, 248, 0.1);
+}
+
+.dark-mode .fc-event {
+  color: var(--text-inverse);
+}
+
+/* Utilities para override cuando sea necesario */
+.bg-primary { background-color: var(--bg-primary) !important; }
+.bg-secondary { background-color: var(--bg-secondary) !important; }
+.bg-card { background-color: var(--card-bg) !important; }
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.border-primary { border-color: var(--border-primary) !important; }

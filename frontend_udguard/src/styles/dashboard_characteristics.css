@@ -1,6 +1,7 @@
 /* Variables CSS para consistencia */
 :root {
-  --primary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  /* CORREGIDO: Cambiar el gradiente para que coincida con factores */
+  --primary-gradient: linear-gradient(135deg, #46AFEA 0%, #134367 50%, #0D2B44 100%);
   --radius-xl: 16px;
   --radius-lg: 12px;
   --spacing-xl: 32px;
@@ -13,13 +14,14 @@
   --transition-slow: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* CORREGIDO: Reducir márgenes para que coincida con factores */
 .dashboard-facts-container {
-  margin: -1.8rem;
-  padding: 24px;
+  margin: -1.2rem; /* CORREGIDO: Cambiar de -1.8rem a -1.2rem */
+  padding: 20px; /* CORREGIDO: Cambiar de 24px a 20px */
   font-family: var(--font-family);
   background: var(--bg-secondary);
-  min-height: calc(100vh - 10px);
-  max-height: calc(100vh - 10px);
+  min-height: calc(100vh - 8px); /* CORREGIDO: Cambiar de -10px a -8px */
+  max-height: calc(100vh - 8px); /* CORREGIDO: Cambiar de -10px a -8px */
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   overflow: hidden;
@@ -49,6 +51,7 @@
   min-height: 0; /* Fix para flex overflow */
 }
 
+/* CORREGIDO: Header con el gradiente correcto y dimensiones ajustadas */
 .dashboard-header-factores {
   background: var(--primary-gradient) !important;
   border-radius: var(--radius-xl) !important;
@@ -57,29 +60,36 @@
   position: relative !important;
   overflow: hidden !important;
   box-shadow: var(--shadow-lg) !important;
-  min-height: 140px !important;
+  min-height: 160px !important; /* CORREGIDO: Cambiar de 140px a 160px */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
+/* CORREGIDO: Efectos del header para que coincida con factores */
 .dashboard-header-factores::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.15"><circle cx="30" cy="30" r="2"/></g></svg>') repeat;
-  opacity: 0.4;
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%) !important;
+  pointer-events: none !important;
 }
 
+/* CORREGIDO: Título del header para que coincida con factores */
 .dashboard-title {
-  color: #ffffff;
-  font-size: 32px;
-  font-weight: 700;
-  margin: 0;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  position: relative;
-  z-index: 1;
-  letter-spacing: -0.5px;
+  color: #ffffff !important;
+  font-size: 2rem !important; /* CORREGIDO: Cambiar de 32px a 2rem */
+  font-weight: 800 !important; /* CORREGIDO: Cambiar de 700 a 800 */
+  margin: 0 !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important; /* CORREGIDO: Ajustar sombra */
+  position: relative !important;
+  z-index: 1 !important;
+  letter-spacing: -0.025em !important; /* CORREGIDO: Ajustar espaciado */
+  line-height: 1.1 !important;
 }
 
 .characteristics-container {
@@ -750,6 +760,7 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  /* CORREGIDO: Ajustar responsive para que coincida con factores */
   .dashboard-facts-container {
     margin: -1rem;
     padding: 16px;
@@ -759,11 +770,11 @@
   
   .dashboard-header-factores {
     padding: var(--spacing-lg) var(--spacing-lg) !important;
-    min-height: 120px !important;
+    min-height: 140px !important;
   }
   
   .dashboard-title {
-    font-size: 24px;
+    font-size: 1.5rem; /* CORREGIDO: Cambiar de 24px a 1.5rem */
   }
   
   .characteristic-card {

@@ -1,12 +1,12 @@
 <template>
-  <v-container fluid class="dashboard-container">
+  <v-container fluid class="dashboard-facts-container">
     <!-- 🎯 CONTENEDOR PRINCIPAL UNIFICADO -->
     <v-card class="dashboard-main-card" elevation="8">
 
-      <!-- 📋 HEADER SECTION - Título, Selector y Botón Gestionar -->
+      <!-- 📋 HEADER SECTION - Título y Selector (SIN BOTÓN GESTIONAR) -->
       <div class="dashboard-header">
         <v-row align="center" justify="space-between" no-gutters>
-          <v-col cols="12" lg="6">
+          <v-col cols="12" lg="8">
             <div class="header-title-section">
               <h2 class="dashboard-main-title">
                 <v-icon class="title-icon mr-3" size="28" color="primary">mdi-chart-box-outline</v-icon>
@@ -38,21 +38,6 @@
               </v-select>
             </div>
           </v-col>
-
-          <v-col cols="12" lg="2" v-if="isAdmin">
-            <div class="manage-button-wrapper">
-              <v-btn
-                @click="toggleManageModal"
-                class="manage-btn"
-                color="primary"
-                elevation="4"
-                large
-              >
-                <v-icon left size="20">mdi-cog-outline</v-icon>
-                Gestionar
-              </v-btn>
-            </div>
-          </v-col>
         </v-row>
       </div>
 
@@ -68,8 +53,6 @@
                 <canvas id="complianceChart"></canvas>
               </div>
               <div class="chart-info">
-
-<!--                 <div class="compliance-score">4.6</div> -->
                 <!-- Removemos compliance-percentage ya que estará en el centro del gráfico -->
               </div>
             </div>
@@ -116,7 +99,7 @@
                   Última actualización: {{ lastUpdate }}
                 </v-chip>
                 
-                <!-- Nuevo botón para editar descripción -->
+                <!-- Botón para editar descripción (mejorado con mejor posicionamiento) -->
                 <v-btn 
                   v-if="isAdmin"
                   class="edit-description-btn ml-2" 
@@ -142,7 +125,7 @@
           <v-icon class="section-icon mr-3" size="24" color="primary">mdi-clipboard-list-outline</v-icon>
           <h3 class="section-title">Indicadores</h3>
           
-          <!-- ⭐ NUEVO BOTÓN AGREGAR INDICADOR -->
+          <!-- ⭐ BOTÓN AGREGAR INDICADOR (Mejorado con mejor diseño) -->
           <v-btn 
             v-if="isAdmin"
             class="add-indicator-btn ml-3" 
@@ -331,123 +314,6 @@
         </div>
       </div>
     </v-card>
-
-    <!-- 🛠️ MODAL DE GESTIÓN (Solo para Administradores) -->
-    <v-dialog v-model="showManageModal" max-width="900px" persistent>
-      <v-card class="manage-modal">
-        <v-card-title class="modal-header">
-          <v-icon class="mr-3" size="28" color="primary">mdi-cog</v-icon>
-          <span class="modal-title">Gestión del Factor</span>
-          <v-spacer></v-spacer>
-          <v-btn icon @click="toggleManageModal">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-
-        <v-card-text class="modal-content">
-          <v-tabs v-model="activeTab" class="modal-tabs">
-            <v-tab class="tab-item">
-              <v-icon left>mdi-text-box-outline</v-icon>
-              Descripción
-            </v-tab>
-            <v-tab class="tab-item">
-              <v-icon left>mdi-format-list-bulleted</v-icon>
-              Aspectos
-            </v-tab>
-          </v-tabs>
-
-          <v-tabs-items v-model="activeTab" class="modal-tabs-content">
-            <!-- Tab 1: Descripción -->
-            <v-tab-item>
-              <div class="tab-content">
-                <h3 class="tab-subtitle">Editar Descripción de la Característica</h3>
-                <v-textarea
-                  v-model="editableDescription"
-                  label="Descripción del Factor"
-                  outlined
-                  rows="6"
-                  counter
-                  class="description-textarea"
-                ></v-textarea>
-              </div>
-            </v-tab-item>
-
-            <!-- Tab 2: Aspectos -->
-            <v-tab-item>
-              <div class="tab-content">
-                <div class="aspects-header">
-                  <h3 class="tab-subtitle">Gestionar Aspectos a Evaluar</h3>
-                  <v-btn
-                    class="add-aspect-btn"
-                    color="success"
-                    @click="addNewAspect"
-                    small
-                  >
-                    <v-icon left size="18">mdi-plus</v-icon>
-                    Agregar Aspecto
-                  </v-btn>
-                </div>
-
-                <div class="aspects-list">
-                  <v-card
-                    v-for="(aspect, index) in editableAspects"
-                    :key="index"
-                    class="aspect-card mb-3"
-                    outlined
-                  >
-                    <v-card-text class="aspect-card-content">
-                      <v-row align="center">
-                        <v-col cols="1">
-                          <v-icon class="aspect-drag-handle" color="grey">mdi-drag-vertical</v-icon>
-                        </v-col>
-                        <v-col cols="9">
-                          <v-textarea
-                            v-model="aspect.descripcion"
-                            :label="`Aspecto ${index + 1}`"
-                            outlined
-                            rows="2"
-                            dense
-                          ></v-textarea>
-                        </v-col>
-                        <v-col cols="2" class="text-center">
-                          <v-btn
-                            icon
-                            color="error"
-                            @click="removeAspect(index)"
-                          >
-                            <v-icon>mdi-delete</v-icon>
-                          </v-btn>
-                        </v-col>
-                      </v-row>
-                    </v-card-text>
-                  </v-card>
-                </div>
-              </div>
-            </v-tab-item>
-          </v-tabs-items>
-        </v-card-text>
-
-        <v-card-actions class="modal-actions">
-          <v-spacer></v-spacer>
-          <v-btn
-            class="cancel-btn"
-            text
-            @click="toggleManageModal"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            class="save-changes-btn"
-            color="primary"
-            elevation="2"
-            @click="saveChanges"
-          >
-            <v-icon left>mdi-content-save</v-icon>
-            Guardar Cambios
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
 
     <!-- 📝 MODAL EDITAR INDICADOR -->
     <v-dialog v-model="showEditIndicatorModal" max-width="600px" persistent>
@@ -710,17 +576,14 @@ export default {
   name: 'DashboardGraphs',
   data () {
     return {
-      selectedFactor: 1,
-      showManageModal: false,
+      selectedFactor: null, // ⭐ CAMBIADO DE 1 A null
       showEditIndicatorModal: false,
       showDeleteConfirmModal: false,
-      showEditDescriptionModal: false, // ⭐ NUEVA VARIABLE
-      activeTab: 0,
+      showEditDescriptionModal: false,
       characteristicsId: 0,
       characteristic: {},
       isAdmin: true,
       lastUpdate: '15 de Agosto, 2025',
-
 
       // Estados para CRUD de indicadores
       editingIndicator: {
@@ -735,14 +598,12 @@ export default {
       editingIndex: -1,
       indicatorToDelete: -1,
 
-      // ⭐ NUEVA VARIABLE PARA DESCRIPCIÓN
+      // Variables para descripción
       editingDescription: '',
       editingNombre: '',
 
       factors: [],
       aspectos: [],
-      editableDescription: '',
-      editableAspects: [],
       complianceChart: null
     }
   },
@@ -901,38 +762,6 @@ export default {
       }
     },
 
-    toggleManageModal () {
-      this.showManageModal = !this.showManageModal
-      if (this.showManageModal) {
-        this.editableDescription = this.characteristic.descripcion || ''
-        this.editableAspects = JSON.parse(JSON.stringify(this.aspectos))
-      }
-    },
-
-    addNewAspect () {
-      this.editableAspects.push({
-        descripcion: '',
-        calificacion: ''
-      })
-    },
-
-    removeAspect (index) {
-      this.editableAspects.splice(index, 1)
-    },
-
-    saveChanges () {
-      this.characteristic.descripcion = this.editableDescription
-      this.aspectos = JSON.parse(JSON.stringify(this.editableAspects))
-      this.showManageModal = false
-
-      this.$swal({
-        title: '¡Éxito!',
-        text: 'Los cambios se han guardado correctamente.',
-        icon: 'success',
-        confirmButtonText: 'Continuar'
-      })
-    },
-
     // Métodos para CRUD de indicadores
     editIndicator(index) {
       const indicadoresArray = Object.values(this.characteristic.indicadores || {})
@@ -1088,9 +917,6 @@ async saveIndicatorChanges() {
   }
 },
 
-
-
-
   confirmDeleteIndicator(index) {
   this.indicatorToDelete = index
   this.showDeleteConfirmModal = true
@@ -1214,7 +1040,7 @@ async saveIndicatorChanges() {
       }
     },
 
-    // ⭐ MÉTODO FALTANTE PARA ABRIR MODAL DE AGREGAR INDICADOR
+    // ⭐ MÉTODO PARA ABRIR MODAL DE AGREGAR INDICADOR
     openAddIndicatorModal() {
       this.editingIndex = -1 // Indicar que es nuevo
       this.editingIndicator = {
@@ -1229,21 +1055,21 @@ async saveIndicatorChanges() {
       this.showEditIndicatorModal = true
     },
 
-    // ⭐ MÉTODO FALTANTE PARA ABRIR MODAL DE EDITAR DESCRIPCIÓN
+    // ⭐ MÉTODO PARA ABRIR MODAL DE EDITAR DESCRIPCIÓN
     openEditDescriptionModal() {
       this.editingNombre = this.characteristic.nombre || ''
       this.editingDescription = this.characteristic.descripcion || ''
       this.showEditDescriptionModal = true
     },
 
-    // ⭐ MÉTODO FALTANTE PARA CERRAR MODAL DE EDITAR DESCRIPCIÓN
+    // ⭐ MÉTODO PARA CERRAR MODAL DE EDITAR DESCRIPCIÓN
     closeEditDescriptionModal() {
       this.showEditDescriptionModal = false
       this.editingNombre = ''
       this.editingDescription = ''
     },
 
-    // ⭐ MÉTODO FALTANTE PARA GUARDAR CAMBIOS DE DESCRIPCIÓN
+    // ⭐ MÉTODO PARA GUARDAR CAMBIOS DE DESCRIPCIÓN
     async saveDescriptionChanges() {
       try {
         const token = localStorage.getItem('access_token')
@@ -1321,6 +1147,16 @@ async saveIndicatorChanges() {
         })
       }
     },
+
+    saveEvaluation() {
+      // Método placeholder para guardar evaluación
+      this.$swal({
+        title: '¡Evaluación Guardada!',
+        text: 'La evaluación se ha guardado correctamente.',
+        icon: 'success',
+        confirmButtonText: 'Continuar'
+      })
+    }
   },
 
   async mounted() {
@@ -1330,4 +1166,7 @@ async saveIndicatorChanges() {
   }
 }
 </script>
-<style scoped lang="css"> @import '../../styles/dashboard_indicators.css'; </style>
+
+<style lang="css" scoped>
+@import '../../styles/dashboard_indicators.css';
+</style>

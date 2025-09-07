@@ -1641,7 +1641,6 @@ export default {
 }
 </script>
 
-<style lang="css">
+<style lang="css" scoped>
 @import '../../styles/dashboard_home.css';
-@import '../../styles/dark_mode.css';
 </style>

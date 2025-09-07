@@ -702,4 +702,6 @@ export default {
 }
 </script>
 
-<style lang="css"> @import '../../styles/dashboard_facts.css'; </style>
+<style lang="css" scoped>
+@import '../../styles/dashboard_facts.css';
+</style>

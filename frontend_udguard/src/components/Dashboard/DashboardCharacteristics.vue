@@ -682,6 +682,6 @@ export default {
 }
 </script>
 
-<style scoped lang="css"> 
-@import '../../styles/dashboard_characteristics.css'; 
+<style lang="css" scoped>
+@import '../../styles/dashboard_characteristics.css';
 </style>

@@ -22,19 +22,16 @@
 }
 
 .dashboard-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem 2.5rem 1.5rem 2.5rem;
-  color: white;
-  position: relative;
-  overflow: hidden;
+  background: linear-gradient(135deg, #46AFEA 0%, #134367 100%);
+  padding: 2.5rem 2rem;
+  border-radius: var(--radius-lg);
+  margin-bottom: 2rem;
 }
 
 .header-title-section {
   position: relative;
   z-index: 2;
-  text-align: center;
 }
-
 
 .controls-section {
   background: white;
@@ -44,20 +41,70 @@
 
 .factor-selector-wrapper {
   position: relative;
+  margin-top: 0.5rem;
 }
 
 .factor-select {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.factor-select :deep(.v-input__control) {
+  min-height: 48px;
+}
+
+.factor-select :deep(.v-input__slot) {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
   border-radius: 12px !important;
 }
 
-.factor-select .v-input__control {
-  min-height: 56px !important; 
+.factor-select :deep(.v-label) {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 0.95rem;
 }
 
-.factor-select .v-select__selection {
+.factor-select :deep(.v-select__selection) {
+  color: white !important;
   font-weight: 600;
-  color: #2c3e50;
-  font-size: 1rem;
+}
+
+.factor-select :deep(.v-icon) {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Estilos para el menú del select */
+.factor-select-menu {
+  border-radius: 12px !important;
+  margin-top: 4px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.select-header {
+  background: linear-gradient(135deg, #46AFEA 0%, #134367 100%);
+  padding: 12px 16px;
+}
+
+.select-header .v-subheader {
+  color: white !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Hover states */
+.factor-select:hover :deep(.v-input__slot) {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Focus states */
+.factor-select.v-input--is-focused :deep(.v-input__slot) {
+  border-color: white !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
 }
 
 .manage-button-wrapper {
@@ -88,20 +135,22 @@
 }
 
 .dashboard-main-title {
-  font-size: 1.9rem !important;
+  font-size: 2.2rem !important;
   font-weight: 700 !important;
-  letter-spacing: -0.5px;
-  margin: 0;
+  color: white;
+  text-align: center;
+  margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 1rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .title-icon {
   background: rgba(255, 255, 255, 0.15);
+  padding: 10px;
   border-radius: 12px;
-  padding: 8px;
   backdrop-filter: blur(10px);
 }
 
@@ -1355,70 +1404,45 @@ a:focus {
   font-size: 16px !important;
 }
 
-/* Mejorar el layout del header de sección */
-.section-header {
-  display: flex !important;
-  align-items: center !important;
-  margin-bottom: 20px !important;
-  padding: 16px 20px !important;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
-  border-radius: 12px !important;
-  border: 1px solid #cbd5e1 !important;
+/* Nuevo container principal */
+.dashboard-facts-container {
+    margin: -1.2rem;
+    padding: 20px;
+    font-family: var(--font-family, 'Inter', 'Segoe UI', Arial, sans-serif);
+    background: var(--bg-secondary, linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%));
+    min-height: calc(100vh - 8px);
+    max-height: calc(100vh - 8px);
+    border-radius: var(--radius-lg, 20px);
+    box-shadow: var(--shadow-md, 0 20px 60px rgba(0, 0, 0, 0.1));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg, 24px);
+    transition: var(--transition-slow, all 0.3s cubic-bezier(0.4, 0, 0.2, 1));
+    border: 1px solid var(--border-color, #e2e8f0);
 }
 
-.section-title {
-  font-size: 1.2rem !important;
-  font-weight: 700 !important;
-  color: #334155 !important;
-  margin: 0 !important;
-  letter-spacing: 0.3px !important;
+/* Ajusta el wrapper de la tabla para scroll vertical */
+.evaluation-table-wrapper {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    overflow-y: auto;
+    max-height: 420px; /* Ajusta según tu diseño */
+    margin-bottom: 2rem;
+    scrollbar-width: thin;
+    scrollbar-color: #667eea #f1f3f4;
 }
 
-.section-icon {
-  color: #46AFEA !important;
+/* Scrollbar moderno para Chrome/Edge */
+.evaluation-table-wrapper::-webkit-scrollbar {
+    width: 8px;
 }
-
-/* Ajustar el chip de conteo */
-.aspect-count-chip {
-  font-size: 0.75rem !important;
-  height: 28px !important;
-  border-radius: 14px !important;
+.evaluation-table-wrapper::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 8px;
 }
-
-/* Responsive para el header */
-@media (max-width: 768px) {
-  .section-header {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 12px !important;
-    padding: 12px 16px !important;
-  }
-  
-  .add-indicator-btn {
-    font-size: 0.7rem !important;
-    height: 28px !important;
-    margin-left: 0 !important;
-  }
-  
-  .aspect-count-chip {
-    align-self: flex-end !important;
-  }
-}
-
-/* Estado deshabilitado para el botón de guardar */
-.save-changes-btn:disabled {
-  background: #d1d5db !important;
-  color: #9ca3af !important;
-  cursor: not-allowed !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-/* Mejorar la visibilidad del botón crear vs editar */
-.save-changes-btn[data-creating="true"] {
-  background: linear-gradient(135deg, #10b981, #059669) !important;
-}
-
-.save-changes-btn[data-creating="true"]:hover {
-  background: linear-gradient(135deg, #059669, #047857) !important;
+.evaluation-table-wrapper::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 8px;
 }
