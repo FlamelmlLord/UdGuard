@@ -471,14 +471,14 @@ export default {
         console.log('Raw API response:', response.data)
         this.factores = response.data
 
-//  ⭐DEBUG MEJORADO PARA VERIFICAR LOS NUEVOS DATOS
+        // ⭐ DEBUG MEJORADO PARA VERIFICAR LOS NUEVOS DATOS
         console.log('Factores con totales:', this.factores.map(f => ({
           id: f.id,
           nombre: f.nombre,
           cumplimiento: f.cumplimiento,
           total_metas: f.meta,
-          total_puntajes: f.total_puntajes, // ⭐ VERIFICAR ESTE CAMPO
-          cantidad_caracteristicas: f.cantidad_caracteristicas, // ⭐ VERIFICAR ESTE CAMPO
+          total_puntajes: f.total_puntajes, // VERIFICAR ESTE CAMPO
+          cantidad_caracteristicas: f.cantidad_caracteristicas, // VERIFICAR ESTE CAMPO
           grado_cumplimiento: f.grado_cumplimiento,
           caracteristicas_count: f.caracteristicas?.length || 0
         })));
@@ -824,8 +824,9 @@ export default {
 
         // ⭐ CORREGIR EL ENDPOINT - DEBE INCLUIR EL ID
         const response = await axios.patch(
-          `/factors/${this.factorEditando.id}/`, // ⭐ AGREGAR EL ID AL ENDPOINT
+          `/factors/`,
           {
+            id: this.factorEditando.id,
             nombre: this.factorEditando.nombre.trim(),
             descripcion: this.factorEditando.descripcion?.trim() || ''
           },
