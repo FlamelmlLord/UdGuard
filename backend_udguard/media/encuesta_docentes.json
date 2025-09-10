@@ -1,0 +1,458 @@
+[
+  {
+    "Pregunta": "¿Con respecto al Estatuto Estudiantil (Definido en el acuerdo 027 del 23 de diciembre de 1993), considera que es pertinente y su aplicación del mismo es adecuada?",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 10,
+    "5. Totalmente de acuerdo": 2
+  },
+  {
+    "Pregunta": "¿Con respecto al Estatuto Académico (Definido en el acuerdo 004 del 26 de febrero de 1996), considera que es pertinente y su aplicación del mismo es adecuada?",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 2,
+    "4. De acuerdo": 9,
+    "5. Totalmente de acuerdo": 2
+  },
+  {
+    "Pregunta": "¿Las estrategias de divulgación de la reglamentación que soporta el que hacer Universitario (Reglamento Estudiantil, Estatuto Académico, Estatuto General, políticas académicas, entre otros), empleadas",
+    "1. No tengo información o conocimiento": 2,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 4,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 2
+  },
+  {
+    "Pregunta": "¿Considera que las políticas, normas y criterios establecidos en el Estatuto docente (Acuerdo 011 del 15 de noviembre del 2002 del CSU) para la selección, vinculación y permanencia de los profesores d",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 2,
+    "4. De acuerdo": 8,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Considera que las políticas, normas y criterios establecidos en la Resolución 01 del 15 de febrero de 2012 “Por la cual se establece el proceso de selección y vinculación de docentes de Vinculación E",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 6
+  },
+  {
+    "Pregunta": "La Universidad ha planteado como estrategia para el fortalecimiento de su planta docente, cursos de capacitación propuestos por diferentes unidades académico-administrativas, orientados al desarrollo",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 11,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Considera pertinente participar en alguno de los cursos mencionados anteriormente?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 6
+  },
+  {
+    "Pregunta": "¿Los cursos de capacitación ofertados por las diferentes unidades académico-administrativas, orientados al desarrollo integral de los profesores y al fortalecimiento de la calidad, han tenido incidenc",
+    "1. No tengo información o conocimiento": 3,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 4
+  },
+  {
+    "Pregunta": "La universidad ha planteado distinciones y estímulos a los docentes como reconocimiento al ejercicio calificado de la docencia, la investigación, la innovación, la creación artística y cultural, la ex",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 9,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Le gustaría ser beneficiario de algunos de los estímulos creados para los docentes como reconocimiento al ejercicio calificado de la docencia, la investigación, la innovación, la creación artística y",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 8
+  },
+  {
+    "Pregunta": "¿Considera que los estímulos creados para los docentes como reconocimiento al ejercicio calificado de la docencia, la investigación y la extensión, han contribuido en el fortalecimiento de la calidad",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 3,
+    "4. De acuerdo": 5,
+    "5. Totalmente de acuerdo": 5
+  },
+  {
+    "Pregunta": "Considera pertinente elaborar y publicar material académico diseñado para el acompañamiento y desarrollo del aprendizaje",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 5,
+    "5. Totalmente de acuerdo": 9
+  },
+  {
+    "Pregunta": "¿Considera adecuada la divulgación del material elaborado por los profesores, para el acompañamiento y desarrollo del aprendizaje, dentro de los espacios académicos del Proyecto Curricular?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 8
+  },
+  {
+    "Pregunta": "¿La producción académica desarrollada por los docentes ha permitido apoyar los objetivos de enseñanza-aprendizaje planteados por el Proyecto Curricular en su plan de estudios?",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 7
+  },
+  {
+    "Pregunta": "¿Considera pertinente participar activamente en el proceso de Evaluación docente, teniendo en cuenta lo siguiente: las acciones emprendidas por la Universidad luego de esta evaluación contribuyen en e",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 7
+  },
+  {
+    "Pregunta": "¿Algunos de los siguientes aspectos no lo han motivado a participar en el proceso de Evaluación docente?: la universidad no realiza ninguna acción luego de esta evaluación, no estoy de acuerdo con la",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 5,
+    "3. En desacuerdo": 2,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 1
+  },
+  {
+    "Pregunta": "¿Considera que los criterios y mecanismos utilizados por la Universidad para la evaluación de los docentes son: transparentes, eficientes y se aplican con criterios de igualdad?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 2,
+    "4. De acuerdo": 9,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Considera adecuada la eficacia en la aplicación de las políticas institucionales sobre flexibilidad curricular, según las siguientes estrategias: tomar asignaturas en otra institución, tomar asignatu",
+    "1. No tengo información o conocimiento": 2,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 2,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con la contribución del currículo en la formación de los estudiantes, en cuanto a: fortalecimiento de valores humanos y éticos, formación como ciudadanos activos, formación científica",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 8,
+    "5. Totalmente de acuerdo": 5
+  },
+  {
+    "Pregunta": "¿Considera pertinente la interdisciplinariedad de su Proyecto Curricular, desde las siguientes estrategias: existencia de espacios académicos en los cuales se abordan temas y estudian problemáticas de",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 6
+  },
+  {
+    "Pregunta": "Las estrategias pedagógicas implementadas por los profesores del Proyecto Curricular en cada uno de los espacios académicos, han permitido:Contribuir en el desarrollo de conocimientos, habilidades y/o",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 6
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con el nivel de correspondencia entre los resultados de aprendizaje, los métodos de evaluación y la exigencia académica del Proyecto Curricular?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 6
+  },
+  {
+    "Pregunta": "¿Los criterios de evaluación a los estudiantes, consignados en el reglamento estudiantil, son coherentes con: el nivel de formación del Proyecto Curricular y la metodología de enseñanza-aprendizaje ut",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 9,
+    "5. Totalmente de acuerdo": 5
+  },
+  {
+    "Pregunta": "Está de acuerdo con el sistema de evaluación de los resultados de aprendizaje establecidos en los micro currículos (syllabus), desde los siguientes ítems:   Los docentes socializan en los espacios aca",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 7
+  },
+  {
+    "Pregunta": "¿Desde el Proyecto Curricular se han establecido estrategias de seguimiento, evaluación y realimentación al proceso formativo de los estudiantes?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 6
+  },
+  {
+    "Pregunta": "Como docente, en el marco de su autonomía y de la libertad de cátedra, ¿usted ha implementado estrategias de seguimiento, evaluación y realimentación al proceso formativo de los estudiantes?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 5,
+    "5. Totalmente de acuerdo": 9
+  },
+  {
+    "Pregunta": "¿Los sistemas de evaluación y autorregulación utilizados en el Proyecto Curricular, en busca del fortalecimiento de la calidad, han permitido: contribuir al desarrollo y mejoramiento del currículo, ap",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 5
+  },
+  {
+    "Pregunta": "¿Considera pertinente el Sistema de Gestión Académica con el cual cuenta la universidad para apoyar los procesos de formación y el seguimiento a los estudiantes, y hace uso de algunas de las actividad",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 9,
+    "5. Totalmente de acuerdo": 4
+  },
+  {
+    "Pregunta": "Dentro del Sistema de gestión académica se ha desarrollado una herramienta denominada “Modelo de Rendimiento y Riesgo”, diseñado para monitorear el desempeño académico de los estudiantes: lo considera",
+    "1. No tengo información o conocimiento": 5,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 1
+  },
+  {
+    "Pregunta": "La Universidad viene trabajando en la implementación de un sistema de alertas tempranas para prevenir la deserción universitaria. ¿Considera pertinente conocer las actividades que se han desarrollado",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 8,
+    "5. Totalmente de acuerdo": 6
+  },
+  {
+    "Pregunta": "¿Ha estado de acuerdo en participar (O participo, en caso de ser egresado) en actividades académicas con otras Instituciones de Educación Superior de orden nacional o internacional?",
+    "1. No tengo información o conocimiento": 2,
+    "2. Totalmente en desacuerdo": 1,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 5,
+    "5. Totalmente de acuerdo": 5
+  },
+  {
+    "Pregunta": "¿Está de acuerdo en participar en algunas de estas actividades académicas?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 8
+  },
+  {
+    "Pregunta": "¿Considera pertinente generar una producción académica derivada de su participación tales como: Memorias de eventos, Publicación de artículos, Publicación de coautoría,  Proyectos cofinanciados?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 5,
+    "5. Totalmente de acuerdo": 9
+  },
+  {
+    "Pregunta": "¿La participación en estas actividades impactaría en su crecimiento personal y profesional?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 8
+  },
+  {
+    "Pregunta": "¿El proyecto curricular promueve en estudiantes y docentes actividades que fomentan:  la implementación de procesos de formación para la investigación, la implementación de procesos de formación para",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 8,
+    "5. Totalmente de acuerdo": 6
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con los siguientes aspectos asociados a la formación en investigación: espacios académicos que promueven la participación en semilleros de investigación, espacios académicos que forta",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 8,
+    "5. Totalmente de acuerdo": 5
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con los siguientes servicios prestados por Bienestar que hacen parte del grupo funcional Desarrollo Humano: medicina, enfermería, odontología, fisioterapia, psicología y derechos huma",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 6
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con los siguientes servicios prestados por Bienestar que hacen parte del grupo funcional Desarrollo Socioeconómico: apoyo alimentario, reliquidación de matrículas, descuento electoral",
+    "1. No tengo información o conocimiento": 2,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 8,
+    "5. Totalmente de acuerdo": 4
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con los siguientes servicios prestados por Bienestar que hacen parte del grupo funcional Desarrollo Socioambiental: talleres ambientales y Articulación con el medio ambiente?",
+    "1. No tengo información o conocimiento": 3,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 5
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con los siguientes servicios prestados por Bienestar que hacen parte del grupo funcional Deportes: deporte Recreativo, deporte Competitivo y deporte Formativo?",
+    "1. No tengo información o conocimiento": 3,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 5
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con los siguientes servicios prestados por Bienestar que hacen parte del grupo funcional Egresados: portafolio de Servicios y los encuentros de oportunidades laborales?",
+    "1. No tengo información o conocimiento": 4,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con las actividades desarrolladas por Bienestar desde el grupo funcional Cultura: coro, tuna, danzas, grupo vallenato, actividades artísticas y culturales?",
+    "1. No tengo información o conocimiento": 2,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 9,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Considera que los grupos funcionales (desarrollo humano, desarrollo socioeconómico, desarrollo socioambiental, funcional deportes, funcional egresados, funcional cultura), favorecen la permanencia es",
+    "1. No tengo información o conocimiento": 4,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 2,
+    "4. De acuerdo": 4,
+    "5. Totalmente de acuerdo": 4
+  },
+  {
+    "Pregunta": "Teniendo en cuenta su rol en la Universidad, esta de acuerdo con los siguientes aspectos relacionados con el Centro de Bienestar Institucional: cobertura, divulgación de los servicios y estrategias, p",
+    "1. No tengo información o conocimiento": 3,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 8,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Considera pertinente evaluar periódicamente los servicios ofrecidos por Bienestar Institucional con la participación de toda la comunidad académica?",
+    "1. No tengo información o conocimiento": 2,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 5,
+    "5. Totalmente de acuerdo": 7
+  },
+  {
+    "Pregunta": "En general, considera que los servicios prestados por la Oficina de Bienestar Universitario, inciden positivamente en el desarrollo de las actividades académicas y/o Administrativas",
+    "1. No tengo información o conocimiento": 2,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 5
+  },
+  {
+    "Pregunta": "¿El proyecto curricular, implementa estrategias pedagógicas, tecnológicas y de acompañamiento, para el desarrollo de las habilidades comunicativas y de interacción de los profesores con los estudiante",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 7
+  },
+  {
+    "Pregunta": "¿Estas estrategias ayudan a estimular el pensamiento creativo y dinámico en el estudiante?",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 7,
+    "5. Totalmente de acuerdo": 6
+  },
+  {
+    "Pregunta": "¿Estas estrategias permiten que el conocimiento pueda ser percibido de forma más efectiva por parte de los estudiantes?",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 7
+  },
+  {
+    "Pregunta": "¿Considera pertinente los siguientes recursos bibliográficos: colección general, colección de referencia, colección de reserva, colección de materiales especiales (videos, DVD, CD), trabajos de grado",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 2,
+    "4. De acuerdo": 5,
+    "5. Totalmente de acuerdo": 6
+  },
+  {
+    "Pregunta": "¿Considera que los recursos bibliográficos con que cuenta la institución y que se encuentran al servicio del Proyecto Curricular, para el desarrollo de las actividades de docencia, investigación y ext",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 3,
+    "4. De acuerdo": 9,
+    "5. Totalmente de acuerdo": 1
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con la gestión de su representante en los siguientes órganos de decisión: Consejo Superior Universitario, Consejo Académico, Consejo Facultad y Consejo Curricular?",
+    "1. No tengo información o conocimiento": 5,
+    "2. Totalmente en desacuerdo": 1,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 5,
+    "5. Totalmente de acuerdo": 2
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con la gestión administrativa de su Proyecto Curricular, en relación con los siguientes aspectos: agilidad en la respuesta a solicitudes, calidad en la atención por parte de sus funci",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 4,
+    "5. Totalmente de acuerdo": 9
+  },
+  {
+    "Pregunta": "¿Considera que los procedimientos administrativos implementados desde la dirección del Proyecto Curricular al que pertenece, posibilitan la solución efectiva a diferentes problemáticas, contribuyendo",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 4,
+    "5. Totalmente de acuerdo": 9
+  },
+  {
+    "Pregunta": "¿La relación actual entre el número de estudiantes vs el número de docentes del Proyecto Curricular favorece: la permanencia de los estudiantes en el Proyecto Curricular, el desarrollo académico y per",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 10,
+    "5. Totalmente de acuerdo": 4
+  },
+  {
+    "Pregunta": "¿La relación entre el número de estudiantes y los recursos de apoyo (Aulas de clase, auditorios, laboratorios, talleres, equipos y ayudas audiovisuales, entre otros) contribuyen en: el desarrollo de l",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 3,
+    "4. De acuerdo": 6,
+    "5. Totalmente de acuerdo": 4
+  },
+  {
+    "Pregunta": "¿Con relación a los recursos informáticos y de comunicación al servicio del Proyecto Curricular, usted considera que: son pertinentes, corresponden a los requeridos para el correcto desarrollo de las",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 3,
+    "4. De acuerdo": 4,
+    "5. Totalmente de acuerdo": 6
+  }
+]

@@ -66,11 +66,10 @@
                   :title="`${getEstadoColor(factor).label} - Promedio: ${factor.estado?.promedio || factor.cumplimiento || 0}`"
                 >
                   <span class="status-indicator">
-                    {{ getEstadoColor(factor).label }}
+                    {{ getEstadoColor(factor).grado || 'N/A' }} - {{ getEstadoColor(factor).label }}
                   </span>
-                  <span v-if="factor.caracteristicas && factor.caracteristicas.length > 0" class="status-score">
-                    {{ factor.estado?.promedio || parseFloat(factor.cumplimiento || 0).toFixed(1) }}
-                  </span>
+                  <!-- ⭐ CAMBIAR PARA MOSTRAR LA LETRA EN LUGAR DEL PROMEDIO -->
+
                 </div>
               </div>
               
@@ -79,12 +78,12 @@
                 <div class="factor-metrics">
                   <div class="metrics-row">
                     <span class="metric-label">Grado Cumplimiento:</span>
-                    <span class="metric-value">{{ parseFloat(factor.cumplimiento || 0).toFixed(1) }}</span>
+                    <span class="metric-value">{{ (factor.estado?.promedio || 0).toFixed(1) }}</span>
                   </div>
                   
                   <div class="metrics-row">
                     <span class="metric-label">Total Metas:</span>
-                    <span class="metric-value total-metas">{{ parseFloat(factor.total_metas || 0).toFixed(1) }}</span>
+                    <span class="metric-value total-metas">{{ parseFloat(factor.meta || 0).toFixed(1) }}</span>
                   </div>
                   
                   <div class="metrics-row">
@@ -472,15 +471,14 @@ export default {
         console.log('Raw API response:', response.data)
         this.factores = response.data
 
-        // ⭐ DEBUG MEJORADO PARA VERIFICAR LOS NUEVOS DATOS
+//  ⭐DEBUG MEJORADO PARA VERIFICAR LOS NUEVOS DATOS
         console.log('Factores con totales:', this.factores.map(f => ({
           id: f.id,
           nombre: f.nombre,
           cumplimiento: f.cumplimiento,
-          total_metas: f.total_metas,
-          total_puntajes: f.total_puntajes,
-          cantidad_caracteristicas: f.cantidad_caracteristicas,
-          total_indicadores: f.total_indicadores,
+          total_metas: f.meta,
+          total_puntajes: f.total_puntajes, // ⭐ VERIFICAR ESTE CAMPO
+          cantidad_caracteristicas: f.cantidad_caracteristicas, // ⭐ VERIFICAR ESTE CAMPO
           grado_cumplimiento: f.grado_cumplimiento,
           caracteristicas_count: f.caracteristicas?.length || 0
         })));
@@ -503,11 +501,12 @@ export default {
     },
 
     getEstadoColor(factor) {
-      // ⭐ PRIORIZAR LOS DATOS DEL GRADO_CUMPLIMIENTO
+  //  PRIORIZAR LOS DATOS DEL GRADO_CUMPLIMIENTO
       if (factor.grado_cumplimiento && factor.grado_cumplimiento.color) {
         return { 
           color: factor.grado_cumplimiento.color, 
-          label: factor.grado_cumplimiento.descripcion 
+          label: factor.grado_cumplimiento.descripcion,
+          grado: factor.grado_cumplimiento.grado // ⭐ AGREGAR EL GRADO (LETRA)
         }
       }
       
@@ -515,12 +514,13 @@ export default {
       if (factor.estado && factor.estado.color) {
         return { 
           color: factor.estado.color, 
-          label: factor.estado.descripcion 
+          label: factor.estado.descripcion,
+          grado: factor.estado.grado // ⭐ AGREGAR EL GRADO (LETRA)
         }
       }
 
       // Default
-      return { color: '#6b7280', label: 'Sin datos' }
+      return { color: '#6b7280', label: 'Sin datos', grado: 'N/A' }
     },
 
     // ⭐ SIMPLIFICAR EL MÉTODO DE CUMPLIMIENTO PARA USAR DATOS DEL BACKEND

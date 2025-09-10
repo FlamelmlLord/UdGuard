@@ -302,9 +302,7 @@ class SurveyUploadView(APIView):
                 )
 
             # Obtener archivo y tipo de encuesta
-            print("hi")
             uploaded_file = request.FILES.get('file')
-            print(uploaded_file)
             survey_type = request.data.get('survey_type')
 
             if not uploaded_file:
@@ -339,8 +337,12 @@ class SurveyUploadView(APIView):
             # Guardar como JSON
             json_filename = self.save_survey_json(survey_data, survey_type)
 
-            # Log de la acción
-            log_action(request.user, 'UPLOAD', f'Encuesta {survey_type} subida: {uploaded_file.name}')
+            # ⭐ LOG CORREGIDO
+            from logs.models import Logs
+            Logs.objects.create(
+                usuario=request.user,
+                accion=f"UPLOAD encuesta_{survey_type} - {uploaded_file.name}",
+            )
 
             return Response({
                 "message": "Archivo procesado exitosamente",
@@ -348,7 +350,8 @@ class SurveyUploadView(APIView):
                 "questions_processed": len(survey_data),
                 "json_file": json_filename,
                 "total_responses": sum(
-                    sum(q.values()) - 1 for q in survey_data  # -1 para excluir la clave "Pregunta"
+                    sum(value for key, value in q.items() if key != "Pregunta" and isinstance(value, (int, float)))
+                    for q in survey_data
                 )
             }, status=status.HTTP_200_OK)
 

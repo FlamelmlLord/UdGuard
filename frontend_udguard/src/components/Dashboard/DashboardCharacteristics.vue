@@ -56,7 +56,7 @@
                         
                         <div class="metrics-row">
                           <span class="metric-label">Total Puntajes:</span>
-                          <span class="metric-value total-puntajes">{{ characteristic.total_puntajes || 0 }}</span>
+                          <span class="metric-value total-puntajes">{{ parseFloat(characteristic.total_puntajes || 0).toFixed(1) }}</span>
                         </div>
                         
                         <div class="metrics-row">

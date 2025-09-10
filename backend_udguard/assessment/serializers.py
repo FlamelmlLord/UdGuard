@@ -5,6 +5,10 @@ from assessment.models import Factors, Characteristics, Indicator
 class FactorsSerializer(serializers.ModelSerializer):
     caracteristicas = serializers.SerializerMethodField()
     estado = serializers.SerializerMethodField()
+    meta = serializers.SerializerMethodField()
+    total_puntajes = serializers.SerializerMethodField()  # ⭐ AGREGAR ESTE CAMPO
+    cantidad_caracteristicas = serializers.SerializerMethodField()  # ⭐ AGREGAR ESTE CAMPO
+
     class Meta:
         model = Factors
         fields = "__all__"
@@ -12,6 +16,32 @@ class FactorsSerializer(serializers.ModelSerializer):
     def get_caracteristicas(self, obj):
         caracteristicas = obj.characteristics_set.all()[:3]
         return CharacteristicsSerializer(caracteristicas, many=True).data
+        
+    def get_meta(self, obj):
+        caracteristicas = obj.characteristics_set.all()
+        if not caracteristicas.exists():
+            return 0
+        total_metas = 0
+        for c in caracteristicas:
+            indicadores = c.indicator_set.all()
+            total_metas += sum(i.meta for i in indicadores)
+        return total_metas
+
+    # ⭐ NUEVO MÉTODO PARA CALCULAR TOTAL DE PUNTAJES
+    def get_total_puntajes(self, obj):
+        caracteristicas = obj.characteristics_set.all()
+        if not caracteristicas.exists():
+            return 0
+        total_puntajes = 0
+        for c in caracteristicas:
+            indicadores = c.indicator_set.all()
+            total_puntajes += sum(i.puntos for i in indicadores if i.calificacion is not None and i.ponderacion is not None)
+        return round(total_puntajes, 1)
+
+    # ⭐ NUEVO MÉTODO PARA CONTAR CARACTERÍSTICAS
+    def get_cantidad_caracteristicas(self, obj):
+        return obj.characteristics_set.count()
+
     def get_estado(self, obj):
         caracteristicas = obj.characteristics_set.all()
         Indicadores = Indicator.objects.filter(caracteristica__in=caracteristicas)
@@ -29,50 +59,46 @@ class FactorsSerializer(serializers.ModelSerializer):
             "grado": "E",
             "descripcion": "No se cumple",
             "color": "#e71000",
-            "promedio": promedio
-
+            "promedio": promedio,
         }
         elif 2.5 <= promedio <= 3.4:
             return {
             "grado": "D",
             "descripcion": "Se cumple insatisfactoriamente",
             "color": "#e78800",
-            "promedio": promedio
-
+            "promedio": promedio,
         }
         elif 3.5 <= promedio <= 3.9:
             return {
             "grado": "C",
             "descripcion": "Se cumple aceptablemente",
             "color": "#e7d900",
-            "promedio": promedio
-
+            "promedio": promedio,
         }
         elif 4.0 <= promedio <= 4.4:
             return {
             "grado": "B",
             "descripcion": "Se cumple en alto grado",
             "color": "#6dca00",
-            "promedio": promedio
-
+            "promedio": promedio,
         }
         elif 4.5 <= promedio <= 5.0:
             return {
             "grado": "A",
             "descripcion": "Se cumple plenamente",
             "color": "#00ca00",
-            "promedio": promedio
+            "promedio": promedio,
         }
         else:
             return {
             "grado": "N/A",
             "descripcion": "Sin datos Suficientes",
             "color": "#6b7280",
-            "promedio": promedio
+            "promedio": promedio,
         }
 
 class CharacteristicsSerializer(serializers.ModelSerializer):
-    total_metas = serializers.IntegerField(read_only=True)
+    meta = serializers.SerializerMethodField()
     total_puntajes = serializers.IntegerField(read_only=True)
     cantidad_indicadores = serializers.IntegerField(read_only=True)
     cumplimiento = serializers.FloatField(read_only=True)
@@ -82,6 +108,11 @@ class CharacteristicsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Characteristics
         fields = "__all__"
+    def get_meta(self,obj):
+        indicadores = obj.indicator_set.all()
+        if indicadores.exists():
+            return sum(i.meta for i in indicadores)
+        return 0
 
 
 class IndicatorSerializer(serializers.ModelSerializer):
