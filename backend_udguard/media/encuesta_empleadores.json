@@ -1,0 +1,42 @@
+[
+  {
+    "Pregunta": "ID",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 1,
+    "3. En desacuerdo": 1,
+    "4. De acuerdo": 1,
+    "5. Totalmente de acuerdo": 1
+  },
+  {
+    "Pregunta": "¿Considera que el Proyecto Curricular utiliza la retroalimentación realizada por los empleadores de acuerdo con sus experiencias, para realizar actualizaciones periódicas del perfil profesional y ...",
+    "1. No tengo información o conocimiento": 1,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 4,
+    "5. Totalmente de acuerdo": 2
+  },
+  {
+    "Pregunta": "¿Considera que el programa académico, busca formar personas con pensamiento global, habilidades profesionales y tecnológicas que demanda la sociedad y el contexto productivo?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 4,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "Acerca de la estructura curricular del programa académico, considera que los estudiantes que estarán en práctica y/o egresados se encuentran preparados para responder profesionalmente a las exigen...",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 5,
+    "5. Totalmente de acuerdo": 2
+  },
+  {
+    "Pregunta": "Desde su sector considera que el perfil profesional del estudiante cumple con los conocimientos de tendencia y habilidades profesionales, para desempeñarse con calidad.",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 4,
+    "5. Totalmente de acuerdo": 3
+  }
+]

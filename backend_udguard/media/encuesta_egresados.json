@@ -1,0 +1,82 @@
+[
+  {
+    "Pregunta": "¿Está de acuerdo con la calidad en el proceso de formación, impartido por el Proyecto Curricular del cual es egresado (a)?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 4,
+    "5. Totalmente de acuerdo": 2
+  },
+  {
+    "Pregunta": "¿El proceso de formación recibido desde el Proyecto Curricular del cual es egresado(a), ha aportado a su proyecto de vida en cuanto a: ubicación laboral, habilidades para su campo profesional (cogniti",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 3,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Considera adecuada la eficacia en la aplicación de las políticas institucionales sobre flexibilidad curricular, según las siguientes estrategias: tomar asignaturas en otra institución, tomar asignatu",
+    "1. No tengo información o conocimiento": 2,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 1,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con la contribución del currículo en la formación de los estudiantes, en cuanto a: fortalecimiento de valores humanos y éticos, formación como ciudadanos activos, formación científica",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 3,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Ha estado de acuerdo en participar (O participo, en caso de ser egresado) en actividades académicas con otras Instituciones de Educación Superior de orden nacional o internacional?",
+    "1. No tengo información o conocimiento": 2,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 1,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Está de acuerdo en participar en algunas de estas actividades académicas: asistencia a congresos, seminarios foros, simposios, Jurado, profesor programa de pregrado/Posgrado, consultorías a entes u o",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 3,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Considera pertinente generar una producción académica derivada de su participación tales como: memorias de eventos, publicación de artículos, publicación de coautoría, proyectos cofinanciados?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 1,
+    "5. Totalmente de acuerdo": 5
+  },
+  {
+    "Pregunta": "¿La participación en estas actividades impactaría en su crecimiento personal y profesional?",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 3,
+    "5. Totalmente de acuerdo": 3
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con los siguientes aspectos asociados a la formación en investigación: espacios académicos que promueven la participación en semilleros de investigación, espacios académicos que forta",
+    "1. No tengo información o conocimiento": 0,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 1,
+    "5. Totalmente de acuerdo": 5
+  },
+  {
+    "Pregunta": "¿Está de acuerdo con la gestión de su representante en los siguientes órganos de decisión: Consejo Superior Universitario, Consejo Académico, Consejo Facultad y Consejo Curricular?",
+    "1. No tengo información o conocimiento": 3,
+    "2. Totalmente en desacuerdo": 0,
+    "3. En desacuerdo": 0,
+    "4. De acuerdo": 1,
+    "5. Totalmente de acuerdo": 2
+  }
+]
