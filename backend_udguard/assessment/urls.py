@@ -6,7 +6,8 @@ from .views import (
     CharacteristicListUpdateViewSet,
     IndicatorCreateView,
     IndicatorUpdateView,
-    SurveyUploadView,  # ⭐ Nueva vista
+    SurveyUploadView,
+    SurveySearchView,  # ⭐ VERIFICAR QUE ESTÉ IMPORTADA
 )
 
 urlpatterns = [
@@ -15,6 +16,7 @@ urlpatterns = [
     path('characteristics/<uuid:caracteristica_id>/', CharacteristicListUpdateViewSet.as_view(), name='characteristic-detail'),
     path('characteristics/<uuid:caracteristica_id>/indicators/', IndicatorCreateView.as_view(), name='indicators-create'),
     path('indicators/<uuid:indicator_id>/', IndicatorUpdateView.as_view(), name='indicator-update'),
-    # ⭐ NUEVA RUTA PARA SUBIR ENCUESTAS
     path('surveys/upload/', SurveyUploadView.as_view(), name='survey-upload'),
+    # ⭐ VERIFICAR QUE ESTA RUTA ESTÉ AQUÍ
+    path('surveys/search/', SurveySearchView.as_view(), name='survey-search'),
 ]

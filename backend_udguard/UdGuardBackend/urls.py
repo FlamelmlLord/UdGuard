@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 from users.views import (
     CustomLoginView,
@@ -83,6 +83,7 @@ urlpatterns = [
         LogsListViewSet.as_view(),
         name="logs_list",
     ),
-    path("admin/", admin.site.urls),
-    path('api/surveys/upload/', SurveyUploadView.as_view(), name='survey-upload')
+    path('admin/', admin.site.urls),
+    path('api/surveys/upload/', SurveyUploadView.as_view(), name='survey-upload'),
+    path('api/', include('assessment.urls')),
 ]

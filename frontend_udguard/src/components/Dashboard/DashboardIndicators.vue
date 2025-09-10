@@ -348,7 +348,7 @@
           <div class="form-section">
             <h3 class="section-title">TIPO EVIDENCIA</h3>
             <div class="evidence-type-group">
-              <v-radio-group v-model="editingIndicator.tipoEvidencia" row hide-details>
+              <v-radio-group v-model="editingIndicator.tipoEvidencia" row hide-details @change="onEvidenceTypeChange">
                 <v-radio label="Documental" value="documental" color="primary"></v-radio>
                 <v-radio label="Encuesta" value="encuesta" color="primary"></v-radio>
               </v-radio-group>
@@ -367,17 +367,18 @@
               prepend-inner-icon="mdi-link"
             ></v-text-field>
 
-            <!-- Campo condicional para Encuesta -->
+            <!-- Campo condicional para Encuesta SIN BOTÓN DE BÚSQUEDA -->
             <v-text-field
               v-if="editingIndicator.tipoEvidencia === 'encuesta'"
               v-model="editingIndicator.palabraClave"
-              label="Ingrese el texto o palabra clave que pertenezca a la pregunta que satisfaga este aspecto a evaluar"
+              label="Pregunta seleccionada de la encuesta"
               outlined
               dense
               hide-details
               class="evidence-field"
-              placeholder="Palabra clave o pregunta relacionada"
+              placeholder="La pregunta se seleccionará automáticamente..."
               prepend-inner-icon="mdi-text-search"
+              readonly
             ></v-text-field>
           </div>
 
@@ -457,6 +458,134 @@
           >
             <v-icon left>{{ editingIndex === -1 ? 'mdi-plus' : 'mdi-content-save' }}</v-icon>
             {{ editingIndex === -1 ? 'Crear Indicador' : 'Guardar Cambios' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- 🔍 MODAL BÚSQUEDA DE PREGUNTAS -->
+    <v-dialog v-model="showSearchModal" max-width="900px" persistent>
+      <v-card class="search-modal">
+        <v-card-title class="modal-header">
+          <v-icon class="mr-3" size="24" color="primary">mdi-magnify</v-icon>
+          <span class="modal-title">Buscar Preguntas en Encuestas</span>
+          <v-spacer></v-spacer>
+          <v-btn icon @click="closeSearchModal">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+
+        <v-card-text class="search-modal-content">
+          <!-- Campo de búsqueda -->
+          <div class="search-section">
+            <v-text-field
+              v-model="searchQuery"
+              label="Buscar pregunta"
+              placeholder="Ingrese palabras clave para buscar en todas las encuestas..."
+              outlined
+              dense
+              prepend-inner-icon="mdi-magnify"
+              @input="performSearch"
+              clearable
+              autofocus
+            ></v-text-field>
+
+            <div class="search-info">
+              <v-icon left size="16" color="info">mdi-information</v-icon>
+              <span class="search-help-text">
+                La búsqueda se realiza automáticamente en todas las encuestas 
+                (Administrativos, Directivos, Docentes, Egresados, Empleadores y Estudiantes)
+              </span>
+            </div>
+          </div>
+
+          <!-- Resultados de búsqueda -->
+          <div class="search-results">
+            <div v-if="isSearching" class="search-loading">
+              <v-progress-circular indeterminate color="primary"></v-progress-circular>
+              <span class="ml-3">Buscando preguntas en todas las encuestas...</span>
+            </div>
+
+            <div v-else-if="searchResults.length === 0 && searchQuery" class="no-results">
+              <v-icon size="48" color="grey">mdi-magnify</v-icon>
+              <p>No se encontraron preguntas que coincidan con la búsqueda.</p>
+              <p class="no-results-subtitle">Intente con palabras clave diferentes o más generales.</p>
+            </div>
+
+            <div v-else-if="searchResults.length > 0" class="results-list">
+              <p class="results-count">
+                <strong>{{ searchResults.length }}</strong> preguntas encontradas en todas las encuestas
+              </p>
+              
+              <v-list dense>
+                <v-list-item
+                  v-for="(result, index) in paginatedResults"
+                  :key="index"
+                  @click="selectQuestion(result)"
+                  :class="{ 'selected-question': selectedQuestion?.id === result.id }"
+                  class="result-item"
+                >
+                  <v-list-item-icon>
+                    <v-chip :color="getSurveyTypeColor(result.survey_type)" small outlined>
+                      {{ getSurveyTypeLabel(result.survey_type) }}
+                    </v-chip>
+                  </v-list-item-icon>
+                  
+                  <v-list-item-content>
+                    <v-list-item-title class="question-text">
+                      {{ result.question }}
+                    </v-list-item-title>
+                    <v-list-item-subtitle class="response-summary">
+                      Total respuestas: {{ result.total_responses }}
+                    </v-list-item-subtitle>
+                  </v-list-item-content>
+
+                  <v-list-item-action>
+                    <v-btn
+                      icon
+                      small
+                      color="primary"
+                      @click.stop="previewQuestion(result)"
+                    >
+                      <v-icon size="16">mdi-eye</v-icon>
+                    </v-btn>
+                  </v-list-item-action>
+                </v-list-item>
+              </v-list>
+
+              <!-- Paginación -->
+              <v-pagination
+                v-if="totalPages > 1"
+                v-model="currentPage"
+                :length="totalPages"
+                :total-visible="5"
+                class="mt-4"
+              ></v-pagination>
+            </div>
+
+            <div v-else-if="!searchQuery" class="search-instructions">
+              <v-icon size="64" color="primary">mdi-text-search</v-icon>
+              <h3>Buscar Pregunta de Encuesta</h3>
+              <p>Escriba palabras clave relacionadas con la pregunta que está buscando.</p>
+              <p class="instructions-subtitle">
+                La búsqueda incluirá automáticamente todas las encuestas disponibles.
+              </p>
+            </div>
+          </div>
+        </v-card-text>
+
+        <v-card-actions class="modal-actions">
+          <v-spacer></v-spacer>
+          <v-btn text @click="closeSearchModal">
+            Cancelar
+          </v-btn>
+          <v-btn 
+            color="success"
+            :disabled="!selectedQuestion"
+            @click="generateChart"
+          >
+            <v-icon left>mdi-chart-bar</v-icon>
+            Seleccionar Pregunta
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -602,6 +731,17 @@ export default {
       editingDescription: '',
       editingNombre: '',
 
+      // Variables para búsqueda de preguntas (SIMPLIFICADAS)
+      showSearchModal: false,
+      searchQuery: '',
+      searchResults: [],
+      selectedQuestion: null,
+      isSearching: false,
+      
+      // Paginación
+      currentPage: 1,
+      itemsPerPage: 10,
+
       factors: [],
       aspectos: [],
       complianceChart: null
@@ -633,6 +773,16 @@ export default {
       const puntaje = this.calculatedPuntaje
       const meta = this.calculatedMeta
       return meta > 0 ? Math.round((puntaje / meta) * 100) || '00' : '00'
+    },
+
+    paginatedResults() {
+      const start = (this.currentPage - 1) * this.itemsPerPage
+      const end = start + this.itemsPerPage
+      return this.searchResults.slice(start, end)
+    },
+
+    totalPages() {
+      return Math.ceil(this.searchResults.length / this.itemsPerPage)
     }
   },
 
@@ -1156,6 +1306,182 @@ async saveIndicatorChanges() {
         icon: 'success',
         confirmButtonText: 'Continuar'
       })
+    },
+
+    // ⭐ NUEVO MÉTODO PARA MANEJAR CAMBIO DE TIPO DE EVIDENCIA
+    onEvidenceTypeChange(newValue) {
+      if (newValue === 'encuesta') {
+        // Limpiar campo de link evidencia
+        this.editingIndicator.link_evidencia = ''
+        
+        // Abrir modal de búsqueda automáticamente
+        this.openSearchModal()
+      } else if (newValue === 'documental') {
+        // Limpiar campo de palabra clave
+        this.editingIndicator.palabraClave = ''
+      }
+    },
+
+    // Métodos para búsqueda de preguntas (SIMPLIFICADAS)
+    openSearchModal() {
+      this.showSearchModal = true
+      this.searchQuery = ''
+      this.selectedQuestion = null
+      this.searchResults = []
+      this.currentPage = 1
+    },
+
+    closeSearchModal() {
+      this.showSearchModal = false
+      this.searchQuery = ''
+      this.searchResults = []
+      this.selectedQuestion = null
+      this.currentPage = 1
+    },
+
+    async performSearch() {
+      if (!this.searchQuery || this.searchQuery.trim().length < 3) {
+        this.searchResults = []
+        return
+      }
+
+      this.isSearching = true
+      this.searchResults = []
+
+      // ⭐ AGREGAR LOGS DE DEBUG
+      console.log('=== INICIANDO BÚSQUEDA DE PREGUNTAS ===')
+      console.log('Query:', this.searchQuery.trim())
+      console.log('Longitud del query:', this.searchQuery.trim().length)
+
+      try {
+        const token = localStorage.getItem('access_token')
+        console.log('Token disponible:', token ? 'Sí' : 'No')
+        
+        const allSurveyTypes = ['administrativos', 'directivos', 'docentes', 'egresados', 'empleadores', 'estudiantes']
+        
+        const requestData = {
+          query: this.searchQuery.trim(),
+          survey_types: allSurveyTypes
+        }
+        
+        console.log('Datos de la petición:', requestData)
+        console.log('URL de la petición:', '/surveys/search/')
+        console.log('URL completa estimada:', `${axios.defaults.baseURL}/surveys/search/`)
+
+        const response = await axios.post('/surveys/search/', requestData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        console.log('Respuesta exitosa:', response.data)
+        this.searchResults = response.data.results || []
+        this.currentPage = 1
+
+      } catch (error) {
+        console.error('=== ERROR EN BÚSQUEDA ===')
+        console.error('Tipo de error:', error.constructor.name)
+        console.error('Status del error:', error.response?.status)
+        console.error('URL solicitada:', error.config?.url)
+        console.error('Método:', error.config?.method)
+        console.error('Headers enviados:', error.config?.headers)
+        console.error('Datos enviados:', error.config?.data)
+        console.error('Respuesta del servidor:', error.response?.data)
+        console.error('Error completo:', error)
+
+        let errorMessage = 'Error al buscar preguntas. Intente nuevamente.'
+        
+        if (error.response?.status === 404) {
+          errorMessage = 'Endpoint de búsqueda no encontrado. Verifique la configuración del servidor.'
+        } else if (error.response?.status === 403) {
+          errorMessage = 'No tiene permisos para buscar preguntas.'
+        } else if (error.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicie sesión nuevamente.'
+        }
+
+        this.$swal({
+          title: 'Error de Búsqueda',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Continuar'
+        })
+      } finally {
+        this.isSearching = false
+        console.log('=== FIN DE BÚSQUEDA ===')
+      }
+    },
+
+    selectQuestion(question) {
+      this.selectedQuestion = question
+    },
+
+    previewQuestion(question) {
+      this.$swal({
+        title: 'Vista Previa de Pregunta',
+        html: `
+          <div style="text-align: left; padding: 10px;">
+            <p><strong>Encuesta:</strong> ${this.getSurveyTypeLabel(question.survey_type)}</p>
+            <p><strong>Pregunta:</strong> ${question.question}</p>
+            <hr style="margin: 10px 0;">
+            <p><strong>Distribución de respuestas:</strong></p>
+            <ul style="text-align: left;">
+              <li>No tengo información: ${question.responses['1. No tengo información o conocimiento'] || 0}</li>
+              <li>Totalmente en desacuerdo: ${question.responses['2. Totalmente en desacuerdo'] || 0}</li>
+              <li>En desacuerdo: ${question.responses['3. En desacuerdo'] || 0}</li>
+              <li>De acuerdo: ${question.responses['4. De acuerdo'] || 0}</li>
+              <li>Totalmente de acuerdo: ${question.responses['5. Totalmente de acuerdo'] || 0}</li>
+            </ul>
+            <p><strong>Total respuestas:</strong> ${question.total_responses}</p>
+          </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Cerrar',
+        width: '600px'
+      })
+    },
+
+    getSurveyTypeLabel(type) {
+      const labels = {
+        administrativos: 'Administrativos',
+        directivos: 'Directivos',
+        docentes: 'Docentes',
+        egresados: 'Egresados',
+        empleadores: 'Empleadores',
+        estudiantes: 'Estudiantes'
+      }
+      return labels[type] || type
+    },
+
+    getSurveyTypeColor(type) {
+      const colors = {
+        administrativos: 'purple',
+        directivos: 'indigo',
+        docentes: 'blue',
+        egresados: 'green',
+        empleadores: 'orange',
+        estudiantes: 'red'
+      }
+      return colors[type] || 'grey'
+    },
+
+    generateChart() {
+      if (!this.selectedQuestion) return
+
+      // Actualizar el campo de palabra clave con la pregunta seleccionada
+      this.editingIndicator.palabraClave = this.selectedQuestion.question
+      
+      this.$swal({
+        title: '¡Pregunta Seleccionada!',
+        text: 'La pregunta ha sido asociada al indicador.',
+        icon: 'success',
+        confirmButtonText: 'Continuar',
+        timer: 2000,
+        timerProgressBar: true
+      })
+
+      // Cerrar modal de búsqueda
+      this.closeSearchModal()
     }
   },
 

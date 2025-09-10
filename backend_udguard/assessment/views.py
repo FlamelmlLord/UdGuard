@@ -578,3 +578,110 @@ class SurveyUploadView(APIView):
         except Exception as e:
             print(f"Error al guardar JSON: {e}")
             raise e
+
+class SurveySearchView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # ⭐ AGREGAR LOGS DE DEBUG
+        print("=" * 50)
+        print("SurveySearchView.post() llamado")
+        print(f"Usuario: {request.user}")
+        print(f"Método: {request.method}")
+        print(f"Datos recibidos: {request.data}")
+        print(f"Headers: {dict(request.headers)}")
+        print("=" * 50)
+
+        try:
+            query = request.data.get('query', '').strip().lower()
+            survey_types = request.data.get('survey_types', [])
+
+            print(f"Query procesado: '{query}'")
+            print(f"Survey types: {survey_types}")
+            print(f"Longitud del query: {len(query)}")
+
+            if not query or len(query) < 3:
+                print("ERROR: Query muy corto o vacío")
+                return Response({
+                    "results": [],
+                    "message": "La búsqueda debe tener al menos 3 caracteres"
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            results = []
+            media_path = os.path.join(settings.BASE_DIR, 'media')
+            print(f"Ruta de media: {media_path}")
+
+            # Buscar en cada tipo de encuesta
+            for survey_type in survey_types:
+                json_filename = f"encuesta_{survey_type}.json"
+                json_filepath = os.path.join(media_path, json_filename)
+                
+                print(f"Buscando archivo: {json_filepath}")
+                print(f"Archivo existe: {os.path.exists(json_filepath)}")
+
+                if os.path.exists(json_filepath):
+                    try:
+                        with open(json_filepath, 'r', encoding='utf-8') as json_file:
+                            survey_data = json.load(json_file)
+
+                        print(f"Datos cargados de {survey_type}: {len(survey_data)} preguntas")
+
+                        # Buscar preguntas que coincidan con el query
+                        matches_found = 0
+                        for item in survey_data:
+                            question = item.get('Pregunta', '').lower()
+                            
+                            # Buscar coincidencia en la pregunta
+                            if query in question:
+                                matches_found += 1
+                                # Calcular total de respuestas
+                                total_responses = sum(
+                                    value for key, value in item.items() 
+                                    if key != 'Pregunta' and isinstance(value, (int, float))
+                                )
+
+                                # Preparar objeto de respuesta
+                                result = {
+                                    'id': f"{survey_type}_{len(results)}",
+                                    'survey_type': survey_type,
+                                    'question': item.get('Pregunta', ''),
+                                    'responses': {
+                                        key: value for key, value in item.items() 
+                                        if key != 'Pregunta'
+                                    },
+                                    'total_responses': total_responses
+                                }
+                                results.append(result)
+
+                        print(f"Coincidencias encontradas en {survey_type}: {matches_found}")
+
+                    except Exception as e:
+                        print(f"ERROR leyendo {json_filename}: {e}")
+                        continue
+
+            # Ordenar resultados por relevancia
+            results.sort(key=lambda x: (
+                query in x['question'].lower(),
+                x['total_responses']
+            ), reverse=True)
+
+            print(f"Total de resultados encontrados: {len(results)}")
+
+            response_data = {
+                "results": results,
+                "total_found": len(results),
+                "search_query": query
+            }
+            
+            print("Respuesta exitosa preparada")
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"ERROR CRÍTICO en survey search: {e}")
+            print(f"Tipo de error: {type(e).__name__}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            
+            return Response({
+                "error": f"Error interno al buscar preguntas: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
