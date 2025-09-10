@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -131,4 +132,15 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "flamelord147@gmail.com"
 EMAIL_HOST_PASSWORD = "xjbb dpab crpw fges"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-CORS_ALLOWED_ORIGINS = ["http://localhost:8080"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:8081"]
+
+# ⭐ CONFIGURACIÓN PARA ARCHIVOS MULTIMEDIA
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ⭐ CONFIGURACIÓN PARA SUBIDA DE ARCHIVOS
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10MB
+
+# ⭐ CONFIGURACIÓN PARA CORS (si es necesario)
+CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo

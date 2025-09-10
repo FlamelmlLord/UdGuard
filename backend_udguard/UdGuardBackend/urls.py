@@ -10,6 +10,7 @@ from users.views import (
     UserByIdView,
 )
 from assessment.views import (
+    SurveyUploadView,
     FactorsCreateListViewSet,
     FactorsListCreateCharacteristicsViewSet,
     CharacteristicListUpdateViewSet,
@@ -83,4 +84,5 @@ urlpatterns = [
         name="logs_list",
     ),
     path("admin/", admin.site.urls),
+    path('api/surveys/upload/', SurveyUploadView.as_view(), name='survey-upload')
 ]

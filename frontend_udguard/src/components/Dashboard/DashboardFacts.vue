@@ -194,6 +194,8 @@
                 <option value="egresados">🎓 Encuesta a Egresados</option>
                 <option value="empleadores">🏢 Encuesta a Empleadores</option>
                 <option value="administrativos">👥 Encuesta a Personal Administrativo</option>
+                <!-- ⭐ NUEVA OPCIÓN PARA DIRECTIVOS -->
+                <option value="directivos">👔 Encuesta a Directivos de la Maestría</option>
               </select>
               <div class="select-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -568,21 +570,217 @@ export default {
       }
     },
 
-    uploadExcel() {
+    async uploadExcel() {
       if (!this.selectedFile) {
-        alert('Por favor seleccione un archivo Excel')
-        return
+        this.$swal({
+          title: 'Archivo requerido',
+          text: 'Por favor seleccione un archivo Excel para continuar.',
+          icon: 'warning',
+          confirmButtonText: 'Entendido'
+        });
+        return;
       }
 
-      // Por el momento solo mostramos un mensaje
-      console.log('Uploading file:', this.selectedFile.name)
-      console.log('Result type:', this.selectedResultType)
+      // Validar el tipo de archivo
+      const validTypes = ['.xlsx', '.xls', '.csv'];
+      const fileExtension = this.selectedFile.name.toLowerCase().substring(this.selectedFile.name.lastIndexOf('.'));
       
-      // Simular éxito
-      alert(`Archivo "${this.selectedFile.name}" subido exitosamente para ${this.selectedResultType}`)
-      this.closeAttachResultsModal()
+      if (!validTypes.includes(fileExtension)) {
+        this.$swal({
+          title: 'Formato no válido',
+          text: 'Solo se permiten archivos Excel (.xlsx, .xls) o CSV (.csv).',
+          icon: 'error',
+          confirmButtonText: 'Entendido'
+        });
+        return;
+      }
+
+      try {
+        // Mostrar progreso
+        this.isUploading = true;
+        this.uploadProgress = 10;
+
+        const token = localStorage.getItem('access_token');
+        const encuestaInfo = this.getEncuestaInfo(this.selectedResultType);
+
+        // Crear FormData para enviar el archivo
+        const formData = new FormData();
+        formData.append('file', this.selectedFile);
+        formData.append('survey_type', this.selectedResultType);
+
+        console.log('Uploading survey file:', {
+          fileName: this.selectedFile.name,
+          surveyType: this.selectedResultType,
+          fileSize: this.selectedFile.size
+        });
+
+        // Simular progreso
+        const progressInterval = setInterval(() => {
+          if (this.uploadProgress < 90) {
+            this.uploadProgress += Math.random() * 20;
+          }
+        }, 200);
+
+        // ⭐ LLAMAR AL NUEVO ENDPOINT DEL BACKEND
+        const response = await axios.post('/surveys/upload/', formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            this.uploadProgress = Math.max(this.uploadProgress, percentCompleted);
+          }
+        });
+
+        clearInterval(progressInterval);
+        this.uploadProgress = 100;
+
+        console.log('Survey upload response:', response.data);
+
+        // Mostrar resultado exitoso
+        setTimeout(() => {
+          this.isUploading = false;
+          this.uploadProgress = 0;
+          
+          this.$swal({
+            title: '¡Carga Exitosa!',
+            html: `
+              <div style="text-align: left; padding: 10px;">
+                <p><strong>Archivo:</strong> ${this.selectedFile.name}</p>
+                <p><strong>Tipo:</strong> ${encuestaInfo.nombre}</p>
+                <p><strong>Tamaño:</strong> ${this.formatFileSize(this.selectedFile.size)}</p>
+                <p><strong>Estado:</strong> ✅ Procesado correctamente</p>
+                <hr style="margin: 10px 0;">
+                <p><strong>Preguntas procesadas:</strong> ${response.data.questions_processed}</p>
+                <p><strong>Total respuestas:</strong> ${response.data.total_responses}</p>
+                <p><strong>Archivo JSON generado:</strong> ${response.data.json_file}</p>
+                <hr style="margin: 10px 0;">
+                <p style="color: #059669; font-weight: 600;">
+                  ${encuestaInfo.mensaje}
+                </p>
+              </div>
+            `,
+            icon: 'success',
+            confirmButtonText: 'Continuar'
+          });
+          
+          this.closeAttachResultsModal();
+        }, 500);
+
+      } catch (error) {
+        this.isUploading = false;
+        this.uploadProgress = 0;
+        
+        console.error('Error uploading survey:', error);
+        
+        let errorMessage = 'Error al procesar el archivo.';
+        
+        if (error.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user_data');
+          this.$router.push('/login');
+        } else if (error.response?.status === 403) {
+          errorMessage = 'No tienes permisos para subir encuestas.';
+        } else if (error.response?.status === 400) {
+          errorMessage = error.response.data?.error || 'Archivo inválido o datos incorrectos.';
+        } else if (error.response?.status === 413) {
+          errorMessage = 'El archivo es demasiado grande. Tamaño máximo: 10MB.';
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        }
+
+        this.$swal({
+          title: 'Error al procesar archivo',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Entendido'
+        });
+      }
     },
 
+    // ⭐ NUEVO MÉTODO PARA OBTENER INFORMACIÓN DE CADA TIPO DE ENCUESTA
+    getEncuestaInfo(tipo) {
+      const encuestas = {
+        estudiantes: {
+          nombre: 'Encuesta a Estudiantes',
+          mensaje: 'Los resultados de la encuesta a estudiantes han sido procesados y están disponibles para análisis.'
+        },
+        docentes: {
+          nombre: 'Encuesta a Docentes',
+          mensaje: 'Los resultados de la encuesta a docentes han sido integrados al sistema de evaluación.'
+        },
+        egresados: {
+          nombre: 'Encuesta a Egresados',
+          mensaje: 'Los datos de la encuesta a egresados han sido incorporados exitosamente.'
+        },
+        empleadores: {
+          nombre: 'Encuesta a Empleadores',
+          mensaje: 'Los resultados de la encuesta a empleadores han sido registrados en el sistema.'
+        },
+        administrativos: {
+          nombre: 'Encuesta a Personal Administrativo',
+          mensaje: 'Los datos del personal administrativo han sido procesados correctamente.'
+        },
+        // ⭐ NUEVA INFORMACIÓN PARA DIRECTIVOS
+        directivos: {
+          nombre: 'Encuesta a Directivos de la Maestría',
+          mensaje: 'Los resultados de la encuesta a directivos han sido incorporados al análisis institucional. Esta información es clave para la evaluación de la gestión académica y administrativa del programa.'
+        }
+      };
+      
+      return encuestas[tipo] || {
+        nombre: 'Tipo de encuesta desconocido',
+        mensaje: 'Los datos han sido procesados.'
+      };
+    },
+
+    // ⭐ MÉTODO PARA FORMATEAR TAMAÑO DE ARCHIVO
+    formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    },
+
+    // ⭐ NUEVOS MÉTODOS PARA DRAG & DROP
+    handleFileDrop(event) {
+      this.isDragOver = false;
+      const files = event.dataTransfer.files;
+      
+      if (files.length > 0) {
+        const file = files[0];
+        
+        // Validar tipo de archivo
+        const validTypes = ['.xlsx', '.xls', '.csv'];
+        const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+        
+        if (validTypes.includes(fileExtension)) {
+          this.selectedFile = file;
+          this.selectedFileName = file.name;
+        } else {
+          this.$swal({
+            title: 'Formato no válido',
+            text: 'Solo se permiten archivos Excel (.xlsx, .xls) o CSV (.csv).',
+            icon: 'error',
+            confirmButtonText: 'Entendido'
+          });
+        }
+      }
+    },
+
+    // ⭐ MÉTODO PARA REMOVER ARCHIVO SELECCIONADO
+    removeFile() {
+      this.selectedFile = null;
+      this.selectedFileName = '';
+      this.$refs.fileInput.value = '';
+    },
+    
     // Métodos para el modal de editar factor
     editarFactor(factor) {
       this.factorEditando = {
