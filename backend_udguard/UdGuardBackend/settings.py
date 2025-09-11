@@ -134,6 +134,30 @@ EMAIL_HOST_PASSWORD = "xjbb dpab crpw fges"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 CORS_ALLOWED_ORIGINS = ["http://localhost:8081"]
 
-# ⭐ CONFIGURACIÓN PARA ARCHIVOS MULTIMEDIA
+# ⭐ CONFIGURACIÓN DE ARCHIVOS MEDIA
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ⭐ CREAR DIRECTORIOS MEDIA Y GRAPHS AL INICIAR SI NO EXISTEN
+try:
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
+    graphs_dir = os.path.join(MEDIA_ROOT, 'graphs')
+    os.makedirs(graphs_dir, exist_ok=True)
+    
+    print(f"MEDIA_ROOT configurado en: {MEDIA_ROOT}")
+    print(f"Directorio graphs: {graphs_dir}")
+    print(f"Directorio media existe: {os.path.exists(MEDIA_ROOT)}")
+    print(f"Directorio graphs existe: {os.path.exists(graphs_dir)}")
+except Exception as e:
+    print(f"Error creando directorios media: {e}")
+
+# ⭐ CONFIGURACIÓN PARA SERVIR ARCHIVOS ESTÁTICOS EN DESARROLLO
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# ⭐ CONFIGURACIÓN PARA SUBIDA DE ARCHIVOS
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10MB
+
+# ⭐ CONFIGURACIÓN PARA CORS (si es necesario)
+CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo

@@ -755,7 +755,14 @@ class GenerateChartView(APIView):
             )
 
             if chart_filename:
-                chart_url = f"/media/graphs/{chart_filename}"
+                # ⭐ CONSTRUIR URL COMPLETA PARA ACCESO DIRECTO A LA IMAGEN
+                # Obtener el dominio del request
+                protocol = 'https' if request.is_secure() else 'http'
+                host = request.get_host()
+                chart_url = f"{protocol}://{host}/media/graphs/{chart_filename}"
+                
+                # También proporcionar la ruta relativa como fallback
+                chart_relative_url = f"/media/graphs/{chart_filename}"
                 
                 # Log de la acción
                 from logs.models import Logs
@@ -767,7 +774,8 @@ class GenerateChartView(APIView):
                 return Response({
                     "message": "Gráfica generada exitosamente",
                     "filename": chart_filename,
-                    "chart_url": chart_url,
+                    "chart_url": chart_url,  # URL completa
+                    "chart_relative_url": chart_relative_url,  # URL relativa
                     "question": question_data.get('question', ''),
                     "actors_included": list(question_data.get('actors', {}).keys())
                 }, status=status.HTTP_200_OK)
@@ -797,11 +805,19 @@ class GenerateChartView(APIView):
             return 1
 
     def generate_horizontal_bar_chart(self, question_data, caracteristica_num, indicator_num):
-        """Genera una gráfica de barras horizontales con múltiples actores"""
+        """Genera una gráfica de barras horizontales individuales con múltiples actores"""
         try:
-            # Crear directorio graphs si no existe
-            graphs_path = os.path.join(settings.BASE_DIR, 'graphs')
+            # ⭐ CORREGIR LA RUTA - Guardar dentro de media/graphs (NO en backend_udguard/graphs)
+            media_path = os.path.join(settings.BASE_DIR, 'media')
+            graphs_path = os.path.join(media_path, 'graphs')
+            
+            # Crear directorios si no existen
+            os.makedirs(media_path, exist_ok=True)
             os.makedirs(graphs_path, exist_ok=True)
+
+            print(f"Directorio media: {media_path}")
+            print(f"Directorio graphs: {graphs_path}")
+            print(f"Directorio graphs existe: {os.path.exists(graphs_path)}")
 
             # Configurar matplotlib
             plt.switch_backend('Agg')
@@ -818,96 +834,147 @@ class GenerateChartView(APIView):
                 print("No hay datos de actores para generar la gráfica")
                 return None
 
-            # ⭐ MAPEO DE COLORES CONSISTENTE
+            # ⭐ MAPEO DE COLORES CONSISTENTE (REORDENADO)
             color_mapping = {
-                "1. No tengo información o conocimiento": "#FFA726",  # Naranja
-                "2. Totalmente en desacuerdo": "#EF5350",  # Rojo
-                "3. En desacuerdo": "#AB47BC",  # Púrpura
-                "4. De acuerdo": "#42A5F5",  # Azul
-                "5. Totalmente de acuerdo": "#66BB6A"  # Verde
+                "5. Totalmente de acuerdo": "#66BB6A",      # Verde (primera)
+                "4. De acuerdo": "#42A5F5",                # Azul (segunda)
+                "3. En desacuerdo": "#AB47BC",             # Púrpura (tercera)
+                "2. Totalmente en desacuerdo": "#EF5350",  # Rojo (cuarta)
+                "1. No tengo información o conocimiento": "#FFA726"  # Naranja (quinta)
             }
 
-            # ⭐ PREPARAR DATOS PARA GRÁFICA DE MÚLTIPLES ACTORES
-            all_options = list(color_mapping.keys())
-            actor_names = [self.get_actor_label(actor) for actor in actors_data.keys()]
+            # ⭐ PREPARAR DATOS PARA GRÁFICA DE BARRAS INDIVIDUALES
+            all_options = list(color_mapping.keys())  # Ya en el orden correcto
+            actor_names_with_totals = []
             
-            # Crear matriz de datos (actores x opciones)
-            data_matrix = []
-            for actor_key in actors_data.keys():
-                actor_responses = actors_data[actor_key]['responses']
-                actor_total = actors_data[actor_key]['total_responses']
+            # ⭐ CREAR ETIQUETAS DE ACTORES CON TOTALES
+            for actor in actors_data.keys():
+                actor_label = self.get_actor_label(actor)
+                total_responses = actors_data[actor]['total_responses']
+                actor_names_with_totals.append(f"{actor_label} ({total_responses})")
+            
+            # ⭐ CALCULAR ESPACIADO PARA BARRAS INDIVIDUALES
+            num_actors = len(actor_names_with_totals)
+            num_options = len(all_options)
+            bar_height = 0.15  # Altura de cada barra individual
+            group_spacing = 0.3  # Espacio entre grupos de actores
+            
+            # ⭐ CREAR GRÁFICA DE BARRAS HORIZONTALES INDIVIDUALES
+            fig, ax = plt.subplots(figsize=(16, max(10, num_actors * 3)))
+            
+            # Calcular posiciones Y para cada actor y opción
+            y_positions = []
+            current_y = 0
+            
+            for actor_idx in range(num_actors):
+                actor_positions = []
+                for option_idx in range(num_options):
+                    actor_positions.append(current_y)
+                    current_y += bar_height
+                y_positions.append(actor_positions)
+                current_y += group_spacing  # Espacio entre actores
+            
+            # ⭐ GENERAR BARRAS INDIVIDUALES
+            for option_idx, option in enumerate(all_options):
+                color = color_mapping[option]
+                y_vals = []
+                percentages = []
                 
-                # Calcular porcentajes para cada opción
-                row_data = []
-                for option in all_options:
+                for actor_idx, actor_key in enumerate(actors_data.keys()):
+                    actor_responses = actors_data[actor_key]['responses']
+                    actor_total = actors_data[actor_key]['total_responses']
+                    
                     count = actor_responses.get(option, 0)
                     percentage = (count / actor_total * 100) if actor_total > 0 else 0
-                    row_data.append(percentage)
-                data_matrix.append(row_data)
+                    
+                    y_vals.append(y_positions[actor_idx][option_idx])
+                    percentages.append(percentage)
+                
+                # Crear barras horizontales para esta opción
+                bars = ax.barh(y_vals, percentages, height=bar_height, 
+                             color=color, alpha=0.8, label=option, 
+                             edgecolor='white', linewidth=1)
+                
+                # ⭐ AGREGAR ETIQUETAS DE PORCENTAJE EN CADA BARRA
+                for bar, percentage in zip(bars, percentages):
+                    if percentage > 0:  # Solo mostrar si hay datos
+                        width = bar.get_width()
+                        # Posicionar texto al final de la barra si hay espacio, sino dentro
+                        text_x = width + 1 if width < 85 else width / 2
+                        text_color = 'black' if width < 85 else 'white'
+                        
+                        ax.text(text_x, bar.get_y() + bar.get_height()/2, 
+                               f'{percentage:.1f}%', 
+                               ha='left' if width < 85 else 'center', 
+                               va='center', fontweight='bold', fontsize=9, 
+                               color=text_color)
 
-            # ⭐ CREAR GRÁFICA DE BARRAS HORIZONTALES APILADAS
-            fig, ax = plt.subplots(figsize=(14, 8))
+            # ⭐ CONFIGURAR ETIQUETAS DEL EJE Y
+            # Crear etiquetas para cada grupo de actor
+            y_labels = []
+            y_label_positions = []
             
-            # Posiciones de los actores en el eje Y
-            y_pos = range(len(actor_names))
+            for actor_idx, actor_name in enumerate(actor_names_with_totals):
+                # Posición central del grupo de barras para este actor
+                group_center = sum(y_positions[actor_idx]) / len(y_positions[actor_idx])
+                y_label_positions.append(group_center)
+                y_labels.append(actor_name)
             
-            # Crear barras apiladas
-            left_positions = [0] * len(actor_names) # Posiciones acumuladas
+            ax.set_yticks(y_label_positions)
+            ax.set_yticklabels(y_labels, fontsize=12, fontweight='bold')
             
-            for i, option in enumerate(all_options):
-                values = [data_matrix[j][i] for j in range(len(actor_names))]
-                color = color_mapping[option]
-                
-                bars = ax.barh(y_pos, values, left=left_positions, 
-                             color=color, alpha=0.8, 
-                             label=option, edgecolor='white', linewidth=0.5)
-                
-                # Agregar valores en las barras (solo si es > 5% para evitar saturación)
-                for j, (bar, value) in enumerate(zip(bars, values)):
-                    if value > 5:  # Solo mostrar si es mayor al 5%
-                        ax.text(left_positions[j] + value/2, bar.get_y() + bar.get_height()/2, 
-                               f'{value:.1f}%', ha='center', va='center', 
-                               fontweight='bold', fontsize=8, color='white')
-                
-                # Actualizar posiciones acumuladas
-                left_positions = [left_positions[j] + values[j] for j in range(len(actor_names))]
-
-            # ⭐ CONFIGURAR EL GRÁFICO
-            ax.set_yticks(y_pos)
-            ax.set_yticklabels(actor_names, fontsize=11)
-            ax.set_xlabel('Porcentaje de Respuestas (%)', fontsize=12, fontweight='bold')
+            # ⭐ CONFIGURAR EL RESTO DEL GRÁFICO
+            ax.set_xlabel('Porcentaje de Respuestas (%)', fontsize=14, fontweight='bold')
             ax.set_title(f'Distribución de Respuestas por Actor\n{question_text[:100]}...', 
-                        fontsize=14, fontweight='bold', pad=20)
+                        fontsize=16, fontweight='bold', pad=25)
             
             # Configurar eje X
             ax.set_xlim(0, 100)
             ax.set_xticks(range(0, 101, 10))
             
-            # ⭐ AGREGAR LEYENDA
+            # ⭐ AGREGAR LEYENDA EN ORDEN CORRECTO
             ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', 
-                     fontsize=10, title='Opciones de Respuesta', title_fontsize=11)
+                     fontsize=11, title='Opciones de Respuesta', 
+                     title_fontsize=12, frameon=True, shadow=True)
+            
+            # ⭐ AGREGAR LÍNEAS SEPARADORAS ENTRE ACTORES
+            for actor_idx in range(num_actors - 1):
+                separator_y = y_positions[actor_idx][-1] + bar_height + group_spacing/2
+                ax.axhline(y=separator_y, color='lightgray', linestyle='--', alpha=0.5)
             
             # Configurar grid
             ax.grid(axis='x', alpha=0.3, linestyle='--')
             ax.set_axisbelow(True)
+            
+            # Invertir el eje Y para que el primer actor aparezca arriba
+            ax.invert_yaxis()
 
-            # Ajustar layout para que la leyenda no se corte
+            # Ajustar layout
             plt.tight_layout()
-            plt.subplots_adjust(right=0.75)
+            plt.subplots_adjust(right=0.75, top=0.9, bottom=0.1)
 
-            # ⭐ GUARDAR EL ARCHIVO
+            # ⭐ GUARDAR EL ARCHIVO EN LA RUTA CORRECTA
             filename = f"C{caracteristica_num}_I{indicator_num}.png"
             filepath = os.path.join(graphs_path, filename)
             
+            print(f"Guardando gráfica en: {filepath}")
+            
             plt.savefig(filepath, dpi=300, bbox_inches='tight', 
-            facecolor='white', edgecolor='none')
+                       facecolor='white', edgecolor='none')
             plt.close()
 
-            print(f"Gráfica multi-actor guardada: {filepath}")
-            return filename
+            # ⭐ VERIFICAR QUE EL ARCHIVO SE GUARDÓ CORRECTAMENTE
+            if os.path.exists(filepath):
+                file_size = os.path.getsize(filepath)
+                print(f"Gráfica guardada exitosamente: {filepath}")
+                print(f"Tamaño del archivo: {file_size} bytes")
+                return filename
+            else:
+                print(f"Error: El archivo no se guardó en {filepath}")
+                return None
 
         except Exception as e:
-            print(f"Error al generar gráfica multi-actor: {e}")
+            print(f"Error al generar gráfica individual: {e}")
             import traceback
             print(f"Traceback: {traceback.format_exc()}")
             return None

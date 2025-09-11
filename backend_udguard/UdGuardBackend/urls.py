@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenRefreshView
 from users.views import (
     CustomLoginView,
@@ -14,7 +16,6 @@ from assessment.views import (
     FactorsCreateListViewSet,
     FactorsListCreateCharacteristicsViewSet,
     CharacteristicListUpdateViewSet,
-    #CharacteristicsListCreateIndicatorsViewSet, test import indicador por característica
     IndicatorCreateView,
     IndicatorUpdateView,
 )
@@ -72,7 +73,6 @@ urlpatterns = [
         IndicatorCreateView.as_view(),
         name="indicators_create",
     ),
-
     path(
         "api/indicators/<uuid:indicador_id>/",
         IndicatorUpdateView.as_view(),
@@ -87,3 +87,7 @@ urlpatterns = [
     path('api/surveys/upload/', SurveyUploadView.as_view(), name='survey-upload'),
     path('api/', include('assessment.urls')),
 ]
+
+# ⭐ AGREGAR CONFIGURACIÓN PARA SERVIR ARCHIVOS MEDIA
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

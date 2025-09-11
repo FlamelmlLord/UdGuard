@@ -183,14 +183,18 @@
                   <div v-if="item.link_evidencia && item.link_evidencia.trim() !== ''" class="evidence-container">
                     <v-btn
                       class="evidence-btn"
-                      color="info"
+                      :color="item.link_evidencia.includes('/media/graphs/') ? 'purple' : 'info'"
                       text
                       small
                       @click="openEvidence(item.link_evidencia)"
-                      :title="`Abrir evidencia: ${item.link_evidencia}`"
+                      :title="item.link_evidencia.includes('/media/graphs/') ? 
+                             `Ver gráfica generada: ${item.link_evidencia}` : 
+                             `Abrir evidencia: ${item.link_evidencia}`"
                     >
-                      <v-icon left size="16">mdi-file-eye-outline</v-icon>
-                      Evidencia
+                      <v-icon left size="16">
+                        {{ item.link_evidencia.includes('/media/graphs/') ? 'mdi-chart-bar' : 'mdi-file-eye-outline' }}
+                      </v-icon>
+                      {{ item.link_evidencia.includes('/media/graphs/') ? 'Gráfica' : 'Evidencia' }}
                     </v-btn>
                   </div>
                   
@@ -534,9 +538,10 @@
                         :color="getSurveyTypeColor(Object.keys(result.actors)[actorIndex])" 
                         small 
                         outlined
-                        class="mr-1 mb-1"
+                        class="mr-1 mb-1 actor-chip-with-total"
                       >
-                        {{ actor }}
+                        <div class="actor-chip-label">{{ actor }}</div>
+                        <div class="actor-chip-total">{{ result.actors[Object.keys(result.actors)[actorIndex]].total_responses }}</div>
                       </v-chip>
                     </div>
                   </v-list-item-icon>
@@ -1466,7 +1471,7 @@ export default {
     },
 
     previewQuestion(question) {
-      // ⭐ CREAR VISTA PREVIA PARA MÚLTIPLES ACTORES
+      // ⭐ CREAR VISTA PREVIA PARA MÚLTIPLES ACTORES CON TOTALES
       let actorDetailsHtml = ''
       
       if (question.actors && Object.keys(question.actors).length > 0) {
@@ -1474,16 +1479,32 @@ export default {
         
         for (const [actorKey, actorData] of Object.entries(question.actors)) {
           const actorLabel = this.getSurveyTypeLabel(actorKey)
+          const totalResponses = actorData.total_responses
+          
           actorDetailsHtml += `
-            <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
-              <h5 style="color: #2196F3; margin: 0 0 8px 0;">${actorLabel}</h5>
+            <div style="margin: 10px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #2196F3;">
+              <h5 style="color: #2196F3; margin: 0 0 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                <span>${actorLabel}</span>
+                <span style="background: #2196F3; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px;">
+                  Total: ${totalResponses}
+                </span>
+              </h5>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px;">
-                <span>• No tengo información: <strong>${actorData.responses['1. No tengo información o conocimiento'] || 0}</strong></span>
-                <span>• Totalmente en desacuerdo: <strong>${actorData.responses['2. Totalmente en desacuerdo'] || 0}</strong></span>
-                <span>• En desacuerdo: <strong>${actorData.responses['3. En desacuerdo'] || 0}</strong></span>
-                <span>• De acuerdo: <strong>${actorData.responses['4. De acuerdo'] || 0}</strong></span>
-                <span>• Totalmente de acuerdo: <strong>${actorData.responses['5. Totalmente de acuerdo'] || 0}</strong></span>
-                <span style="grid-column: 1 / -1; font-weight: bold; color: #4CAF50;">Total: ${actorData.total_responses}</span>
+                <span style="padding: 4px 0; border-bottom: 1px solid #e0e0e0;">
+                  • <strong style="color: #66BB6A;">Totalmente de acuerdo:</strong> ${actorData.responses['5. Totalmente de acuerdo'] || 0}
+                </span>
+                <span style="padding: 4px 0; border-bottom: 1px solid #e0e0e0;">
+                  • <strong style="color: #42A5F5;">De acuerdo:</strong> ${actorData.responses['4. De acuerdo'] || 0}
+                </span>
+                <span style="padding: 4px 0; border-bottom: 1px solid #e0e0e0;">
+                  • <strong style="color: #AB47BC;">En desacuerdo:</strong> ${actorData.responses['3. En desacuerdo'] || 0}
+                </span>
+                <span style="padding: 4px 0; border-bottom: 1px solid #e0e0e0;">
+                  • <strong style="color: #EF5350;">Totalmente en desacuerdo:</strong> ${actorData.responses['2. Totalmente en desacuerdo'] || 0}
+                </span>
+                <span style="padding: 4px 0; grid-column: 1 / -1;">
+                  • <strong style="color: #FFA726;">No tengo información:</strong> ${actorData.responses['1. No tengo información o conocimiento'] || 0}
+                </span>
               </div>
             </div>
           `
@@ -1495,16 +1516,32 @@ export default {
         title: 'Vista Previa de Pregunta',
         html: `
           <div style="text-align: left; padding: 10px;">
-            <p><strong>Pregunta:</strong> ${question.question}</p>
-            <p><strong>Actores incluidos:</strong> ${question.actor_labels.join(', ')}</p>
-            <p><strong>Total de respuestas:</strong> ${question.total_responses}</p>
-            <hr style="margin: 15px 0;">
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+              <p style="margin: 0;"><strong>📋 Pregunta:</strong></p>
+              <p style="margin: 8px 0 0 0; font-style: italic; color: #1976d2;">${question.question}</p>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+              <div style="background: #f1f8e9; padding: 10px; border-radius: 6px; flex: 1; margin-right: 10px;">
+                <strong style="color: #558b2f;">👥 Actores incluidos:</strong><br>
+                <span style="font-size: 14px;">${question.actor_labels.join(', ')}</span>
+              </div>
+              <div style="background: #fff3e0; padding: 10px; border-radius: 6px; flex: 0 0 auto;">
+                <strong style="color: #f57c00;">📊 Total respuestas:</strong><br>
+                <span style="font-size: 18px; font-weight: bold; color: #e65100;">${question.total_responses}</span>
+              </div>
+            </div>
+            
+            <hr style="margin: 15px 0; border: none; border-top: 2px solid #e0e0e0;">
             ${actorDetailsHtml}
           </div>
         `,
         icon: 'info',
         confirmButtonText: 'Cerrar',
-        width: '700px'
+        width: '800px',
+        customClass: {
+          popup: 'question-preview-modal'
+        }
       })
     },
 
@@ -1568,24 +1605,41 @@ export default {
 
         console.log('Respuesta de generación de gráfica:', response.data)
 
-        // Actualizar el campo de evidencia con la URL de la gráfica
+        // ⭐ ACTUALIZAR CAMPOS DE EVIDENCIA CON LA URL COMPLETA
         this.editingIndicator.palabraClave = this.selectedQuestion.question
+        // Usar la URL completa para que sea accesible directamente
         this.editingIndicator.link_evidencia = response.data.chart_url
 
-        // Mostrar mensaje de éxito
+        // ⭐ MOSTRAR MENSAJE CON PREVIEW DE LA IMAGEN
         this.$swal({
           title: '¡Gráfica Generada!',
           html: `
             <div style="text-align: left; padding: 10px;">
-              <p><strong>Pregunta:</strong> ${this.selectedQuestion.question}</p>
-              <p><strong>Archivo:</strong> ${response.data.filename}</p>
-              <p><strong>La gráfica ha sido asociada como evidencia al indicador.</strong></p>
+              <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <p style="margin: 0 0 10px 0;"><strong>📊 Gráfica generada exitosamente</strong></p>
+                <p style="margin: 0;"><strong>Archivo:</strong> ${response.data.filename}</p>
+                <p style="margin: 5px 0 0 0;"><strong>URL:</strong> <a href="${response.data.chart_url}" target="_blank" style="color: #2196F3; text-decoration: underline;">Ver gráfica</a></p>
+              </div>
+              
+              <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <p style="margin: 0 0 10px 0;"><strong>📋 Pregunta asociada:</strong></p>
+                <p style="margin: 0; font-style: italic; color: #1976d2;">${this.selectedQuestion.question}</p>
+              </div>
+              
+              <div style="background: #fff3e0; padding: 10px; border-radius: 6px;">
+                <p style="margin: 0; font-size: 14px; color: #f57c00;">
+                  <strong>✅ La gráfica ha sido asociada como evidencia al indicador.</strong>
+                </p>
+              </div>
             </div>
           `,
           icon: 'success',
           confirmButtonText: 'Continuar',
-          timer: 3000,
-          timerProgressBar: true
+          timer: 5000,
+          timerProgressBar: true,
+          customClass: {
+            popup: 'chart-success-modal'
+          }
         })
 
         // Cerrar modal de búsqueda
