@@ -514,7 +514,7 @@
 
             <div v-else-if="searchResults.length > 0" class="results-list">
               <p class="results-count">
-                <strong>{{ searchResults.length }}</strong> preguntas encontradas en todas las encuestas
+                <strong>{{ searchResults.length }}</strong> preguntas encontradas
               </p>
               
               <v-list dense>
@@ -526,17 +526,46 @@
                   class="result-item"
                 >
                   <v-list-item-icon>
-                    <v-chip :color="getSurveyTypeColor(result.survey_type)" small outlined>
-                      {{ getSurveyTypeLabel(result.survey_type) }}
-                    </v-chip>
+                    <!-- ⭐ MOSTRAR MÚLTIPLES CHIPS PARA ACTORES -->
+                    <div class="actor-chips">
+                      <v-chip 
+                        v-for="(actor, actorIndex) in result.actor_labels" 
+                        :key="actorIndex"
+                        :color="getSurveyTypeColor(Object.keys(result.actors)[actorIndex])" 
+                        small 
+                        outlined
+                        class="mr-1 mb-1"
+                      >
+                        {{ actor }}
+                      </v-chip>
+                    </div>
                   </v-list-item-icon>
-                  
+
                   <v-list-item-content>
                     <v-list-item-title class="question-text">
                       {{ result.question }}
                     </v-list-item-title>
                     <v-list-item-subtitle class="response-summary">
-                      Total respuestas: {{ result.total_responses }}
+                      <!-- ⭐ MOSTRAR RESUMEN DE MÚLTIPLES ACTORES -->
+                      <div class="multi-actor-summary">
+                        <span class="total-responses">
+                          <strong>{{ result.total_responses }}</strong> respuestas totales
+                        </span>
+                        <span class="actor-count ml-2">
+                          en <strong>{{ result.actor_count }}</strong> {{ result.actor_count === 1 ? 'actor' : 'actores' }}
+                        </span>
+                      </div>
+                      
+                      <!-- ⭐ MOSTRAR DETALLES POR ACTOR -->
+                      <div class="actor-breakdown mt-1">
+                        <span 
+                          v-for="(actorKey, actorIndex) in Object.keys(result.actors)" 
+                          :key="actorIndex"
+                          class="actor-detail mr-3"
+                        >
+                          {{ getSurveyTypeLabel(actorKey) }}: {{ result.actors[actorKey].total_responses }}
+                        </span>
+                      </div>
                     </v-list-item-subtitle>
                   </v-list-item-content>
 
@@ -1437,27 +1466,45 @@ export default {
     },
 
     previewQuestion(question) {
+      // ⭐ CREAR VISTA PREVIA PARA MÚLTIPLES ACTORES
+      let actorDetailsHtml = ''
+      
+      if (question.actors && Object.keys(question.actors).length > 0) {
+        actorDetailsHtml = '<div style="margin-top: 15px;"><h4>Desglose por Actor:</h4>'
+        
+        for (const [actorKey, actorData] of Object.entries(question.actors)) {
+          const actorLabel = this.getSurveyTypeLabel(actorKey)
+          actorDetailsHtml += `
+            <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+              <h5 style="color: #2196F3; margin: 0 0 8px 0;">${actorLabel}</h5>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px;">
+                <span>• No tengo información: <strong>${actorData.responses['1. No tengo información o conocimiento'] || 0}</strong></span>
+                <span>• Totalmente en desacuerdo: <strong>${actorData.responses['2. Totalmente en desacuerdo'] || 0}</strong></span>
+                <span>• En desacuerdo: <strong>${actorData.responses['3. En desacuerdo'] || 0}</strong></span>
+                <span>• De acuerdo: <strong>${actorData.responses['4. De acuerdo'] || 0}</strong></span>
+                <span>• Totalmente de acuerdo: <strong>${actorData.responses['5. Totalmente de acuerdo'] || 0}</strong></span>
+                <span style="grid-column: 1 / -1; font-weight: bold; color: #4CAF50;">Total: ${actorData.total_responses}</span>
+              </div>
+            </div>
+          `
+        }
+        actorDetailsHtml += '</div>'
+      }
+
       this.$swal({
         title: 'Vista Previa de Pregunta',
         html: `
           <div style="text-align: left; padding: 10px;">
-            <p><strong>Encuesta:</strong> ${this.getSurveyTypeLabel(question.survey_type)}</p>
             <p><strong>Pregunta:</strong> ${question.question}</p>
-            <hr style="margin: 10px 0;">
-            <p><strong>Distribución de respuestas:</strong></p>
-            <ul style="text-align: left;">
-              <li>No tengo información: ${question.responses['1. No tengo información o conocimiento'] || 0}</li>
-              <li>Totalmente en desacuerdo: ${question.responses['2. Totalmente en desacuerdo'] || 0}</li>
-              <li>En desacuerdo: ${question.responses['3. En desacuerdo'] || 0}</li>
-              <li>De acuerdo: ${question.responses['4. De acuerdo'] || 0}</li>
-              <li>Totalmente de acuerdo: ${question.responses['5. Totalmente de acuerdo'] || 0}</li>
-            </ul>
-            <p><strong>Total respuestas:</strong> ${question.total_responses}</p>
+            <p><strong>Actores incluidos:</strong> ${question.actor_labels.join(', ')}</p>
+            <p><strong>Total de respuestas:</strong> ${question.total_responses}</p>
+            <hr style="margin: 15px 0;">
+            ${actorDetailsHtml}
           </div>
         `,
         icon: 'info',
         confirmButtonText: 'Cerrar',
-        width: '600px'
+        width: '700px'
       })
     },
 

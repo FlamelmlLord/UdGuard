@@ -585,13 +585,10 @@ class SurveySearchView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # ⭐ AGREGAR LOGS DE DEBUG
         print("=" * 50)
         print("SurveySearchView.post() llamado")
         print(f"Usuario: {request.user}")
-        print(f"Método: {request.method}")
         print(f"Datos recibidos: {request.data}")
-        print(f"Headers: {dict(request.headers)}")
         print("=" * 50)
 
         try:
@@ -600,7 +597,6 @@ class SurveySearchView(APIView):
 
             print(f"Query procesado: '{query}'")
             print(f"Survey types: {survey_types}")
-            print(f"Longitud del query: {len(query)}")
 
             if not query or len(query) < 3:
                 print("ERROR: Query muy corto o vacío")
@@ -609,7 +605,8 @@ class SurveySearchView(APIView):
                     "message": "La búsqueda debe tener al menos 3 caracteres"
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            results = []
+            # ⭐ DICCIONARIO PARA CONSOLIDAR PREGUNTAS POR TEXTO
+            consolidated_questions = {}
             media_path = os.path.join(settings.BASE_DIR, 'media')
             print(f"Ruta de media: {media_path}")
 
@@ -632,28 +629,35 @@ class SurveySearchView(APIView):
                         matches_found = 0
                         for item in survey_data:
                             question = item.get('Pregunta', '').lower()
-                            
-                            # Buscar coincidencia en la pregunta
                             if query in question:
                                 matches_found += 1
-                                # Calcular total de respuestas
-                                total_responses = sum(
+                                question_text = item.get('Pregunta', '').strip()
+                                
+                                # ⭐ CONSOLIDAR PREGUNTAS POR TEXTO
+                                if question_text not in consolidated_questions:
+                                    consolidated_questions[question_text] = {
+                                        'question': question_text,
+                                        'actors': {},  # Cambiar a diccionario para actores
+                                        'total_responses': 0
+                                    }
+                                
+                                # Calcular total de respuestas para este actor
+                                actor_total = sum(
                                     value for key, value in item.items() 
                                     if key != 'Pregunta' and isinstance(value, (int, float))
                                 )
-
-                                # Preparar objeto de respuesta
-                                result = {
-                                    'id': f"{survey_type}_{len(results)}",
-                                    'survey_type': survey_type,
-                                    'question': item.get('Pregunta', ''),
+                                
+                                # ⭐ AGREGAR DATOS DEL ACTOR A LA PREGUNTA CONSOLIDADA
+                                consolidated_questions[question_text]['actors'][survey_type] = {
                                     'responses': {
                                         key: value for key, value in item.items() 
                                         if key != 'Pregunta'
                                     },
-                                    'total_responses': total_responses
+                                    'total_responses': actor_total
                                 }
-                                results.append(result)
+                                
+                                # Actualizar total general
+                                consolidated_questions[question_text]['total_responses'] += actor_total
 
                         print(f"Coincidencias encontradas en {survey_type}: {matches_found}")
 
@@ -661,13 +665,29 @@ class SurveySearchView(APIView):
                         print(f"ERROR leyendo {json_filename}: {e}")
                         continue
 
-            # Ordenar resultados por relevancia
+            # ⭐ CONVERTIR PREGUNTAS CONSOLIDAS A FORMATO DE RESPUESTA
+            results = []
+            for question_text, question_data in consolidated_questions.items():
+                # Crear lista de etiquetas de actores
+                actor_labels = [self.get_actor_label(actor) for actor in question_data['actors'].keys()]
+                
+                result = {
+                    'id': f"consolidated_{len(results)}",
+                    'question': question_text,
+                    'actors': question_data['actors'],  # Datos completos de todos los actores
+                    'actor_labels': actor_labels,  # Etiquetas legibles
+                    'total_responses': question_data['total_responses'],
+                    'actor_count': len(question_data['actors'])
+                }
+                results.append(result)
+
+            # Ordenar resultados por relevancia y total de respuestas
             results.sort(key=lambda x: (
                 query in x['question'].lower(),
                 x['total_responses']
             ), reverse=True)
 
-            print(f"Total de resultados encontrados: {len(results)}")
+            print(f"Total de preguntas consolidadas: {len(results)}")
 
             response_data = {
                 "results": results,
@@ -680,13 +700,24 @@ class SurveySearchView(APIView):
 
         except Exception as e:
             print(f"ERROR CRÍTICO en survey search: {e}")
-            print(f"Tipo de error: {type(e).__name__}")
             import traceback
             print(f"Traceback: {traceback.format_exc()}")
             
             return Response({
                 "error": f"Error interno al buscar preguntas: {str(e)}"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get_actor_label(self, survey_type):
+        """Convierte el tipo de encuesta a etiqueta legible"""
+        labels = {
+            'administrativos': 'Administrativos',
+            'directivos': 'Directivos', 
+            'docentes': 'Docentes',
+            'egresados': 'Egresados',
+            'empleadores': 'Empleadores',
+            'estudiantes': 'Estudiantes'
+        }
+        return labels.get(survey_type, survey_type.title())
 
 class GenerateChartView(APIView):
     permission_classes = [IsAuthenticated]
@@ -713,8 +744,6 @@ class GenerateChartView(APIView):
 
             # Obtener la característica para obtener su número
             caracteristica = get_object_or_404(Characteristics, pk=caracteristica_id)
-            
-            # Extraer número de característica desde el nombre (asumiendo formato "C1. Nombre")
             caracteristica_nombre = caracteristica.nombre
             caracteristica_numero = self.extract_characteristic_number(caracteristica_nombre)
 
@@ -726,7 +755,6 @@ class GenerateChartView(APIView):
             )
 
             if chart_filename:
-                # Construir la URL del archivo
                 chart_url = f"/media/graphs/{chart_filename}"
                 
                 # Log de la acción
@@ -740,7 +768,8 @@ class GenerateChartView(APIView):
                     "message": "Gráfica generada exitosamente",
                     "filename": chart_filename,
                     "chart_url": chart_url,
-                    "question": question_data.get('question', '')
+                    "question": question_data.get('question', ''),
+                    "actors_included": list(question_data.get('actors', {}).keys())
                 }, status=status.HTTP_200_OK)
             else:
                 return Response(
@@ -758,35 +787,38 @@ class GenerateChartView(APIView):
     def extract_characteristic_number(self, nombre):
         """Extrae el número de característica del nombre"""
         try:
-            # Buscar patrón C## en el nombre
             import re
             match = re.search(r'C(\d+)', nombre)
             if match:
                 return int(match.group(1))
             else:
-                # Si no encuentra patrón, usar un número por defecto
                 return 1
         except:
             return 1
 
     def generate_horizontal_bar_chart(self, question_data, caracteristica_num, indicator_num):
-        """Genera una gráfica de barras horizontales usando matplotlib"""
+        """Genera una gráfica de barras horizontales con múltiples actores"""
         try:
             # Crear directorio graphs si no existe
             graphs_path = os.path.join(settings.BASE_DIR, 'graphs')
             os.makedirs(graphs_path, exist_ok=True)
 
-            # Configurar matplotlib para usar backend sin GUI
+            # Configurar matplotlib
             plt.switch_backend('Agg')
-            
-            # Configurar el estilo
             plt.style.use('default')
             
-            # Datos de respuestas
-            responses = question_data.get('responses', {})
-            survey_type = question_data.get('survey_type', '')
+            # ⭐ OBTENER DATOS DE MÚLTIPLES ACTORES
+            actors_data = question_data.get('actors', {})
+            question_text = question_data.get('question', '')
             
-            # Mapeo de colores por opción de respuesta
+            print(f"Generando gráfica para {len(actors_data)} actores")
+            print(f"Actores: {list(actors_data.keys())}")
+
+            if not actors_data:
+                print("No hay datos de actores para generar la gráfica")
+                return None
+
+            # ⭐ MAPEO DE COLORES CONSISTENTE
             color_mapping = {
                 "1. No tengo información o conocimiento": "#FFA726",  # Naranja
                 "2. Totalmente en desacuerdo": "#EF5350",  # Rojo
@@ -795,62 +827,87 @@ class GenerateChartView(APIView):
                 "5. Totalmente de acuerdo": "#66BB6A"  # Verde
             }
 
-            # Preparar datos para la gráfica
-            actors = [self.get_actor_label(survey_type)]
-            response_options = []
-            values = []
-            colors = []
-
-            for option, count in responses.items():
-                if option != "Pregunta" and count > 0:
-                    response_options.append(option)
-                    values.append(count)
-                    colors.append(color_mapping.get(option, "#757575"))
-
-            if not values:
-                print("No hay datos válidos para generar la gráfica")
-                return None
-
-            # Crear la figura
-            fig, ax = plt.subplots(figsize=(12, 8))
+            # ⭐ PREPARAR DATOS PARA GRÁFICA DE MÚLTIPLES ACTORES
+            all_options = list(color_mapping.keys())
+            actor_names = [self.get_actor_label(actor) for actor in actors_data.keys()]
             
-            # Configurar barras horizontales
-            y_pos = range(len(response_options))
-            bars = ax.barh(y_pos, values, color=colors, alpha=0.8, edgecolor='white', linewidth=1)
+            # Crear matriz de datos (actores x opciones)
+            data_matrix = []
+            for actor_key in actors_data.keys():
+                actor_responses = actors_data[actor_key]['responses']
+                actor_total = actors_data[actor_key]['total_responses']
+                
+                # Calcular porcentajes para cada opción
+                row_data = []
+                for option in all_options:
+                    count = actor_responses.get(option, 0)
+                    percentage = (count / actor_total * 100) if actor_total > 0 else 0
+                    row_data.append(percentage)
+                data_matrix.append(row_data)
 
-            # Configurar el gráfico
+            # ⭐ CREAR GRÁFICA DE BARRAS HORIZONTALES APILADAS
+            fig, ax = plt.subplots(figsize=(14, 8))
+            
+            # Posiciones de los actores en el eje Y
+            y_pos = range(len(actor_names))
+            
+            # Crear barras apiladas
+            left_positions = [0] * len(actor_names) # Posiciones acumuladas
+            
+            for i, option in enumerate(all_options):
+                values = [data_matrix[j][i] for j in range(len(actor_names))]
+                color = color_mapping[option]
+                
+                bars = ax.barh(y_pos, values, left=left_positions, 
+                             color=color, alpha=0.8, 
+                             label=option, edgecolor='white', linewidth=0.5)
+                
+                # Agregar valores en las barras (solo si es > 5% para evitar saturación)
+                for j, (bar, value) in enumerate(zip(bars, values)):
+                    if value > 5:  # Solo mostrar si es mayor al 5%
+                        ax.text(left_positions[j] + value/2, bar.get_y() + bar.get_height()/2, 
+                               f'{value:.1f}%', ha='center', va='center', 
+                               fontweight='bold', fontsize=8, color='white')
+                
+                # Actualizar posiciones acumuladas
+                left_positions = [left_positions[j] + values[j] for j in range(len(actor_names))]
+
+            # ⭐ CONFIGURAR EL GRÁFICO
             ax.set_yticks(y_pos)
-            ax.set_yticklabels(response_options, fontsize=10)
-            ax.set_xlabel('Número de Respuestas', fontsize=12, fontweight='bold')
-            ax.set_title(f'Distribución de Respuestas - {actors[0]}\n{question_data.get("question", "")[:80]}...', 
+            ax.set_yticklabels(actor_names, fontsize=11)
+            ax.set_xlabel('Porcentaje de Respuestas (%)', fontsize=12, fontweight='bold')
+            ax.set_title(f'Distribución de Respuestas por Actor\n{question_text[:100]}...', 
                         fontsize=14, fontweight='bold', pad=20)
-
-            # Agregar valores en las barras
-            for i, (bar, value) in enumerate(zip(bars, values)):
-                width = bar.get_width()
-                ax.text(width + max(values) * 0.01, bar.get_y() + bar.get_height()/2, 
-                       str(value), ha='left', va='center', fontweight='bold', fontsize=10)
-
+            
+            # Configurar eje X
+            ax.set_xlim(0, 100)
+            ax.set_xticks(range(0, 101, 10))
+            
+            # ⭐ AGREGAR LEYENDA
+            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', 
+                     fontsize=10, title='Opciones de Respuesta', title_fontsize=11)
+            
             # Configurar grid
             ax.grid(axis='x', alpha=0.3, linestyle='--')
             ax.set_axisbelow(True)
 
-            # Ajustar layout
+            # Ajustar layout para que la leyenda no se corte
             plt.tight_layout()
+            plt.subplots_adjust(right=0.75)
 
-            # Guardar el archivo
+            # ⭐ GUARDAR EL ARCHIVO
             filename = f"C{caracteristica_num}_I{indicator_num}.png"
             filepath = os.path.join(graphs_path, filename)
             
             plt.savefig(filepath, dpi=300, bbox_inches='tight', 
-                       facecolor='white', edgecolor='none')
+            facecolor='white', edgecolor='none')
             plt.close()
 
-            print(f"Gráfica guardada: {filepath}")
+            print(f"Gráfica multi-actor guardada: {filepath}")
             return filename
 
         except Exception as e:
-            print(f"Error al generar gráfica: {e}")
+            print(f"Error al generar gráfica multi-actor: {e}")
             import traceback
             print(f"Traceback: {traceback.format_exc()}")
             return None
