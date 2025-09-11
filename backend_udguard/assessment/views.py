@@ -1,6 +1,8 @@
 import os
 import json
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
@@ -685,3 +687,182 @@ class SurveySearchView(APIView):
             return Response({
                 "error": f"Error interno al buscar preguntas: {str(e)}"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class GenerateChartView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            # Validar que el usuario tenga permisos
+            if request.user.tipo_user != "admin":
+                return Response(
+                    {"error": "No tienes permisos para generar gráficas"}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            # Obtener datos de la petición
+            question_data = request.data.get('question_data')
+            caracteristica_id = request.data.get('caracteristica_id')
+            indicator_number = request.data.get('indicator_number', 1)
+
+            if not question_data or not caracteristica_id:
+                return Response(
+                    {"error": "Datos insuficientes para generar la gráfica"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Obtener la característica para obtener su número
+            caracteristica = get_object_or_404(Characteristics, pk=caracteristica_id)
+            
+            # Extraer número de característica desde el nombre (asumiendo formato "C1. Nombre")
+            caracteristica_nombre = caracteristica.nombre
+            caracteristica_numero = self.extract_characteristic_number(caracteristica_nombre)
+
+            # Generar la gráfica
+            chart_filename = self.generate_horizontal_bar_chart(
+                question_data, 
+                caracteristica_numero, 
+                indicator_number
+            )
+
+            if chart_filename:
+                # Construir la URL del archivo
+                chart_url = f"/media/graphs/{chart_filename}"
+                
+                # Log de la acción
+                from logs.models import Logs
+                Logs.objects.create(
+                    usuario=request.user,
+                    accion=f"GENERATE_CHART - {chart_filename}",
+                )
+
+                return Response({
+                    "message": "Gráfica generada exitosamente",
+                    "filename": chart_filename,
+                    "chart_url": chart_url,
+                    "question": question_data.get('question', '')
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {"error": "Error al generar la gráfica"}, 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+        except Exception as e:
+            print(f"Error generating chart: {e}")
+            return Response(
+                {"error": f"Error interno al generar la gráfica: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def extract_characteristic_number(self, nombre):
+        """Extrae el número de característica del nombre"""
+        try:
+            # Buscar patrón C## en el nombre
+            import re
+            match = re.search(r'C(\d+)', nombre)
+            if match:
+                return int(match.group(1))
+            else:
+                # Si no encuentra patrón, usar un número por defecto
+                return 1
+        except:
+            return 1
+
+    def generate_horizontal_bar_chart(self, question_data, caracteristica_num, indicator_num):
+        """Genera una gráfica de barras horizontales usando matplotlib"""
+        try:
+            # Crear directorio graphs si no existe
+            graphs_path = os.path.join(settings.BASE_DIR, 'graphs')
+            os.makedirs(graphs_path, exist_ok=True)
+
+            # Configurar matplotlib para usar backend sin GUI
+            plt.switch_backend('Agg')
+            
+            # Configurar el estilo
+            plt.style.use('default')
+            
+            # Datos de respuestas
+            responses = question_data.get('responses', {})
+            survey_type = question_data.get('survey_type', '')
+            
+            # Mapeo de colores por opción de respuesta
+            color_mapping = {
+                "1. No tengo información o conocimiento": "#FFA726",  # Naranja
+                "2. Totalmente en desacuerdo": "#EF5350",  # Rojo
+                "3. En desacuerdo": "#AB47BC",  # Púrpura
+                "4. De acuerdo": "#42A5F5",  # Azul
+                "5. Totalmente de acuerdo": "#66BB6A"  # Verde
+            }
+
+            # Preparar datos para la gráfica
+            actors = [self.get_actor_label(survey_type)]
+            response_options = []
+            values = []
+            colors = []
+
+            for option, count in responses.items():
+                if option != "Pregunta" and count > 0:
+                    response_options.append(option)
+                    values.append(count)
+                    colors.append(color_mapping.get(option, "#757575"))
+
+            if not values:
+                print("No hay datos válidos para generar la gráfica")
+                return None
+
+            # Crear la figura
+            fig, ax = plt.subplots(figsize=(12, 8))
+            
+            # Configurar barras horizontales
+            y_pos = range(len(response_options))
+            bars = ax.barh(y_pos, values, color=colors, alpha=0.8, edgecolor='white', linewidth=1)
+
+            # Configurar el gráfico
+            ax.set_yticks(y_pos)
+            ax.set_yticklabels(response_options, fontsize=10)
+            ax.set_xlabel('Número de Respuestas', fontsize=12, fontweight='bold')
+            ax.set_title(f'Distribución de Respuestas - {actors[0]}\n{question_data.get("question", "")[:80]}...', 
+                        fontsize=14, fontweight='bold', pad=20)
+
+            # Agregar valores en las barras
+            for i, (bar, value) in enumerate(zip(bars, values)):
+                width = bar.get_width()
+                ax.text(width + max(values) * 0.01, bar.get_y() + bar.get_height()/2, 
+                       str(value), ha='left', va='center', fontweight='bold', fontsize=10)
+
+            # Configurar grid
+            ax.grid(axis='x', alpha=0.3, linestyle='--')
+            ax.set_axisbelow(True)
+
+            # Ajustar layout
+            plt.tight_layout()
+
+            # Guardar el archivo
+            filename = f"C{caracteristica_num}_I{indicator_num}.png"
+            filepath = os.path.join(graphs_path, filename)
+            
+            plt.savefig(filepath, dpi=300, bbox_inches='tight', 
+                       facecolor='white', edgecolor='none')
+            plt.close()
+
+            print(f"Gráfica guardada: {filepath}")
+            return filename
+
+        except Exception as e:
+            print(f"Error al generar gráfica: {e}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            return None
+
+    def get_actor_label(self, survey_type):
+        """Convierte el tipo de encuesta a etiqueta legible"""
+        labels = {
+            'administrativos': 'Administrativos',
+            'directivos': 'Directivos', 
+            'docentes': 'Docentes',
+            'egresados': 'Egresados',
+            'empleadores': 'Empleadores',
+            'estudiantes': 'Estudiantes'
+        }
+        return labels.get(survey_type, survey_type.title())

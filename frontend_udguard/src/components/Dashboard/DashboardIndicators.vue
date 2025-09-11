@@ -581,11 +581,12 @@
           </v-btn>
           <v-btn 
             color="success"
-            :disabled="!selectedQuestion"
+            :disabled="!selectedQuestion || isGeneratingChart"
+            :loading="isGeneratingChart"
             @click="generateChart"
           >
-            <v-icon left>mdi-chart-bar</v-icon>
-            Seleccionar Pregunta
+            <v-icon left>{{ isGeneratingChart ? 'mdi-loading mdi-spin' : 'mdi-chart-bar' }}</v-icon>
+            {{ isGeneratingChart ? 'Generando...' : 'Generar Gráfica' }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -705,7 +706,7 @@ export default {
   name: 'DashboardGraphs',
   data () {
     return {
-      selectedFactor: null, // ⭐ CAMBIADO DE 1 A null
+      selectedFactor: null,
       showEditIndicatorModal: false,
       showDeleteConfirmModal: false,
       showEditDescriptionModal: false,
@@ -731,12 +732,13 @@ export default {
       editingDescription: '',
       editingNombre: '',
 
-      // Variables para búsqueda de preguntas (SIMPLIFICADAS)
+      // Variables para búsqueda de preguntas
       showSearchModal: false,
       searchQuery: '',
       searchResults: [],
       selectedQuestion: null,
       isSearching: false,
+      isGeneratingChart: false,
       
       // Paginación
       currentPage: 1,
@@ -765,6 +767,7 @@ export default {
       const calificacion = this.editingIndicator.calificacion || 0
       return Math.round(ponderacion * calificacion) || '00'
     },
+    
     calculatedMeta () {
       return this.editingIndicator.ponderacion * 5
     },
@@ -783,6 +786,18 @@ export default {
 
     totalPages() {
       return Math.ceil(this.searchResults.length / this.itemsPerPage)
+    },
+
+    // ⭐ NUEVO COMPUTED PARA OBTENER EL NÚMERO DE INDICADOR ACTUAL
+    currentIndicatorNumber() {
+      if (this.editingIndex === -1) {
+        // Si es un nuevo indicador, contar los existentes + 1
+        const existingIndicators = Object.keys(this.characteristic.indicadores || {}).length
+        return existingIndicators + 1
+      } else {
+        // Si está editando, usar el índice + 1
+        return this.editingIndex + 1
+      }
     }
   },
 
@@ -790,6 +805,11 @@ export default {
     if (this.complianceChart) {
       this.complianceChart.destroy()
     }
+  },
+
+  async mounted() {
+    this.characteristicsId = this.$route.params.caracteristicaId
+    await this.fetchCaracteristica()
   },
 
   methods: {
@@ -925,7 +945,7 @@ export default {
           ponderacion: indicador.ponderacion || 0,
           meta: indicador.ponderacion * 5 || 0,
           link_evidencia: indicador.link_evidencia || '',
-          palabraClave: indicador.palabra_clave || '', // ⭐ Corregido el nombre del campo
+          palabraClave: indicador.palabra_clave || '',
           tipoEvidencia: indicador.link_evidencia ? 'documental' : 'encuesta'
         }
         this.showEditIndicatorModal = true
@@ -951,126 +971,126 @@ export default {
       // Los computed properties se actualizan automáticamente
     },
 
-async saveIndicatorChanges() {
-  try {
-    const token = localStorage.getItem('access_token')
-    
-    // Validar que el nombre no esté vacío
-    if (!this.editingIndicator.nombre.trim()) {
-      this.$swal({
-        title: 'Error',
-        text: 'El nombre del indicador es requerido.',
-        icon: 'warning',
-        confirmButtonText: 'Continuar'
-      })
-      return
-    }
-    
-    // ⭐ CALCULAR LA META EN TIEMPO REAL
-    const metaCalculada = this.calculatedMeta
+    async saveIndicatorChanges() {
+      try {
+        const token = localStorage.getItem('access_token')
+        
+        // Validar que el nombre no esté vacío
+        if (!this.editingIndicator.nombre.trim()) {
+          this.$swal({
+            title: 'Error',
+            text: 'El nombre del indicador es requerido.',
+            icon: 'warning',
+            confirmButtonText: 'Continuar'
+          })
+          return
+        }
+        
+        // ⭐ CALCULAR LA META EN TIEMPO REAL
+        const metaCalculada = this.calculatedMeta
 
-    // ⭐ PREPARAR DATOS PARA ENVIAR AL BACKEND
-    const indicatorData = {
-      nombre: this.editingIndicator.nombre.trim(),
-      calificacion: this.editingIndicator.calificacion,
-      ponderacion: this.editingIndicator.ponderacion,
-      meta: metaCalculada,
-      link_evidencia: this.editingIndicator.tipoEvidencia === 'documental' ? this.editingIndicator.link_evidencia : '',
-      palabra_clave: this.editingIndicator.tipoEvidencia === 'encuesta' ? this.editingIndicator.palabraClave : '',
-      tipo_evidencia: this.editingIndicator.tipoEvidencia
-    }
+        // ⭐ PREPARAR DATOS PARA ENVIAR AL BACKEND
+        const indicatorData = {
+          nombre: this.editingIndicator.nombre.trim(),
+          calificacion: this.editingIndicator.calificacion,
+          ponderacion: this.editingIndicator.ponderacion,
+          meta: metaCalculada,
+          link_evidencia: this.editingIndicator.tipoEvidencia === 'documental' ? this.editingIndicator.link_evidencia : '',
+          palabra_clave: this.editingIndicator.tipoEvidencia === 'encuesta' ? this.editingIndicator.palabraClave : '',
+          tipo_evidencia: this.editingIndicator.tipoEvidencia
+        }
 
-    if (this.editingIndex === -1) {
-      // ⭐ CREAR NUEVO INDICADOR
-      console.log('Creating new indicator:', indicatorData)
-      
-      const response = await axios.post(
-        `/characteristics/${this.characteristicsId}/indicators/`,
-        indicatorData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
+        if (this.editingIndex === -1) {
+          // ⭐ CREAR NUEVO INDICADOR
+          console.log('Creating new indicator:', indicatorData)
+          
+          const response = await axios.post(
+            `/characteristics/${this.characteristicsId}/indicators/`,
+            indicatorData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          )
+          
+          console.log('New indicator created:', response.data)
+
+          this.$swal({
+            title: '¡Indicador Creado!',
+            text: 'El nuevo indicador se ha agregado correctamente.',
+            icon: 'success',
+            confirmButtonText: 'Continuar'
+          })
+          
+        } else {
+          // ⭐ ACTUALIZAR INDICADOR EXISTENTE
+          const indicadorKey = Object.keys(this.characteristic.indicadores)[this.editingIndex]
+          
+          if (indicadorKey) {
+            console.log('Updating existing indicator:', indicatorData)
+            
+            const response = await axios.patch(
+              `/indicators/${this.characteristic.indicadores[indicadorKey].id}/`,
+              indicatorData,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                }
+              }
+            )
+            
+            console.log('Indicator updated on server:', response.data)
+
+            this.$swal({
+              title: '¡Indicador Actualizado!',
+              text: 'Los cambios se han guardado correctamente.',
+              icon: 'success',
+              confirmButtonText: 'Continuar'
+            })
           }
         }
-      )
-      
-      console.log('New indicator created:', response.data)
 
-      this.$swal({
-        title: '¡Indicador Creado!',
-        text: 'El nuevo indicador se ha agregado correctamente.',
-        icon: 'success',
-        confirmButtonText: 'Continuar'
-      })
-      
-    } else {
-      // ⭐ ACTUALIZAR INDICADOR EXISTENTE
-      const indicadorKey = Object.keys(this.characteristic.indicadores)[this.editingIndex]
-      
-      if (indicadorKey) {
-        console.log('Updating existing indicator:', indicatorData)
+        // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE CREAR/ACTUALIZAR
+        await this.fetchCaracteristica()
+        this.closeEditIndicatorModal()
+
+      } catch (error) {
+        console.error('Error saving indicator:', error)
         
-        const response = await axios.patch(
-          `/indicators/${this.characteristic.indicadores[indicadorKey].id}/`,
-          indicatorData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        )
+        let errorMessage = 'Hubo un problema al guardar el indicador.'
         
-        console.log('Indicator updated on server:', response.data)
+        if (error.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.'
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('user_data')
+          this.$router.push('/login')
+        } else if (error.response?.status === 403) {
+          errorMessage = 'No tienes permisos para realizar esta acción.'
+        } else if (error.response?.status === 400) {
+          errorMessage = 'Datos inválidos. Verifique que toda la información sea correcta.'
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error
+        }
 
         this.$swal({
-          title: '¡Indicador Actualizado!',
-          text: 'Los cambios se han guardado correctamente.',
-          icon: 'success',
+          title: 'Error',
+          text: errorMessage,
+          icon: 'error',
           confirmButtonText: 'Continuar'
         })
       }
-    }
+    },
 
-    // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE CREAR/ACTUALIZAR
-    await this.fetchCaracteristica()
-    this.closeEditIndicatorModal()
-
-  } catch (error) {
-    console.error('Error saving indicator:', error)
-    
-    let errorMessage = 'Hubo un problema al guardar el indicador.'
-    
-    if (error.response?.status === 401) {
-      errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.'
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user_data')
-      this.$router.push('/login')
-    } else if (error.response?.status === 403) {
-      errorMessage = 'No tienes permisos para realizar esta acción.'
-    } else if (error.response?.status === 400) {
-      errorMessage = 'Datos inválidos. Verifique que toda la información sea correcta.'
-    } else if (error.response?.data?.message) {
-      errorMessage = error.response.data.message
-    } else if (error.response?.data?.error) {
-      errorMessage = error.response.data.error
-    }
-
-    this.$swal({
-      title: 'Error',
-      text: errorMessage,
-      icon: 'error',
-      confirmButtonText: 'Continuar'
-    })
-  }
-},
-
-  confirmDeleteIndicator(index) {
-  this.indicatorToDelete = index
-  this.showDeleteConfirmModal = true
-},
+    confirmDeleteIndicator(index) {
+      this.indicatorToDelete = index
+      this.showDeleteConfirmModal = true
+    },
 
     closeDeleteConfirmModal() {
       this.showDeleteConfirmModal = false
@@ -1308,7 +1328,7 @@ async saveIndicatorChanges() {
       })
     },
 
-    // ⭐ NUEVO MÉTODO PARA MANEJAR CAMBIO DE TIPO DE EVIDENCIA
+    // ⭐ MÉTODO PARA MANEJAR CAMBIO DE TIPO DE EVIDENCIA
     onEvidenceTypeChange(newValue) {
       if (newValue === 'encuesta') {
         // Limpiar campo de link evidencia
@@ -1322,7 +1342,7 @@ async saveIndicatorChanges() {
       }
     },
 
-    // Métodos para búsqueda de preguntas (SIMPLIFICADAS)
+    // Métodos para búsqueda de preguntas
     openSearchModal() {
       this.showSearchModal = true
       this.searchQuery = ''
@@ -1465,30 +1485,88 @@ async saveIndicatorChanges() {
       return colors[type] || 'grey'
     },
 
-    generateChart() {
-      if (!this.selectedQuestion) return
+    // ⭐ MÉTODO PARA GENERAR GRÁFICA Y ACTUALIZAR EVIDENCIA
+    async generateChart() {
+      if (!this.selectedQuestion) {
+        this.$swal({
+          title: 'Error',
+          text: 'Debe seleccionar una pregunta para generar la gráfica.',
+          icon: 'warning',
+          confirmButtonText: 'Continuar'
+        })
+        return
+      }
 
-      // Actualizar el campo de palabra clave con la pregunta seleccionada
-      this.editingIndicator.palabraClave = this.selectedQuestion.question
-      
-      this.$swal({
-        title: '¡Pregunta Seleccionada!',
-        text: 'La pregunta ha sido asociada al indicador.',
-        icon: 'success',
-        confirmButtonText: 'Continuar',
-        timer: 2000,
-        timerProgressBar: true
-      })
+      this.isGeneratingChart = true
 
-      // Cerrar modal de búsqueda
-      this.closeSearchModal()
+      try {
+        const token = localStorage.getItem('access_token')
+        
+        // Preparar datos para el backend
+        const chartData = {
+          question_data: this.selectedQuestion,
+          caracteristica_id: this.characteristicsId,
+          indicator_number: this.currentIndicatorNumber
+        }
+
+        console.log('Generando gráfica con datos:', chartData)
+
+        // Llamar al endpoint para generar la gráfica
+        const response = await axios.post('/charts/generate/', chartData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
+
+        console.log('Respuesta de generación de gráfica:', response.data)
+
+        // Actualizar el campo de evidencia con la URL de la gráfica
+        this.editingIndicator.palabraClave = this.selectedQuestion.question
+        this.editingIndicator.link_evidencia = response.data.chart_url
+
+        // Mostrar mensaje de éxito
+        this.$swal({
+          title: '¡Gráfica Generada!',
+          html: `
+            <div style="text-align: left; padding: 10px;">
+              <p><strong>Pregunta:</strong> ${this.selectedQuestion.question}</p>
+              <p><strong>Archivo:</strong> ${response.data.filename}</p>
+              <p><strong>La gráfica ha sido asociada como evidencia al indicador.</strong></p>
+            </div>
+          `,
+          icon: 'success',
+          confirmButtonText: 'Continuar',
+          timer: 3000,
+          timerProgressBar: true
+        })
+
+        // Cerrar modal de búsqueda
+        this.closeSearchModal()
+
+      } catch (error) {
+        console.error('Error generando gráfica:', error)
+        
+        let errorMessage = 'Error al generar la gráfica. Intente nuevamente.'
+        
+        if (error.response?.status === 403) {
+          errorMessage = 'No tiene permisos para generar gráficas.'
+        } else if (error.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicie sesión nuevamente.'
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error
+        }
+
+        this.$swal({
+          title: 'Error al Generar Gráfica',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Continuar'
+        })
+      } finally {
+        this.isGeneratingChart = false
+      }
     }
-  },
-
-  async mounted() {
-    console.log(this.$route.params.caracteristicaId)
-    this.characteristicsId = this.$route.params.caracteristicaId
-    await this.fetchCaracteristica()
   }
 }
 </script>

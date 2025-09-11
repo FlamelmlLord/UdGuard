@@ -7,7 +7,8 @@ from .views import (
     IndicatorCreateView,
     IndicatorUpdateView,
     SurveyUploadView,
-    SurveySearchView,  # ⭐ VERIFICAR QUE ESTÉ IMPORTADA
+    SurveySearchView,
+    GenerateChartView,  # ⭐ NUEVA IMPORTACIÓN
 )
 
 urlpatterns = [
@@ -17,6 +18,7 @@ urlpatterns = [
     path('characteristics/<uuid:caracteristica_id>/indicators/', IndicatorCreateView.as_view(), name='indicators-create'),
     path('indicators/<uuid:indicator_id>/', IndicatorUpdateView.as_view(), name='indicator-update'),
     path('surveys/upload/', SurveyUploadView.as_view(), name='survey-upload'),
-    # ⭐ VERIFICAR QUE ESTA RUTA ESTÉ AQUÍ
     path('surveys/search/', SurveySearchView.as_view(), name='survey-search'),
+    # ⭐ NUEVA RUTA PARA GENERAR GRÁFICAS
+    path('charts/generate/', GenerateChartView.as_view(), name='generate-chart'),
 ]
