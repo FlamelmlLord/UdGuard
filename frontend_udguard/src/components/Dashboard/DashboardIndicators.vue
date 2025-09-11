@@ -215,8 +215,7 @@
                   <div v-else class="no-evidence">
                     <v-chip
                       class="no-evidence-chip"
-                      color="grey"
-                      text-color="white"
+                      text-color="red"
                       x-small
                       outlined
                     >
@@ -348,19 +347,12 @@
             ></v-textarea>
           </div>
 
-          <!-- TIPO EVIDENCIA -->
+          <!-- EVIDENCIA (SIMPLIFICADO - SIN TIPO) -->
           <div class="form-section">
-            <h3 class="section-title">TIPO EVIDENCIA</h3>
-            <div class="evidence-type-group">
-              <v-radio-group v-model="editingIndicator.tipoEvidencia" row hide-details @change="onEvidenceTypeChange">
-                <v-radio label="Documental" value="documental" color="primary"></v-radio>
-                <v-radio label="Encuesta" value="encuesta" color="primary"></v-radio>
-              </v-radio-group>
-            </div>
-
-            <!-- Campo condicional para Documental -->
+            <h3 class="section-title">EVIDENCIA</h3>
+            
+            <!-- Campo de enlace siempre visible -->
             <v-text-field
-              v-if="editingIndicator.tipoEvidencia === 'documental'"
               v-model="editingIndicator.link_evidencia"
               label="Ingrese el link en donde almacenan la evidencia para este indicador"
               outlined
@@ -371,19 +363,14 @@
               prepend-inner-icon="mdi-link"
             ></v-text-field>
 
-            <!-- Campo condicional para Encuesta SIN BOTÓN DE BÚSQUEDA -->
-            <v-text-field
-              v-if="editingIndicator.tipoEvidencia === 'encuesta'"
-              v-model="editingIndicator.palabraClave"
-              label="Pregunta seleccionada de la encuesta"
-              outlined
-              dense
-              hide-details
-              class="evidence-field"
-              placeholder="La pregunta se seleccionará automáticamente..."
-              prepend-inner-icon="mdi-text-search"
-              readonly
-            ></v-text-field>
+            <!-- Mensaje informativo -->
+            <div class="evidence-info">
+              <v-icon left size="16" color="info">mdi-information</v-icon>
+              <span class="evidence-help-text">
+                Puede ingresar un enlace directo a la evidencia documental o usar el botón "Asignar Encuesta" 
+                para generar una gráfica automáticamente desde las encuestas disponibles.
+              </span>
+            </div>
           </div>
 
           <!-- INGRESO DE DATOS -->
@@ -451,6 +438,19 @@
 
         <v-card-actions class="modal-actions">
           <v-spacer></v-spacer>
+          
+          <!-- ⭐ BOTÓN ASIGNAR ENCUESTA (SIEMPRE VISIBLE) -->
+          <v-btn 
+            color="purple"
+            outlined
+            @click="openSearchModal"
+            :disabled="!editingIndicator.nombre.trim() || !editingIndicator.ponderacion"
+            class="assign-survey-btn"
+          >
+            <v-icon left>mdi-chart-bar</v-icon>
+            Asignar Encuesta
+          </v-btn>
+          
           <v-btn class="cancel-btn" text @click="closeEditIndicatorModal">
             Cancelar
           </v-btn>
@@ -458,7 +458,7 @@
             class="save-changes-btn" 
             color="primary" 
             @click="saveIndicatorChanges"
-            :disabled="!editingIndicator.nombre.trim()"
+            :disabled="!editingIndicator.nombre.trim() || !editingIndicator.ponderacion"
           >
             <v-icon left>{{ editingIndex === -1 ? 'mdi-plus' : 'mdi-content-save' }}</v-icon>
             {{ editingIndex === -1 ? 'Crear Indicador' : 'Guardar Cambios' }}
@@ -756,8 +756,8 @@ export default {
         ponderacion: 0,
         meta: 0,
         link_evidencia: '',
-        palabraClave: '',
-        tipoEvidencia: 'documental'
+        palabraClave: ''
+        // ⭐ YA NO NECESITAMOS tipoEvidencia
       },
       editingIndex: -1,
       indicatorToDelete: -1,
@@ -832,7 +832,14 @@ export default {
         // Si está editando, usar el índice + 1
         return this.editingIndex + 1
       }
-    }
+    },
+
+    // ⭐ COMPUTED PARA VALIDAR FORMULARIO ACTUALIZADO
+    isFormValid() {
+      // Solo validar que tenga nombre y ponderación
+      return this.editingIndicator.nombre.trim() && 
+             this.editingIndicator.ponderacion > 0
+    },
   },
 
   beforeDestroy () {
@@ -979,8 +986,8 @@ export default {
           ponderacion: indicador.ponderacion || 0,
           meta: indicador.ponderacion * 5 || 0,
           link_evidencia: indicador.link_evidencia || '',
-          palabraClave: indicador.palabra_clave || '',
-          tipoEvidencia: indicador.link_evidencia ? 'documental' : 'encuesta'
+          palabraClave: indicador.palabra_clave || ''
+          // ⭐ YA NO NECESITAMOS determinar tipoEvidencia
         }
         this.showEditIndicatorModal = true
       }
@@ -995,8 +1002,8 @@ export default {
         ponderacion: 0,
         meta: 0,
         link_evidencia: '',
-        palabraClave: '',
-        tipoEvidencia: 'documental'
+        palabraClave: ''
+        // ⭐ YA NO NECESITAMOS tipoEvidencia
       }
     },
 
@@ -1023,15 +1030,16 @@ export default {
         // ⭐ CALCULAR LA META EN TIEMPO REAL
         const metaCalculada = this.calculatedMeta
 
-        // ⭐ PREPARAR DATOS PARA ENVIAR AL BACKEND
+        // ⭐ PREPARAR DATOS PARA ENVIAR AL BACKEND (SIMPLIFICADO)
         const indicatorData = {
           nombre: this.editingIndicator.nombre.trim(),
           calificacion: this.editingIndicator.calificacion,
           ponderacion: this.editingIndicator.ponderacion,
           meta: metaCalculada,
-          link_evidencia: this.editingIndicator.tipoEvidencia === 'documental' ? this.editingIndicator.link_evidencia : '',
-          palabra_clave: this.editingIndicator.tipoEvidencia === 'encuesta' ? this.editingIndicator.palabraClave : '',
-          tipo_evidencia: this.editingIndicator.tipoEvidencia
+          // Enviar el link de evidencia tal como está (puede ser documental o gráfica)
+          link_evidencia: this.editingIndicator.link_evidencia.trim() || '',
+          // Enviar palabra clave si existe
+          palabra_clave: this.editingIndicator.palabraClave.trim() || ''
         }
 
         if (this.editingIndex === -1) {
@@ -1053,7 +1061,7 @@ export default {
 
           this.$swal({
             title: '¡Indicador Creado!',
-            text: 'El nuevo indicador se ha agregado correctamente.',
+            text: 'El nuevo indicador se ha creado correctamente.',
             icon: 'success',
             confirmButtonText: 'Continuar'
           })
@@ -1063,10 +1071,12 @@ export default {
           const indicadorKey = Object.keys(this.characteristic.indicadores)[this.editingIndex]
           
           if (indicadorKey) {
-            console.log('Updating existing indicator:', indicatorData)
+            const indicadorId = this.characteristic.indicadores[indicadorKey].id
+            
+            console.log('Updating indicator:', indicadorId, indicatorData)
             
             const response = await axios.patch(
-              `/indicators/${this.characteristic.indicadores[indicadorKey].id}/`,
+              `/indicators/${indicadorId}/`,
               indicatorData,
               {
                 headers: {
@@ -1076,7 +1086,7 @@ export default {
               }
             )
             
-            console.log('Indicator updated on server:', response.data)
+            console.log('Indicator updated:', response.data)
 
             this.$swal({
               title: '¡Indicador Actualizado!',
@@ -1253,8 +1263,7 @@ export default {
         ponderacion: 0,
         meta: 0,
         link_evidencia: '',
-        palabraClave: '',
-        tipoEvidencia: 'documental'
+        palabraClave: ''
       }
       this.showEditIndicatorModal = true
     },
@@ -1362,17 +1371,17 @@ export default {
       })
     },
 
-    // ⭐ MÉTODO PARA MANEJAR CAMBIO DE TIPO DE EVIDENCIA
+    // ⭐ MÉTODO MEJORADO PARA MANEJAR CAMBIO DE TIPO DE EVIDENCIA
     onEvidenceTypeChange(newValue) {
       if (newValue === 'encuesta') {
-        // Limpiar campo de link evidencia
+        // Limpiar campo de link evidencia documental
         this.editingIndicator.link_evidencia = ''
-        
-        // Abrir modal de búsqueda automáticamente
-        this.openSearchModal()
+        // Ya no se abre automáticamente el modal de búsqueda
+        // Solo se limpia el campo
       } else if (newValue === 'documental') {
-        // Limpiar campo de palabra clave
+        // Limpiar campos de encuesta
         this.editingIndicator.palabraClave = ''
+        this.editingIndicator.link_evidencia = ''
       }
     },
 
@@ -1502,7 +1511,7 @@ export default {
                 <span style="padding: 4px 0; border-bottom: 1px solid #e0e0e0;">
                   • <strong style="color: #EF5350;">Totalmente en desacuerdo:</strong> ${actorData.responses['2. Totalmente en desacuerdo'] || 0}
                 </span>
-                <span style="padding: 4px 0; grid-column: 1 / -1;">
+                <span style="padding: 4px 0; border-bottom: 1px solid #e0e0e0;">
                   • <strong style="color: #FFA726;">No tengo información:</strong> ${actorData.responses['1. No tengo información o conocimiento'] || 0}
                 </span>
               </div>
