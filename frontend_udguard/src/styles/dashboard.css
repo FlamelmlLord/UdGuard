@@ -1,16 +1,22 @@
 .dashboard {
   display: flex;
-  height: 100vh;
+  height: 100vh; /* ⭐ ALTURA COMPLETA DE LA PANTALLA */
   background-color: var(--background);
 }
 
 .sidebar {
-  width: 250px;
+  width: 250px; /* ⭐ ANCHO FIJO */
   background-color: white;
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  /* ⭐ POSICIÓN FIJA - NO SE MUEVE */
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+  z-index: 1000;
 }
 
 .search-section {
@@ -188,8 +194,9 @@ input:checked + .slider:before {
 
 .main-content {
   flex: 1;
-  padding: 2rem;
-  background-color: #E2F1FC;
+  margin-left: 250px; /* ⭐ MARGEN PARA COMPENSAR EL SIDEBAR FIJO */
+  overflow-y: auto;
+  background: var(--background);
 }
 
 .content-area {

@@ -799,7 +799,7 @@
 
 .factor-card-body {
   flex: 1;
-  padding: 16px 20px;
+  padding: 10px 20px;
 }
 
 /* Animaciones mejoradas */
@@ -940,7 +940,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 1px;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -1524,40 +1524,585 @@
   }
 }
 
-/* Responsive */
+/* ===== MÓDULO DE CUMPLIMIENTO GENERAL ===== */
+.cumplimiento-general-container {
+  margin-top: 3rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 1rem;
+}
+
+.cumplimiento-general-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 20px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.1),
+    0 8px 30px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  overflow: hidden;
+  max-width: 1200px;
+  width: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cumplimiento-general-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 25px 70px rgba(0, 0, 0, 0.12),
+    0 10px 35px rgba(0, 0, 0, 0.08);
+}
+
+/* Header del módulo */
+.cumplimiento-general-header {
+  background: linear-gradient(135deg, #46AFEA 0%, #134367 50%, #0D2B44 100%);
+  padding: 2rem 2.5rem 1.5rem 2.5rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.cumplimiento-general-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.header-icon-wrapper {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 8px;
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 1;
+}
+
+.cumplimiento-general-title {
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.header-info-icon {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Contenido principal */
+.cumplimiento-general-content {
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+/* Sección del gráfico */
+.chart-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 270px;
+  height: 270px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-center-info {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.compliance-score {
+  font-size: 3.2rem;
+  font-weight: 800;
+  color: #4CAF50;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+/* Sección del grado de cumplimiento */
+.grado-section-general {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  min-height: 200px;
+}
+
+.grado-header-general {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+}
+
+.grado-title-general {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.grado-value-general {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.grado-cumplimiento-general {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #4CAF50;
+  margin: 0;
+  line-height: 1;
+  text-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+.grado-scale-general {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+/* Sección de métricas totales */
+.metricas-totales-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.metricas-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.metricas-grid-general {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.metrica-item-general {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  min-height: 80px;
+  justify-content: center;
+}
+
+.metrica-item-general:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.metrica-label-general {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.metrica-value-general {
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  min-width: 60px;
+}
+
+/* Colores específicos para métricas generales */
+.total-metas-general .metrica-value-general {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.total-puntajes-general .metrica-value-general {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  color: #047857;
+  border: 1px solid #6ee7b7;
+}
+
+.total-caracteristicas-general .metrica-value-general {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.total-indicadores-general .metrica-value-general {
+  background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+  color: #7c3aed;
+  border: 1px solid #c4b5fd;
+}
+
+/* Responsive para el módulo de cumplimiento general */
+@media (max-width: 1024px) {
+  .cumplimiento-general-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    text-align: center;
+  }
+  
+  .chart-section {
+    order: 1;
+  }
+  
+  .grado-section-general {
+    order: 2;
+  }
+  
+  .metricas-totales-section {
+    order: 3;
+  }
+}
+
 @media (max-width: 768px) {
-  .attach-results-modal {
-    width: 95%;
-    margin: 10px;
+  .cumplimiento-general-container {
+    margin-top: 2rem;
+    padding: 0 0.5rem;
   }
   
-  .modal-header {
-    padding: 20px;
+  .cumplimiento-general-header {
+    padding: 1.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: auto;
   }
   
-  .modal-header-content {
-    gap: 12px;
+  .cumplimiento-general-title {
+    font-size: 1.5rem;
   }
   
-  .modal-title {
+  .cumplimiento-general-content {
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+  
+  .chart-wrapper {
+    width: 220px;
+    height: 220px;
+  }
+  
+  .compliance-score {
+    font-size: 2.5rem;
+  }
+  
+  .grado-cumplimiento-general {
+    font-size: 2.5rem;
+  }
+  
+  .metricas-grid-general {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+  
+  .metrica-item-general {
+    padding: 0.8rem;
+    min-height: 70px;
+  }
+  
+  .metrica-value-general {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cumplimiento-general-title {
     font-size: 1.25rem;
   }
   
-  .modal-body {
-    padding: 20px;
+  .chart-wrapper {
+    width: 180px;
+    height: 180px;
   }
   
-  .file-upload-area {
-    padding: 24px 16px;
+  .compliance-score {
+    font-size: 2rem;
   }
   
-  .modal-footer {
-    flex-direction: column;
-    gap: 8px;
+  .grado-cumplimiento-general {
+    font-size: 2rem;
   }
   
-  .modal-btn {
-    width: 100%;
-    justify-content: center;
+  .grado-section-general {
+    padding: 1rem;
+    min-height: 150px;
   }
 }
+
+/* Animaciones de entrada para el módulo */
+.cumplimiento-general-card {
+  animation: fadeInScale 0.8s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  animation-delay: 0.3s;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Hover effects para métricas */
+.metrica-item-general:hover .metrica-value-general {
+  transform: scale(1.05);
+}
+
+/* Efecto de profundidad para el módulo completo */
+.cumplimiento-general-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05)
+  );
+  border-radius: inherit;
+  z-index: -1;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+}
+
+.cumplimiento-general-card:hover::before {
+  opacity: 1;
+}
+
+.peso-sistema:hover {
+  animation: pulseWeight 2s infinite;
+}
+/* ⭐ CLASES ADICIONALES PARA DIFERENTES NIVELES DE PESO */
+.peso-sistema.peso-alto {
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+  color: #6d28d9 !important;
+  border: 1px solid #a78bfa;
+  font-weight: 900;
+}
+
+.peso-sistema.peso-bajo {
+  /* Usa los estilos base de .peso-sistema - no necesita override */
+  opacity: 0.9; /* Sutil diferencia para peso bajo */
+}
+
+/* ⭐ NUEVO ESTILO PARA PESO EN SISTEMA - ESTÁNDAR */
+.peso-sistema {
+  background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+  color: #7c3aed !important;
+  border: 1px solid #c4b5fd;
+  font-size: 0.8rem;
+  font-weight: 800;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ⭐ HOVER EFFECT ESTÁNDAR PARA PESO EN SISTEMA */
+.metrics-row:hover .peso-sistema {
+  transform: scale(1.08);
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.25);
+  background: linear-gradient(135deg, #e9d5ff, #ddd6fe);
+}
+
+/* ⭐ ANIMACIÓN ESPECIAL PARA PESO EN SISTEMA */
+.peso-sistema::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.metrics-row:hover .peso-sistema::before {
+  left: 100%;
+}
+
+/* ⭐ CLASE ESPECÍFICA PARA PESO ALTO - CON COLOR ROJO Y FONT-WEIGHT 900 */
+.peso-sistema.peso-alto {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #dc2626 !important;
+  border: 1px solid #f87171;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+}
+
+.metrics-row:hover .peso-sistema.peso-alto {
+  background: linear-gradient(135deg, #fecaca, #f87171);
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+  color: #991b1b !important;
+}
+
+.peso-sistema.peso-alto::before {
+  background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.2), transparent);
+}
+
+/* ⭐ EFECTO DE PULSACIÓN ESPECIAL PARA PESO ALTO */
+@keyframes pulseWeightHigh {
+  0% {
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+  }
+  50% {
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+  }
+  100% {
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+  }
+}
+
+.peso-sistema.peso-alto:hover {
+  animation: pulseWeightHigh 2s infinite;
+}
+
+/* ⭐ EFECTO DE PULSACIÓN ESTÁNDAR PARA PESO NORMAL */
+@keyframes pulseWeight {
+  0% {
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+  }
+  50% {
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+  }
+  100% {
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+  }
+}
+
+.peso-sistema:not(.peso-alto):hover {
+  animation: pulseWeight 2s infinite;
+}
+
+/* ⭐ TOOLTIP PARA PESO EN SISTEMA CON ESTILO DINÁMICO */
+.peso-sistema[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  z-index: 10;
+  margin-bottom: 5px;
+}
+
+.peso-sistema.peso-alto[title]:hover::after {
+  background: #dc2626;
+}
+
+/* ⭐ RESPONSIVE PARA MÓVILES */
+@media (max-width: 768px) {
+  .peso-sistema {
+    font-size: 0.75rem;
+    min-width: 55px;
+    padding: 4px 6px;
+  }
+  
+  .peso-sistema.peso-alto {
+    font-weight: 800; /* Reducir un poco en móviles para mejor legibilidad */
+  }
+  
+  .metric-label {
+    font-size: 0.7rem;
+  }
+}
+
+/* ⭐ AJUSTE DE LA ALTURA DEL CARD PARA ACOMODAR LA NUEVA FILA */
+.factor-card {
+  min-height: 320px; /* Aumentado de 300px a 320px */
+}
+
+.factor-metrics {
+  margin-top: 12px;
+  padding: 14px; /* Aumentado ligeramente */
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 8px;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  font-size: 0.8rem;
+}
+
+.metrics-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px; /* Aumentado ligeramente */
+}
+
+.metrics-row:last-child {
+  margin-bottom: 0;
+}
+
+/* ⭐ QUITAR LAS CLASES ANTERIORES QUE TENÍAN ESTILOS DIFERENTES */
+/* 
+.peso-sistema.peso-medio y .peso-sistema.peso-bajo 
+ahora usan el estilo base de .peso-sistema
+*/

@@ -38,7 +38,12 @@ const routes: Array<RouteConfig> = [
         path: 'Cumplimiento/:caracteristicaId',
         name: 'DashboardIndicators',
         props: true,
-        component: () => import('@/components/Dashboard/DashboardIndicators.vue') // 👈 Aquí se añade la nueva ruta
+        component: () => import('@/components/Dashboard/DashboardIndicators.vue')
+      },
+      {
+        path: 'logs',
+        name: 'DashboardLogs',
+        component: () => import('@/components/Dashboard/DashboardLogs.vue')
       },
       {
         path: 'users',

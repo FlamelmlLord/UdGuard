@@ -31,7 +31,7 @@
               >
                 <template v-slot:prepend-item>
                   <div class="px-3 py-2">
-                    <v-subheader class="text-primary font-weight-bold">FACTORES DISPONIBLES</v-subheader>
+                    <v-subheader class="text-primary font-weight-bold">CARACTERISTICAS DE ESTE FACTOR</v-subheader>
                   </div>
                   <v-divider></v-divider>
                 </template>
@@ -90,19 +90,10 @@
                 </p>
               </div>
               <div class="description-footer">
-                <v-chip class="status-chip" color="success" text-color="white" small>
-                  <v-icon left size="16">mdi-shield-check</v-icon>
-                  Evaluación Completa
-                </v-chip>
-                <v-chip class="status-chip ml-2" color="info" text-color="white" small>
-                  <v-icon left size="16">mdi-calendar-clock</v-icon>
-                  Última actualización: {{ lastUpdate }}
-                </v-chip>
-                
-                <!-- Botón para editar descripción (mejorado con mejor posicionamiento) -->
+                <!-- ⭐ SOLO MANTENER EL BOTÓN DE EDITAR CARACTERÍSTICA -->
                 <v-btn 
                   v-if="isAdmin"
-                  class="edit-description-btn ml-2" 
+                  class="edit-description-btn" 
                   color="primary" 
                   small 
                   outlined
@@ -233,11 +224,13 @@
                       hide-details
                       outlined
                       dense
-                      min="0"
+                      min="1"
                       max="5"
                       step="0.1"
                       suffix="/5.0"
-                      placeholder="0.0"
+                      placeholder="1.0"
+                      @keyup.enter="updateIndicatorRating(item, $event)"
+                      @blur="updateIndicatorRating(item, $event)"
                     >
                       <template v-slot:prepend-inner>
                         <v-icon size="16" color="warning">mdi-star</v-icon>
@@ -287,34 +280,9 @@
           </v-simple-table>
         </div>
 
-        <!-- Summary Footer -->
-        <div class="evaluation-summary">
-          <v-row align="center" justify="space-between">
-            <v-col cols="auto">
-              <div class="summary-stats">
-                <v-chip class="stat-chip" color="success" outlined small>
-                  <v-icon left size="16">mdi-check-circle</v-icon>
-                  Completados: {{ completedAspects }}/{{ aspectos.length }}
-                </v-chip>
-                <v-chip class="stat-chip ml-2" color="info" outlined small>
-                  <v-icon left size="16">mdi-calculator</v-icon>
-                  Promedio: {{ averageRating }}
-                </v-chip>
-              </div>
-            </v-col>
-            <v-col cols="auto">
-              <v-btn
-                class="save-btn"
-                color="primary"
-                elevation="2"
-                @click="saveEvaluation"
-              >
-                <v-icon left>mdi-content-save</v-icon>
-                Guardar Evaluación
-              </v-btn>
-            </v-col>
-          </v-row>
-        </div>
+        <!-- ⭐ REMOVER COMPLETAMENTE LA SECCIÓN Summary Footer -->
+        <!-- Summary Footer REMOVIDO -->
+
       </div>
     </v-card>
 
@@ -373,7 +341,7 @@
             </div>
           </div>
 
-          <!-- INGRESO DE DATOS -->
+          <!-- INGRESO DE DATOS CON VALIDACIONES -->
           <div class="form-section">
             <h3 class="section-title">INGRESO DE DATOS</h3>
             <v-row>
@@ -384,11 +352,16 @@
                   type="number"
                   outlined
                   dense
-                  hide-details
-                  min="0"
-                  max="100"
-                  suffix=""
+                  hide-details="auto"
+                  min="1"
+                  max="10"
+                  step="1"
+                  suffix="/10"
+                  placeholder="1"
                   class="data-input"
+                  :rules="ponderacionRules"
+                  @input="validatePonderacion"
+                  @blur="enforcePonderacionLimits"
                 ></v-text-field>
               </v-col>
               <v-col cols="6">
@@ -398,13 +371,16 @@
                   type="number"
                   outlined
                   dense
-                  hide-details
-                  min="0"
+                  hide-details="auto"
+                  min="1"
                   max="5"
                   step="0.1"
-                  suffix=""
+                  suffix="/5.0"
+                  placeholder="1.0"
                   class="data-input"
-                  @input="calculateResults"
+                  :rules="calificacionRules"
+                  @input="validateCalificacion"
+                  @blur="enforceCalificacionLimits"
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -530,7 +506,7 @@
                   class="result-item"
                 >
                   <v-list-item-icon>
-                    <!-- ⭐ MOSTRAR MÚLTIPLES CHIPS PARA ACTORES -->
+                    <!-- ⭐ MOSTRAR CHIPS DE ACTORES SIN CONTEO -->
                     <div class="actor-chips">
                       <v-chip 
                         v-for="(actor, actorIndex) in result.actor_labels" 
@@ -538,10 +514,9 @@
                         :color="getSurveyTypeColor(Object.keys(result.actors)[actorIndex])" 
                         small 
                         outlined
-                        class="mr-1 mb-1 actor-chip-with-total"
+                        class="mr-1 mb-1 actor-chip-clean"
                       >
-                        <div class="actor-chip-label">{{ actor }}</div>
-                        <div class="actor-chip-total">{{ result.actors[Object.keys(result.actors)[actorIndex]].total_responses }}</div>
+                        {{ actor }}
                       </v-chip>
                     </div>
                   </v-list-item-icon>
@@ -561,14 +536,14 @@
                         </span>
                       </div>
                       
-                      <!-- ⭐ MOSTRAR DETALLES POR ACTOR -->
+                      <!-- ⭐ MOSTRAR DETALLES POR ACTOR (AQUÍ SÍ VA EL CONTEO) -->
                       <div class="actor-breakdown mt-1">
                         <span 
                           v-for="(actorKey, actorIndex) in Object.keys(result.actors)" 
                           :key="actorIndex"
                           class="actor-detail mr-3"
                         >
-                          {{ getSurveyTypeLabel(actorKey) }}: {{ result.actors[actorKey].total_responses }}
+                          {{ getSurveyTypeLabel(actorKey) }}: <strong>{{ result.actors[actorKey].total_responses }}</strong>
                         </span>
                       </div>
                     </v-list-item-subtitle>
@@ -780,21 +755,35 @@ export default {
 
       factors: [],
       aspectos: [],
-      complianceChart: null
+      complianceChart: null,
+
+      // ⭐ REGLAS DE VALIDACIÓN
+      ponderacionRules: [
+        v => !!v || 'La ponderación es requerida',
+        v => (v >= 1 && v <= 10) || 'La ponderación debe estar entre 1 y 10',
+        v => Number.isInteger(Number(v)) || 'La ponderación debe ser un número entero'
+      ],
+      
+      calificacionRules: [
+        v => !!v || 'La calificación es requerida',
+        v => (v >= 1 && v <= 5) || 'La calificación debe estar entre 1 y 5',
+        v => (v % 0.1 === 0) || 'La calificación debe tener máximo 1 decimal'
+      ]
     }
   },
 
   computed: {
-    completedAspects () {
-      return this.aspectos.filter(aspect => aspect.calificacion && parseFloat(aspect.calificacion) > 0).length
-    },
+    // ⭐ REMOVER ESTOS COMPUTED YA QUE NO SE USAN
+    // completedAspects () {
+    //   return this.aspectos.filter(aspect => aspect.calificacion && parseFloat(aspect.calificacion) > 0).length
+    // },
 
-    averageRating () {
-      const ratings = this.aspectos.filter(aspect => aspect.calificacion && parseFloat(aspect.calificacion) > 0)
-      if (ratings.length === 0) return '0.0'
-      const sum = ratings.reduce((acc, aspect) => acc + parseFloat(aspect.calificacion), 0)
-      return (sum / ratings.length).toFixed(1)
-    },
+    // averageRating () {
+    //   const ratings = this.aspectos.filter(aspect => aspect.calificacion && parseFloat(aspect.calificacion) > 0)
+    //   if (ratings.length === 0) return '0.0'
+    //   const sum = ratings.reduce((acc, aspect) => acc + parseFloat(aspect.calificacion), 0)
+    //   return (sum / ratings.length).toFixed(1)
+    // },
 
     calculatedPuntaje() {
       const ponderacion = this.editingIndicator.ponderacion || 0
@@ -822,21 +811,16 @@ export default {
       return Math.ceil(this.searchResults.length / this.itemsPerPage)
     },
 
-    // ⭐ NUEVO COMPUTED PARA OBTENER EL NÚMERO DE INDICADOR ACTUAL
     currentIndicatorNumber() {
       if (this.editingIndex === -1) {
-        // Si es un nuevo indicador, contar los existentes + 1
         const existingIndicators = Object.keys(this.characteristic.indicadores || {}).length
         return existingIndicators + 1
       } else {
-        // Si está editando, usar el índice + 1
         return this.editingIndex + 1
       }
     },
 
-    // ⭐ COMPUTED PARA VALIDAR FORMULARIO ACTUALIZADO
     isFormValid() {
-      // Solo validar que tenga nombre y ponderación
       return this.editingIndicator.nombre.trim() && 
              this.editingIndicator.ponderacion > 0
     },
@@ -851,6 +835,27 @@ export default {
   async mounted() {
     this.characteristicsId = this.$route.params.caracteristicaId
     await this.fetchCaracteristica()
+    
+    // ⭐ FORZAR RE-RENDER DESPUÉS DE CARGAR DATOS
+    this.$nextTick(() => {
+      // Forzar actualización de estilos
+      const header = document.querySelector('.dashboard-header')
+      if (header) {
+        header.style.background = 'linear-gradient(135deg, #46AFEA 0%, #134367 50%, #0D2B44 100%)'
+      }
+      
+      const select = document.querySelector('.factor-select .v-input__slot')
+      if (select) {
+        select.style.borderColor = '#e2e8f0'
+      }
+      
+      // Verificar si la tabla necesita scroll
+      const tableWrapper = document.querySelector('.evaluation-table .v-data-table__wrapper')
+      if (tableWrapper) {
+        tableWrapper.style.maxHeight = '500px'
+        tableWrapper.style.overflowY = 'auto'
+      }
+    })
   },
 
   methods: {
@@ -1521,6 +1526,7 @@ export default {
         actorDetailsHtml += '</div>'
       }
 
+      // ⭐ USAR CONFIGURACIÓN CORRECTA PARA PERMITIR CERRAR EL MODAL
       this.$swal({
         title: 'Vista Previa de Pregunta',
         html: `
@@ -1547,10 +1553,32 @@ export default {
         `,
         icon: 'info',
         confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#3085d6',
+        // ⭐ PERMITIR CERRAR CON ESCAPE Y CLIC AFUERA
+        allowEscapeKey: true,
+        allowOutsideClick: true,
+        // ⭐ CONFIGURACIÓN ADICIONAL PARA GARANTIZAR QUE FUNCIONE
+        focusConfirm: true,
+        reverseButtons: false,
         width: '800px',
+        padding: '0',
         customClass: {
-          popup: 'question-preview-modal'
+          popup: 'question-preview-modal',
+          title: 'question-preview-title',
+          htmlContainer: 'question-preview-content',
+          confirmButton: 'question-preview-confirm-btn'
+        },
+        // ⭐ CALLBACK PARA MANEJAR EL CIERRE
+        willClose: () => {
+          console.log('Modal de vista previa cerrándose')
         }
+      }).then((result) => {
+        // ⭐ MANEJAR EL RESULTADO DEL MODAL
+        if (result.isConfirmed || result.isDismissed) {
+          console.log('Modal de vista previa cerrado correctamente')
+        }
+      }).catch((error) => {
+        console.error('Error en modal de vista previa:', error)
       })
     },
 
@@ -1676,7 +1704,102 @@ export default {
       } finally {
         this.isGeneratingChart = false
       }
-    }
+    },
+
+    // ⭐ MÉTODO PARA ACTUALIZAR CALIFICACIÓN DE INDICADOR EN TIEMPO REAL
+    async updateIndicatorRating(indicator, event) {
+      const newRating = parseFloat(event.target.value) || 1
+      
+      // ⭐ VALIDAR RANGO ACTUALIZADO (1-5 en lugar de 0-5)
+      if (newRating < 1 || newRating > 5) {
+        this.$swal({
+          title: 'Valor inválido',
+          text: 'La calificación debe estar entre 1 y 5.',
+          icon: 'warning',
+          confirmButtonText: 'Continuar'
+        })
+        // Restaurar valor anterior o usar 1 como mínimo
+        event.target.value = indicator.calificacion || 1
+        return
+      }
+
+      try {
+        const token = localStorage.getItem('access_token')
+        
+        console.log('Actualizando calificación:', {
+          indicatorId: indicator.id,
+          newRating: newRating
+        })
+
+        // Actualizar solo la calificación en el backend
+        const response = await axios.patch(
+          `/indicators/${indicator.id}/`,
+          { 
+            calificacion: newRating,
+            // Mantener otros campos importantes
+            nombre: indicator.nombre,
+            ponderacion: indicator.ponderacion,
+            meta: indicator.meta,
+            link_evidencia: indicator.link_evidencia || '',
+            palabra_clave: indicator.palabra_clave || ''
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+
+        console.log('Calificación actualizada:', response.data)
+
+        // Actualizar localmente el valor
+        indicator.calificacion = newRating
+
+        // ⭐ REFRESCAR DATOS PARA ACTUALIZAR GRÁFICO Y PORCENTAJES
+        await this.fetchCaracteristica()
+
+        // Mostrar feedback visual sutil
+        this.$swal({
+          title: 'Actualizado',
+          text: `Calificación actualizada a ${newRating}`,
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        })
+
+      } catch (error) {
+        console.error('Error actualizando calificación:', error)
+        
+        // Restaurar valor anterior en caso de error
+        event.target.value = indicator.calificacion || 1
+        
+        let errorMessage = 'Error al actualizar la calificación.'
+        
+        if (error.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.'
+          localStorage.removeItem('access_token')
+          localStorage.removeItem('refresh_token')
+          localStorage.removeItem('user_data')
+          this.$router.push('/login')
+        } else if (error.response?.status === 403) {
+          errorMessage = 'No tienes permisos para actualizar calificaciones.'
+        } else if (error.response?.status === 404) {
+          errorMessage = 'El indicador no fue encontrado.'
+        }
+
+        this.$swal({
+          title: 'Error',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Continuar',
+          toast: true,
+          position: 'top-end'
+        })
+      }
+    },
   }
 }
 </script>

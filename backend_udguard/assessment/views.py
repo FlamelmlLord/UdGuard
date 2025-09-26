@@ -3,6 +3,8 @@ import json
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import textwrap  # ⭐ NUEVA IMPORTACIÓN
+import re  # ⭐ AGREGAR TAMBIÉN ESTA IMPORTACIÓN SI NO ESTÁ
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
@@ -24,9 +26,119 @@ class FactorsCreateListViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        tipo = request.user.tipo_user
+        if tipo != "admin":
+            return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
+
         factors = Factors.objects.all()
-        serializer = FactorsSerializer(factors, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        # ⭐ CALCULAR MÉTRICAS GENERALES DEL SISTEMA - VERSIÓN CORREGIDA
+        total_metas_sistema = 0
+        total_puntajes_sistema = 0
+        total_caracteristicas_sistema = 0
+        total_indicadores_sistema = 0
+        
+        # ⭐ CAMBIAR LÓGICA: USAR LOS GRADOS DE CUMPLIMIENTO YA CALCULADOS DE CADA FACTOR
+        grados_cumplimiento_factores = []
+        
+        # ⭐ PRIMERA PASADA: CALCULAR EL TOTAL DE METAS DEL SISTEMA
+        for factor in factors:
+            caracteristicas = factor.characteristics_set.all()
+            for caracteristica in caracteristicas:
+                indicadores = caracteristica.indicator_set.all()
+                for indicador in indicadores:
+                    if indicador.meta is not None:
+                        total_metas_sistema += indicador.meta
+
+        print(f"Total metas del sistema calculado: {total_metas_sistema}")
+
+        # ⭐ SEGUNDA PASADA: CALCULAR DATOS DE CADA FACTOR CON SU PESO
+        for factor in factors:
+            caracteristicas = factor.characteristics_set.all()
+            total_caracteristicas_sistema += caracteristicas.count()
+            
+            # ⭐ OBTENER EL GRADO DE CUMPLIMIENTO YA CALCULADO DEL FACTOR
+            factor_serialized = FactorsSerializer(factor).data
+            factor_cumplimiento = factor_serialized.get('estado', {}).get('promedio', 0)
+            
+            if factor_cumplimiento and factor_cumplimiento > 0:
+                grados_cumplimiento_factores.append(factor_cumplimiento)
+                print(f"Factor '{factor.nombre}': {factor_cumplimiento}")
+            
+            # ⭐ CALCULAR TOTALES DE METAS, PUNTAJES E INDICADORES (MANTENER LÓGICA ACTUAL)
+            for caracteristica in caracteristicas:
+                indicadores = caracteristica.indicator_set.all()
+                total_indicadores_sistema += indicadores.count()
+                
+                for indicador in indicadores:
+                    if indicador.calificacion is not None and indicador.ponderacion is not None:
+                        total_puntajes_sistema += indicador.puntos
+
+        # ⭐ CALCULAR GRADO DE CUMPLIMIENTO GENERAL DESDE FACTORES (NO CARACTERÍSTICAS)
+        if grados_cumplimiento_factores:
+            promedio_general = sum(grados_cumplimiento_factores) / len(grados_cumplimiento_factores)
+            cumplimiento_general = round(promedio_general, 2)
+            porcentaje_general = round(((promedio_general - 1) / 4) * 100, 2) if promedio_general else 0
+            
+            grado_cumplimiento_general = get_grado_cumplimiento(cumplimiento_general)
+            
+            print(f"=== CÁLCULO CORREGIDO ===")
+            print(f"Grados de cumplimiento de factores: {grados_cumplimiento_factores}")
+            print(f"Suma: {sum(grados_cumplimiento_factores)}")
+            print(f"Cantidad de factores: {len(grados_cumplimiento_factores)}")
+            print(f"Promedio manual: {sum(grados_cumplimiento_factores) / len(grados_cumplimiento_factores)}")
+            print(f"Cumplimiento general calculado: {cumplimiento_general}")
+            print(f"Porcentaje general: {porcentaje_general}")
+            print(f"Grado: {grado_cumplimiento_general['grado']}")
+            print(f"Color: {grado_cumplimiento_general['color']}")
+            
+        else:
+            cumplimiento_general = 0.0
+            porcentaje_general = 0.0
+            grado_cumplimiento_general = {
+                "grado": "N/A",
+                "descripcion": "Sin datos suficientes",
+                "color": "#6b7280",
+            }
+
+        # ⭐ SERIALIZAR DATOS DE FACTORES CON PESO EN SISTEMA
+        serialized_factors = []
+        for factor in factors:
+            factor_data = FactorsSerializer(factor).data
+            
+            # ⭐ CALCULAR PESO EN SISTEMA PARA ESTE FACTOR
+            factor_metas = factor_data.get('meta', 0)
+            if total_metas_sistema > 0 and factor_metas > 0:
+                peso_en_sistema = round((factor_metas / total_metas_sistema) * 100, 2)
+            else:
+                peso_en_sistema = 0.0
+            
+            factor_data['peso_en_sistema'] = peso_en_sistema
+            serialized_factors.append(factor_data)
+            
+            print(f"Factor '{factor.nombre}': Metas={factor_metas}, Peso={peso_en_sistema}%")
+        
+        # ⭐ AGREGAR MÉTRICAS GENERALES A LA RESPUESTA
+        response_data = {
+            "factors": serialized_factors,
+            "metricas_generales": {
+                "total_metas": round(total_metas_sistema, 2),
+                "total_puntajes": round(total_puntajes_sistema, 2),
+                "total_caracteristicas": total_caracteristicas_sistema,
+                "total_indicadores": total_indicadores_sistema,
+                "cumplimiento_general": cumplimiento_general,
+                "porcentaje_general": porcentaje_general,
+                "grado_cumplimiento_general": grado_cumplimiento_general,
+                # ⭐ AGREGAR DATOS DE DEBUG PARA VERIFICACIÓN
+                "debug_info": {
+                    "factores_evaluados": len(grados_cumplimiento_factores),
+                    "grados_individuales": grados_cumplimiento_factores,
+                    "suma_grados": sum(grados_cumplimiento_factores) if grados_cumplimiento_factores else 0
+                }
+            }
+        }
+        
+        return Response(response_data, status=status.HTTP_200_OK)
 
     def post(self, request):
         tipo = request.user.tipo_user
@@ -36,8 +148,7 @@ class FactorsCreateListViewSet(APIView):
         serializer = FactorsSerializer(data=request.data)
         if serializer.is_valid():
             factor = serializer.save()
-            log_action(factor, "create", request.user)
-
+            log_action(factor, "create", request.user, "")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -59,6 +170,7 @@ class FactorsCreateListViewSet(APIView):
 
         return Response({"message": "Factor actualizado correctamente"}, status=status.HTTP_200_OK)
 
+
 class FactorsListCreateCharacteristicsViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -78,7 +190,8 @@ class FactorsListCreateCharacteristicsViewSet(APIView):
         serializer = CharacteristicsSerializer(data=data)
         if serializer.is_valid():
             caracteristica = serializer.save()
-            log_action(caracteristica, "create", request.user)
+            # ⭐ LOG MEJORADO CON INFORMACIÓN DEL FACTOR PADRE
+            log_action(caracteristica, "create", request.user, f"en factor '{factor.nombre}'")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -130,24 +243,45 @@ class CharacteristicListUpdateViewSet(APIView):
                 {"detail": "El campo 'nombre' y 'descripcion' son requeridos."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        
+        # ⭐ GUARDAR NOMBRE ANTERIOR PARA EL LOG
+        nombre_anterior = caracteristica.nombre
+        
         caracteristica.nombre = update_name
         caracteristica.descripcion = update_description
-        log_action(caracteristica, "update", request.user)
         caracteristica.save()
+        
+        # ⭐ LOG MEJORADO CON INFORMACIÓN DE CAMBIO
+        extra_info = f"nombre anterior: '{nombre_anterior}'" if nombre_anterior != update_name else ""
+        log_action(caracteristica, "update", request.user, extra_info)
+        
         serializer = CharacteristicsSerializer(caracteristica)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
     def delete(self, request, caracteristica_id):
         tipo = request.user.tipo_user
         if tipo != "admin":
             return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
 
         caracteristica = get_object_or_404(Characteristics, pk=caracteristica_id)
+        # ⭐ CONTAR INDICADORES ANTES DE ELIMINAR
+        num_indicadores = Indicator.objects.filter(caracteristica=caracteristica).count()
+        
+        # ⭐ GUARDAR INFORMACIÓN PARA EL LOG ANTES DE ELIMINAR
+        caracteristica_nombre = caracteristica.nombre
+        factor_nombre = caracteristica.factors.nombre if caracteristica.factors else "Factor desconocido"
+        
+        # ⭐ LOG ANTES DE ELIMINAR
+        extra_info = f"del factor '{factor_nombre}' (contenía {num_indicadores} indicador{'es' if num_indicadores != 1 else ''})"
+        log_action(caracteristica, "delete", request.user, extra_info)
+        
         caracteristica.delete()
 
         return Response(
             {"message": "Característica e indicadores eliminados"},
             status=status.HTTP_204_NO_CONTENT,
         )
+
 
 class IndicatorCreateView(APIView):
     permission_classes = [IsAuthenticated]
@@ -161,7 +295,8 @@ class IndicatorCreateView(APIView):
         serializer = IndicatorSerializer(data=request.data)
         if serializer.is_valid():
             indicador = serializer.save(caracteristica=caracteristica)
-            log_action(indicador, "create", request.user)
+            # ⭐ LOG MEJORADO CON INFORMACIÓN DE LA CARACTERÍSTICA PADRE
+            log_action(indicador, "create", request.user, f"en característica '{caracteristica.nombre}'")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -178,17 +313,27 @@ class IndicatorUpdateView(APIView):
         serializer = IndicatorSerializer(indicador, data=request.data, partial=True)
         if serializer.is_valid():
             indicador = serializer.save()
-            log_action(indicador, "update", request.user)
+            # ⭐ LOG MEJORADO CON INFORMACIÓN DE LA CARACTERÍSTICA
+            caracteristica_nombre = indicador.caracteristica.nombre if indicador.caracteristica else "Característica desconocida"
+            log_action(indicador, "update", request.user, f"de característica '{caracteristica_nombre}'")
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
     def delete(self, request, indicador_id):
         tipo = request.user.tipo_user
         if tipo != "admin":
             return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
+        
         indicador = get_object_or_404(Indicator, pk=indicador_id)
+        
+        # ⭐ GUARDAR INFORMACIÓN PARA EL LOG ANTES DE ELIMINAR
+        indicador_nombre = indicador.nombre
+        caracteristica_nombre = indicador.caracteristica.nombre if indicador.caracteristica else "Característica desconocida"
+        
+        # ⭐ LOG ANTES DE ELIMINAR
+        log_action(indicador, "delete", request.user, f"de característica '{caracteristica_nombre}'")
+        
         indicador.delete()
 
         return Response(
@@ -200,32 +345,36 @@ def get_grado_cumplimiento(grado_numerico):
     """
     Determina el grado de cumplimiento basado en la escala numérica 1-5
     según la tabla de evaluación institucional
+    ⭐ AHORA CON 2 DECIMALES PARA MAYOR PRECISIÓN
     """
-    if 1.0 <= grado_numerico <= 2.4:
+    # ⭐ REDONDEAR A 2 DECIMALES PARA MAYOR PRECISIÓN
+    grado_redondeado = round(float(grado_numerico), 2)
+    
+    if 1.0 <= grado_redondeado < 2.5:
         return {
             "grado": "E",
             "descripcion": "No se cumple",
             "color": "#e71000",
         }
-    elif 2.5 <= grado_numerico <= 3.4:
+    elif 2.5 <= grado_redondeado < 3.5:
         return {
             "grado": "D",
             "descripcion": "Se cumple insatisfactoriamente",
             "color": "#e78800",
         }
-    elif 3.5 <= grado_numerico <= 3.9:
+    elif 3.5 <= grado_redondeado < 4.0:
         return {
             "grado": "C",
             "descripcion": "Se cumple aceptablemente",
             "color": "#e7d900",
         }
-    elif 4.0 <= grado_numerico <= 4.4:
+    elif 4.0 <= grado_redondeado < 4.5:
         return {
             "grado": "B",
             "descripcion": "Se cumple en alto grado",
             "color": "#6dca00",
         }
-    elif 4.5 <= grado_numerico <= 5.0:
+    elif 4.5 <= grado_redondeado <= 5.0:
         return {
             "grado": "A",
             "descripcion": "Se cumple plenamente",
@@ -263,7 +412,7 @@ def characteristic_status(caracteristica):
         ]
         promedio = sum(calificaciones) / len(calificaciones) if calificaciones else 0
         
-        # ⭐ AGREGAR CÁLCULOS DE TOTALES (igual que en factores)
+        # ⭐ AGREGAR CÁLCULOS DE TOTALES CON 2 DECIMALES
         total_metas = sum(i.meta for i in indicators if i.meta is not None)
         total_puntajes = sum(i.puntos for i in indicators if i.calificacion is not None and i.ponderacion is not None)
         
@@ -274,17 +423,18 @@ def characteristic_status(caracteristica):
 
     caracteristica_data = CharacteristicsSerializer(caracteristica).data
 
-    caracteristica_data["cumplimiento"] = round(promedio, 1)
+    # ⭐ USAR 2 DECIMALES PARA MAYOR PRECISIÓN
+    caracteristica_data["cumplimiento"] = round(promedio, 2)  # ⭐ CAMBIAR A 2 DECIMALES
     caracteristica_data["porcentaje"] = (
-        round(((promedio - 1) / 4) * 100, 1) if promedio else 0
+        round(((promedio - 1) / 4) * 100, 2) if promedio else 0  # ⭐ CAMBIAR A 2 DECIMALES
     )
     caracteristica_data["grado_cumplimiento"] = get_grado_cumplimiento(
         caracteristica_data["cumplimiento"]
     )
     
-    # ⭐ AGREGAR TOTALES A LA RESPUESTA (igual que en factores)
-    caracteristica_data["total_metas"] = total_metas
-    caracteristica_data["total_puntajes"] = total_puntajes
+    # ⭐ AGREGAR TOTALES A LA RESPUESTA CON 2 DECIMALES
+    caracteristica_data["total_metas"] = round(total_metas, 2)  # ⭐ 2 DECIMALES
+    caracteristica_data["total_puntajes"] = round(total_puntajes, 2)  # ⭐ 2 DECIMALES
     caracteristica_data["cantidad_indicadores"] = indicators.count()
 
     return caracteristica_data
@@ -339,11 +489,21 @@ class SurveyUploadView(APIView):
             # Guardar como JSON
             json_filename = self.save_survey_json(survey_data, survey_type)
 
-            # ⭐ LOG CORREGIDO
+            # ⭐ LOG MEJORADO PARA ENCUESTAS
             from logs.models import Logs
+            survey_type_labels = {
+                'estudiantes': 'Estudiantes',
+                'docentes': 'Docentes',
+                'egresados': 'Egresados',
+                'empleadores': 'Empleadores',
+                'administrativos': 'Administrativos',
+                'directivos': 'Directivos'
+            }
+            survey_label = survey_type_labels.get(survey_type, survey_type.title())
+            
             Logs.objects.create(
                 usuario=request.user,
-                accion=f"UPLOAD encuesta_{survey_type} - {uploaded_file.name}",
+                accion=f"SUBIR ENCUESTA: {survey_label} - archivo: {uploaded_file.name} ({len(survey_data)} preguntas procesadas)",
             )
 
             return Response({
@@ -766,9 +926,13 @@ class GenerateChartView(APIView):
                 
                 # Log de la acción
                 from logs.models import Logs
+                question_text = question_data.get('question', '')
+                actors_list = list(question_data.get('actors', {}).keys())
+                actors_label = ', '.join([self.get_actor_label(actor) for actor in actors_list])
+                
                 Logs.objects.create(
                     usuario=request.user,
-                    accion=f"GENERATE_CHART - {chart_filename}",
+                    accion=f"GENERAR GRÁFICA: {chart_filename} - pregunta: '{question_text[:50]}...' - actores: {actors_label}",
                 )
 
                 return Response({
@@ -829,6 +993,7 @@ class GenerateChartView(APIView):
             
             print(f"Generando gráfica para {len(actors_data)} actores")
             print(f"Actores: {list(actors_data.keys())}")
+            print(f"Pregunta completa: {question_text}")
 
             if not actors_data:
                 print("No hay datos de actores para generar la gráfica")
@@ -859,8 +1024,15 @@ class GenerateChartView(APIView):
             bar_height = 0.15  # Altura de cada barra individual
             group_spacing = 0.3  # Espacio entre grupos de actores
             
-            # ⭐ CREAR GRÁFICA DE BARRAS HORIZONTALES INDIVIDUALES
-            fig, ax = plt.subplots(figsize=(16, max(10, num_actors * 3)))
+            # ⭐ CALCULAR ALTURA DINÁMICA BASADA EN LA LONGITUD DE LA PREGUNTA Y NÚMERO DE ACTORES
+            # Más altura si la pregunta es larga o hay muchos actores
+            question_lines = len(question_text) // 80 + 1  # Estimar líneas necesarias para la pregunta
+            base_height = max(12, num_actors * 3)  # Altura base
+            title_height = max(2, question_lines * 0.8)  # Altura adicional para el título
+            total_height = base_height + title_height
+            
+            # ⭐ CREAR GRÁFICA CON ALTURA DINÁMICA
+            fig, ax = plt.subplots(figsize=(18, total_height))  # Aumentar ancho también
             
             # Calcular posiciones Y para cada actor y opción
             y_positions = []
@@ -923,17 +1095,24 @@ class GenerateChartView(APIView):
             ax.set_yticks(y_label_positions)
             ax.set_yticklabels(y_labels, fontsize=12, fontweight='bold')
             
-            # ⭐ CONFIGURAR EL RESTO DEL GRÁFICO
+            # ⭐ CONFIGURAR EL RESTO DEL GRÁFICO CON PREGUNTA COMPLETA
             ax.set_xlabel('Porcentaje de Respuestas (%)', fontsize=14, fontweight='bold')
-            ax.set_title(f'Distribución de Respuestas por Actor\n{question_text[:100]}...', 
-                        fontsize=16, fontweight='bold', pad=25)
+            
+            # ⭐ TÍTULO CON PREGUNTA COMPLETA - FORMATO MEJORADO
+            # Dividir la pregunta en líneas más manejables
+            import textwrap
+            wrapped_question = textwrap.fill(question_text, width=100)  # 100 caracteres por línea
+            
+            ax.set_title(f'Distribución de Respuestas por Actor\n\n{wrapped_question}', 
+                        fontsize=14, fontweight='bold', pad=30, 
+                        ha='center', va='bottom')
             
             # Configurar eje X
             ax.set_xlim(0, 100)
             ax.set_xticks(range(0, 101, 10))
             
-            # ⭐ AGREGAR LEYENDA EN ORDEN CORRECTO
-            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', 
+            # ⭐ AGREGAR LEYENDA EN ORDEN CORRECTO - POSICIÓN MEJORADA
+            ax.legend(bbox_to_anchor=(1.02, 1), loc='upper left', 
                      fontsize=11, title='Opciones de Respuesta', 
                      title_fontsize=12, frameon=True, shadow=True)
             
@@ -949,9 +1128,9 @@ class GenerateChartView(APIView):
             # Invertir el eje Y para que el primer actor aparezca arriba
             ax.invert_yaxis()
 
-            # Ajustar layout
+            # ⭐ AJUSTAR LAYOUT CON MÁS ESPACIO PARA EL TÍTULO
             plt.tight_layout()
-            plt.subplots_adjust(right=0.75, top=0.9, bottom=0.1)
+            plt.subplots_adjust(right=0.75, top=0.85, bottom=0.1, left=0.15)
 
             # ⭐ GUARDAR EL ARCHIVO EN LA RUTA CORRECTA
             filename = f"C{caracteristica_num}_I{indicator_num}.png"
@@ -959,8 +1138,10 @@ class GenerateChartView(APIView):
             
             print(f"Guardando gráfica en: {filepath}")
             
+            # ⭐ GUARDAR CON MAYOR RESOLUCIÓN PARA MEJOR LEGIBILIDAD
             plt.savefig(filepath, dpi=300, bbox_inches='tight', 
-                       facecolor='white', edgecolor='none')
+                       facecolor='white', edgecolor='none', 
+                       pad_inches=0.3)  # Agregar padding
             plt.close()
 
             # ⭐ VERIFICAR QUE EL ARCHIVO SE GUARDÓ CORRECTAMENTE
@@ -968,6 +1149,7 @@ class GenerateChartView(APIView):
                 file_size = os.path.getsize(filepath)
                 print(f"Gráfica guardada exitosamente: {filepath}")
                 print(f"Tamaño del archivo: {file_size} bytes")
+                print(f"Pregunta incluida completa: {len(question_text)} caracteres")
                 return filename
             else:
                 print(f"Error: El archivo no se guardó en {filepath}")

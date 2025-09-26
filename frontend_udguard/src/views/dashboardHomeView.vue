@@ -49,17 +49,17 @@
           </li>
           <li>
             <router-link
-              to="/dashboard/Cumplimiento"
+              to="/dashboard/logs"
               class="menu-item"
               :class="{ 
-                active: hoveredItem === 'Cumplimiento',
+                active: hoveredItem === 'Logs',
                 ...themeClasses 
               }"
-              @mouseover="hover('Cumplimiento')"
+              @mouseover="hover('Logs')"
               @mouseleave="unhover"
             >
-              <i class="mdi mdi-checkbox-marked-circle-outline icon"></i>
-              <span>Cumplimiento</span>
+              <i class="mdi mdi-file-document-outline icon"></i>
+              <span>Logs</span>
             </router-link>
           </li>
         </ul>
@@ -123,7 +123,8 @@ export default class DashboardHomeView extends Mixins(DarkModeMixin) {
   }
 
   mounted (): void {
-    super.mounted() // Call parent mounted from mixin
+    // Tu lógica de mounted aquí
+    console.log('Dashboard mounted')
     this.initializeTheme()
   }
 

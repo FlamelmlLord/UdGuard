@@ -1,9 +1,11 @@
 from rest_framework import serializers
 from .models import Logs
+from users.serializers import UserListSerializer
 
 
 class LogsSerializer(serializers.ModelSerializer):
+    usuario = UserListSerializer(read_only=True)
 
     class Meta:
         model = Logs
-        fields = "__all__"
+        fields = ["id", "accion", "fecha", "usuario"]

@@ -36,96 +36,212 @@
             <button @click="fetchFactores" class="retry-button">Reintentar</button>
           </div>
 
-          <div v-else class="factores-grid">
-            <div
-              v-for="factor in factores"
-              :key="factor.id"
-              class="factor-card"
-            >
-              <div class="factor-card-header">
-                <h3 class="factor-title">{{ factor.nombre }}</h3>
-                
-                <!-- ⭐ AGREGAR BOTÓN EDITAR FACTOR -->
-                <div class="factor-actions">
-                  <button 
-                    @click="editarFactor(factor)" 
-                    class="icon-btn edit-btn"
-                    title="Editar factor"
+          <div v-else>
+            <!-- Grid de Factores -->
+            <div class="factores-grid">
+              <div
+                v-for="factor in factores"
+                :key="factor.id"
+                class="factor-card"
+              >
+                <div class="factor-card-header">
+                  <h3 class="factor-title">{{ factor.nombre }}</h3>
+                  
+                  <!-- Botón editar factor -->
+                  <div class="factor-actions">
+                    <button 
+                      @click="editarFactor(factor)" 
+                      class="icon-btn edit-btn"
+                      title="Editar factor"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  <!-- Estado del factor -->
+                  <div
+                    class="factor-status"
+                    :style="{ backgroundColor: getEstadoColor(factor).color || '#6b7280' }"
+                    :title="`${getEstadoColor(factor).label} - Promedio: ${factor.estado?.promedio || factor.cumplimiento || 0}`"
                   >
+                    <span class="status-indicator">
+                      {{ getEstadoColor(factor).grado || 'N/A' }} - {{ getEstadoColor(factor).label }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="factor-card-body">
+                  <!-- Métricas del factor con PESO EN SISTEMA agregado -->
+                  <div class="factor-metrics">
+                    <div class="metrics-row">
+                      <span class="metric-label">Grado Cumplimiento:</span>
+                      <span class="metric-value">{{ (factor.estado?.promedio || 0).toFixed(2) }}</span>
+                    </div>
+                    
+                    <!-- ⭐ NUEVA FILA: PESO EN SISTEMA -->
+                    <div class="metrics-row">
+                      <span class="metric-label">Peso en Sistema:</span>
+                      <span 
+                        class="metric-value peso-sistema"
+                        :class="{
+                          'peso-alto': (factor.peso_en_sistema || 0) >= 14
+                        }"
+                        :title="`Este factor representa el ${(factor.peso_en_sistema || 0).toFixed(2)}% del total de metas del sistema`"
+                      >
+                        {{ (factor.peso_en_sistema || 0).toFixed(2) }}%
+                      </span>
+                    </div>
+                    
+                    <div class="metrics-row">
+                      <span class="metric-label">Total Metas:</span>
+                      <span class="metric-value total-metas">{{ parseFloat(factor.meta || 0).toFixed(2) }}</span>
+                    </div>
+                    
+                    <div class="metrics-row">
+                      <span class="metric-label">Total Puntajes:</span>
+                      <span class="metric-value total-puntajes">{{ parseFloat(factor.total_puntajes || 0).toFixed(2) }}</span>
+                    </div>
+                    
+                    <div class="metrics-row">
+                      <span class="metric-label">Características:</span>
+                      <span class="metric-value caracteristicas-count">{{ factor.cantidad_caracteristicas || 0 }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Lista de características -->
+                  <div v-if="factor.caracteristicas && factor.caracteristicas.length > 0" class="characteristics-summary">
+                    <h4 class="characteristics-title">Características:</h4>
+                    <ul class="factor-details">
+                      <li v-for="caracteristica in factor.caracteristicas.slice(0, 3)" :key="caracteristica.nombre">
+                        {{ caracteristica.nombre }}
+                      </li>
+                      <li v-if="factor.caracteristicas.length > 3" class="more-items">
+                        +{{ factor.caracteristicas.length - 3 }} más...
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <div v-else class="no-data-message">
+                    <span class="no-data-icon">📊</span>
+                    <p>No hay datos disponibles</p>
+                  </div>
+                </div>
+                
+                <div class="factor-card-footer">
+                  <button
+                    class="view-button"
+                    @click="navigateToDashboardCharacteristics(factor)"
+                  >
+                    <span>Ver detalles</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      <path d="M9 18l6-6-6-6"/>
                     </svg>
                   </button>
                 </div>
-                
-                <!-- MANTENER LA ESTRUCTURA ORIGINAL DEL COLOR QUE FUNCIONABA -->
-                <div
-                  class="factor-status"
-                  :style="{ backgroundColor: getEstadoColor(factor).color || '#6b7280' }"
-                  :title="`${getEstadoColor(factor).label} - Promedio: ${factor.estado?.promedio || factor.cumplimiento || 0}`"
-                >
-                  <span class="status-indicator">
-                    {{ getEstadoColor(factor).grado || 'N/A' }} - {{ getEstadoColor(factor).label }}
-                  </span>
-                  <!-- ⭐ CAMBIAR PARA MOSTRAR LA LETRA EN LUGAR DEL PROMEDIO -->
-
-                </div>
               </div>
-              
-              <div class="factor-card-body">
-                <!-- ⭐ AGREGAR LAS NUEVAS MÉTRICAS DEBAJO DEL CONTENIDO ORIGINAL -->
-                <div class="factor-metrics">
-                  <div class="metrics-row">
-                    <span class="metric-label">Grado Cumplimiento:</span>
-                    <span class="metric-value">{{ (factor.estado?.promedio || 0).toFixed(1) }}</span>
+            </div>
+
+            <!-- ⭐ NUEVO MÓDULO DE GRADO DE CUMPLIMIENTO GENERAL -->
+            <div v-if="metricasGenerales" class="cumplimiento-general-container">
+              <div class="cumplimiento-general-card">
+                <!-- Header del módulo -->
+                <div class="cumplimiento-general-header">
+                  <div class="header-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                      <line x1="9" y1="9" x2="9.01" y2="9"/>
+                      <line x1="15" y1="9" x2="15.01" y2="9"/>
+                    </svg>
                   </div>
-                  
-                  <div class="metrics-row">
-                    <span class="metric-label">Total Metas:</span>
-                    <span class="metric-value total-metas">{{ parseFloat(factor.meta || 0).toFixed(1) }}</span>
-                  </div>
-                  
-                  <div class="metrics-row">
-                    <span class="metric-label">Total Puntajes:</span>
-                    <span class="metric-value total-puntajes">{{ parseFloat(factor.total_puntajes || 0).toFixed(1) }}</span>
-                  </div>
-                  
-                  <div class="metrics-row">
-                    <span class="metric-label">Características:</span>
-                    <span class="metric-value caracteristicas-count">{{ factor.cantidad_caracteristicas || 0 }}</span>
+                  <h2 class="cumplimiento-general-title">Puntajes y Cumplimientos</h2>
+                  <div class="header-info-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M8 12l2 2 4-4"/>
+                    </svg>
                   </div>
                 </div>
 
-                <!-- ⭐ MANTENER LA LISTA ORIGINAL DE CARACTERÍSTICAS -->
-                <div v-if="factor.caracteristicas && factor.caracteristicas.length > 0" class="characteristics-summary">
-                  <h4 class="characteristics-title">Características:</h4>
-                  <ul class="factor-details">
-                    <li v-for="caracteristica in factor.caracteristicas.slice(0, 3)" :key="caracteristica.nombre">
-                      {{ caracteristica.nombre }}
-                    </li>
-                    <li v-if="factor.caracteristicas.length > 3" class="more-items">
-                      +{{ factor.caracteristicas.length - 3 }} más...
-                    </li>
-                  </ul>
+                <!-- Contenido principal del módulo -->
+                <div class="cumplimiento-general-content">
+                  <!-- Gráfico circular -->
+                  <div class="chart-section">
+                    <div class="chart-wrapper">
+                      <!-- ⭐ ASEGURAR QUE EL CANVAS TENGA UN ID ÚNICO Y ESTÉ BIEN CONFIGURADO -->
+                      <canvas 
+                        id="cumplimientoGeneralChart" 
+                        ref="cumplimientoGeneralCanvas"
+                        width="270" 
+                        height="270"
+                        style="max-width: 270px; max-height: 270px;"
+                      ></canvas>
+                      <div class="chart-center-info">
+                        <div class="compliance-score">{{ parseFloat(metricasGenerales.porcentaje_general || 0).toFixed(1) }}%</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Información del grado con 2 decimales -->
+                  <div class="grado-section-general">
+                    <div class="grado-header-general">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                      </svg>
+                      <h3 class="grado-title-general">Grado Cumplimiento General</h3>
+                    </div>
+                    <div class="grado-value-general">
+                      <h2 
+                        class="grado-cumplimiento-general" 
+                        :style="{ color: metricasGenerales.grado_cumplimiento_general.color || '#2c3e50' }" 
+                      >
+                        {{ parseFloat(metricasGenerales.cumplimiento_general || 0).toFixed(2) }}
+                      </h2>
+                      <span class="grado-scale-general">/5.0</span>
+                    </div>
+                  </div>
+
+                  <!-- Métricas totales con 2 decimales -->
+                  <div class="metricas-totales-section">
+                    <h3 class="metricas-title">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3v18h18"/>
+                        <path d="M18 17l-5-5-2 2-6-6"/>
+                      </svg>
+                      Métricas del Sistema
+                    </h3>
+                    <div class="metricas-grid-general">
+                      <!-- Total Metas -->
+                      <div class="metrica-item-general total-metas-general">
+                        <div class="metrica-label-general">Metas Sistema:</div>
+                        <div class="metrica-value-general">{{ parseFloat(metricasGenerales.total_metas || 0).toFixed(2) }}</div>
+                      </div>
+
+                      <!-- Total Puntajes -->
+                      <div class="metrica-item-general total-puntajes-general">
+                        <div class="metrica-label-general">Puntajes Sistema:</div>
+                        <div class="metrica-value-general">{{ parseFloat(metricasGenerales.total_puntajes || 0).toFixed(2) }}</div>
+                      </div>
+
+                      <!-- Total Características -->
+                      <div class="metrica-item-general total-caracteristicas-general">
+                        <div class="metrica-label-general">Total Características:</div>
+                        <div class="metrica-value-general">{{ metricasGenerales.total_caracteristicas || 0 }}</div>
+                      </div>
+
+                      <!-- Total Indicadores -->
+                      <div class="metrica-item-general total-indicadores-general">
+                        <div class="metrica-label-general">Total Indicadores</div>
+                        <div class="metrica-value-general">{{ metricasGenerales.total_indicadores || 0 }}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                
-                <div v-else class="no-data-message">
-                  <span class="no-data-icon">📊</span>
-                  <p>No hay datos disponibles</p>
-                </div>
-              </div>
-              
-              <div class="factor-card-footer">
-                <button
-                  class="view-button"
-                  @click="navigateToDashboardCharacteristics(factor)"
-                >
-                  <span>Ver detalles</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M9 18l6-6-6-6"/>
-                  </svg>
-                </button>
               </div>
             </div>
           </div>
@@ -411,6 +527,7 @@
 
 <script>
 import axios from '../../plugins/Axios'
+import Chart from 'chart.js/auto'
 
 export default {
   name: 'DashboardFacts',
@@ -418,6 +535,8 @@ export default {
   data() {
     return {
       factores: [],
+      metricasGenerales: null, // ⭐ NUEVA PROPIEDAD PARA MÉTRICAS GENERALES
+      cumplimientoGeneralChart: null, // ⭐ NUEVA PROPIEDAD PARA EL GRÁFICO
       loading: false,
       error: null,
       // Modal de adjuntar resultados - variables actualizadas
@@ -436,6 +555,13 @@ export default {
         nombre: '',
         descripcion: ''
       }
+    }
+  },
+
+  // ⭐ AGREGAR CLEANUP DEL GRÁFICO
+  beforeDestroy() {
+    if (this.cumplimientoGeneralChart) {
+      this.cumplimientoGeneralChart.destroy()
     }
   },
 
@@ -460,7 +586,7 @@ export default {
       
       try {
         const token = localStorage.getItem('access_token')
-        console.log('Fetching factors with totals...')
+        console.log('Fetching factors with general metrics...')
         
         const response = await axios.get('/factors/', {
           headers: {
@@ -469,19 +595,45 @@ export default {
         })
         
         console.log('Raw API response:', response.data)
-        this.factores = response.data
+        
+        // ⭐ SEPARAR FACTORES Y MÉTRICAS GENERALES
+        if (response.data.factors) {
+          this.factores = response.data.factors
+          this.metricasGenerales = response.data.metricas_generales
+        } else {
+          this.factores = response.data
+          this.metricasGenerales = null
+        }
 
-        // ⭐ DEBUG MEJORADO PARA VERIFICAR LOS NUEVOS DATOS
-        console.log('Factores con totales:', this.factores.map(f => ({
-          id: f.id,
-          nombre: f.nombre,
-          cumplimiento: f.cumplimiento,
-          total_metas: f.meta,
-          total_puntajes: f.total_puntajes, // VERIFICAR ESTE CAMPO
-          cantidad_caracteristicas: f.cantidad_caracteristicas, // VERIFICAR ESTE CAMPO
-          grado_cumplimiento: f.grado_cumplimiento,
-          caracteristicas_count: f.caracteristicas?.length || 0
-        })));
+        console.log('Factores cargados:', this.factores.length)
+        console.log('Métricas generales:', this.metricasGenerales)
+
+        // ⭐ RENDERIZAR GRÁFICO CON MÚLTIPLES INTENTOS
+        if (this.metricasGenerales) {
+          console.log('Preparando renderizado de gráfico...')
+          
+          // Primer intento inmediato
+          this.$nextTick(() => {
+            console.log('Primer intento de renderizado...')
+            this.renderCumplimientoGeneralChart()
+          })
+          
+          // Segundo intento con delay (fallback)
+          setTimeout(() => {
+            console.log('🔄 Segundo intento de renderizado...')
+            if (!this.cumplimientoGeneralChart) {
+              this.renderCumplimientoGeneralChart()
+            }
+          }, 500)
+          
+          // Tercer intento con delay mayor (último fallback)
+          setTimeout(() => {
+            console.log('Tercer intento de renderizado...')
+            if (!this.cumplimientoGeneralChart) {
+              this.renderCumplimientoGeneralChart()
+            }
+          }, 1000)
+        }
 
       } catch (error) {
         console.error('Error fetching factors:', error)
@@ -497,6 +649,111 @@ export default {
         }
       } finally {
         this.loading = false
+      }
+    },
+
+    // ⭐ MÉTODO CORREGIDO CON 2 DECIMALES
+    renderCumplimientoGeneralChart() {
+      console.log('🎯 Iniciando renderizado de gráfico general...')
+      
+      if (!this.metricasGenerales) {
+        console.error('❌ No hay métricas generales disponibles')
+        return
+      }
+
+      let ctx = this.$refs.cumplimientoGeneralCanvas
+      if (!ctx) {
+        ctx = document.getElementById('cumplimientoGeneralChart')
+      }
+      
+      if (!ctx) {
+        console.error('Canvas element not found')
+        return
+      }
+      
+      if (this.cumplimientoGeneralChart) {
+        this.cumplimientoGeneralChart.destroy()
+        this.cumplimientoGeneralChart = null
+      }
+
+      // ⭐ USAR 2 DECIMALES PARA MAYOR PRECISIÓN
+      const percentage = parseFloat(this.metricasGenerales.porcentaje_general) || 0
+      const remaining = Math.max(0, 100 - percentage)
+      const cumplimiento = parseFloat(this.metricasGenerales.cumplimiento_general) || 0
+      
+      let color = this.metricasGenerales.grado_cumplimiento_general?.color || '#6b7280'
+      
+      if (!this.metricasGenerales.grado_cumplimiento_general?.color) {
+        color = this.getColorByGrade(cumplimiento)
+      }
+
+      console.log('Datos del gráfico con 2 decimales:', {
+        percentage: percentage.toFixed(2),
+        cumplimiento: cumplimiento.toFixed(2),
+        color,
+        grado: this.metricasGenerales.grado_cumplimiento_general?.grado
+      })
+
+      try {
+        this.cumplimientoGeneralChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Cumplimiento', 'Restante'],
+            datasets: [
+              {
+                data: [percentage, remaining],
+                backgroundColor: [color, '#E8F5E8'],
+                borderColor: [color, '#E8F5E8'],
+                borderWidth: 0,
+                cutout: '75%',
+                circumference: 360,
+                rotation: -90
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: false }
+            },
+            elements: {
+              arc: {
+                borderWidth: 0,
+                borderRadius: 4
+              }
+            },
+            animation: {
+              animateRotate: true,
+              animateScale: false,
+              duration: 1500,
+              easing: 'easeInOutCubic'
+            }
+          }
+        })
+
+        console.log('Gráfico general creado exitosamente con 2 decimales')
+
+      } catch (error) {
+        console.error('Error creando gráfico:', error)
+      }
+    },
+
+    // ⭐ MÉTODO AUXILIAR PARA OBTENER COLOR SEGÚN EL GRADO (FALLBACK)
+    getColorByGrade(cumplimiento) {
+      if (cumplimiento >= 4.5) {
+        return '#00ca00' // A - Se cumple plenamente (Verde)
+      } else if (cumplimiento >= 4.0) {
+        return '#6dca00' // B - Se cumple en alto grado (Verde-Amarillo)
+      } else if (cumplimiento >= 3.5) {
+        return '#e7d900' // C - Se cumple aceptablemente (Amarillo)
+      } else if (cumplimiento >= 2.5) {
+        return '#e78800' // D - Se cumple insatisfactoriamente (Naranja)
+      } else if (cumplimiento >= 1.0) {
+        return '#e71000' // E - No se cumple (Rojo)
+      } else {
+        return '#6b7280' // N/A - Sin datos (Gris)
       }
     },
 
