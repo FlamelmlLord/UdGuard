@@ -1252,3 +1252,423 @@
   25% { transform: translateX(-5px); }
   75% { transform: translateX(5px); }
 }
+
+/* ===== ESTILOS PARA PESO EN FACTOR - IDÉNTICOS A PESO EN SISTEMA ===== */
+.peso-factor {
+  background: linear-gradient(135deg, #f3e8ff, #e9d5ff);
+  color: #7c3aed !important;
+  border: 1px solid #c4b5fd;
+  font-size: 0.8rem;
+  font-weight: 800;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  padding: 3px 8px;
+  border-radius: 4px;
+  min-width: 40px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ⭐ HOVER EFFECT ESTÁNDAR PARA PESO EN FACTOR - IGUAL QUE PESO EN SISTEMA */
+.metrics-row:hover .peso-factor {
+  transform: scale(1.08);
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.25);
+  background: linear-gradient(135deg, #e9d5ff, #ddd6fe);
+}
+
+/* ⭐ ANIMACIÓN ESPECIAL PARA PESO EN FACTOR - IGUAL QUE PESO EN SISTEMA */
+.peso-factor::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.metrics-row:hover .peso-factor::before {
+  left: 100%;
+}
+
+/* ⭐ CLASE ESPECÍFICA PARA PESO ALTO EN FACTOR - IGUAL QUE PESO EN SISTEMA */
+.peso-factor.peso-alto {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #dc2626 !important;
+  border: 1px solid #f87171;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+}
+
+.metrics-row:hover .peso-factor.peso-alto {
+  background: linear-gradient(135deg, #fecaca, #f87171);
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+  color: #991b1b !important;
+  transform: scale(1.08);
+}
+
+.peso-factor.peso-alto::before {
+  background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.2), transparent);
+}
+
+/* ⭐ EFECTO DE PULSACIÓN ESPECIAL PARA PESO ALTO EN FACTOR - IGUAL QUE SISTEMA */
+@keyframes pulseWeightHighFactor {
+  0% {
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+  }
+  50% {
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+  }
+  100% {
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+  }
+}
+
+.peso-factor.peso-alto:hover {
+  animation: pulseWeightHighFactor 2s infinite;
+}
+
+/* ⭐ EFECTO DE PULSACIÓN ESTÁNDAR PARA PESO NORMAL EN FACTOR - IGUAL QUE SISTEMA */
+@keyframes pulseWeightFactor {
+  0% {
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+  }
+  50% {
+    box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+  }
+  100% {
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+  }
+}
+
+.peso-factor:not(.peso-alto):hover {
+  animation: pulseWeightFactor 2s infinite;
+}
+
+/* ⭐ TOOLTIP PARA PESO EN FACTOR CON ESTILO DINÁMICO - IGUAL QUE SISTEMA */
+.peso-factor[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: white;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  z-index: 10;
+  margin-bottom: 5px;
+}
+
+.peso-factor.peso-alto[title]:hover::after {
+  background: #dc2626;
+}
+
+/* ⭐ RESPONSIVE PARA MÓVILES - IGUAL QUE PESO EN SISTEMA */
+@media (max-width: 768px) {
+  .peso-factor {
+    font-size: 0.75rem;
+    min-width: 55px;
+    padding: 4px 6px;
+  }
+  
+  .peso-factor.peso-alto {
+    font-weight: 800; /* Reducir un poco en móviles para mejor legibilidad */
+  }
+}
+
+/* ⭐ ELIMINAR TODOS LOS ESTILOS PERSONALIZADOS ANTERIORES DEL PESO-FACTOR */
+/* Se eliminan los estilos que causaban conflictos y diferencias con peso-sistema */
+
+/* ⭐ APLICAR LOS MISMOS ESTILOS BASE A PESO-FACTOR QUE A PESO-SISTEMA */
+.peso-factor {
+  /* Todos los estilos ya definidos arriba son idénticos a peso-sistema */
+}
+
+/* ⭐ ASEGURAR QUE NO HAYA CONFLICTOS DE HOVER ENTRE DIFERENTES ELEMENTOS */
+.metrics-row {
+  position: relative;
+}
+
+.metrics-row .peso-factor {
+  position: relative;
+  z-index: 2;
+}
+
+/* ⭐ MANTENER LA CONSISTENCIA CON LOS OTROS METRIC-VALUES */
+.metric-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  padding: 2px 8px;
+  border-radius: 4px;
+  min-width: 40px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.metric-value:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ⭐ ASEGURAR QUE EL PESO-FACTOR SIGA LOS MISMOS PATRONES DE HOVER QUE PESO-SISTEMA */
+.peso-factor:hover {
+  /* Usar el mismo hover que peso-sistema pero a través de metrics-row */
+}
+
+/* ⭐ RESPONSIVE MEJORADO PARA CARACTERÍSTICAS - CONSISTENTE CON FACTORES */
+@media (max-width: 768px) {
+  .characteristic-metrics {
+    padding: 8px;
+  }
+  
+  .metrics-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  
+  .metric-value,
+  .peso-factor {
+    align-self: flex-end;
+    min-width: 60px;
+  }
+  
+  .peso-factor {
+    align-self: flex-end;
+    min-width: 55px;
+  }
+  
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    min-width: 150px;
+  }
+  
+  .metric-label {
+    font-size: 0.7rem;
+  }
+}
+
+/* ⭐ MANTENER LA ALTURA ADECUADA DEL CARD PARA LAS MÉTRICAS */
+.characteristic-card {
+  min-height: 120px; /* Aumentado para acomodar la nueva métrica */
+}
+
+.characteristic-metrics {
+  margin-top: 12px;
+  padding: 14px; /* Aumentado ligeramente */
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.metrics-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px; /* Aumentado ligeramente */
+}
+
+.metrics-row:last-child {
+  margin-bottom: 0;
+}
+
+/* ⭐ COLORES ESPECÍFICOS PARA OTRAS MÉTRICAS (MANTENER LOS EXISTENTES) */
+.total-metas {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1e40af !important;
+  border: 1px solid #93c5fd;
+}
+
+.total-puntajes {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  color: #047857 !important;
+  border: 1px solid #6ee7b7;
+}
+
+.caracteristicas-count {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e !important;
+  border: 1px solid #fbbf24;
+}
+
+/* ⭐ PARA PANTALLAS MÁS GRANDES, MANTENER EL LAYOUT HORIZONTAL */
+@media (min-width: 1024px) {
+  .factor-card-header {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  
+  .factor-actions {
+    align-self: flex-start;
+    margin-top: 0;
+    margin-left: 16px;
+  }
+  
+  .peso-factor[title]:hover::after {
+    font-size: 0.75rem;
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+}
+
+/* ⭐ ASEGURAR QUE LAS ANIMACIONES SEAN CONSISTENTES */
+.metric-value,
+.peso-factor {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ⭐ ASEGURAR QUE EL TOOLTIP NO SE CORTE EN BORDES */
+.factor-card {
+  position: relative;
+  overflow: visible; /* ⭐ CAMBIAR DE hidden A visible */
+}
+
+.factor-metrics {
+  position: relative;
+  z-index: 1;
+}
+
+/* ⭐ COMPATIBILIDAD CON MODO OSCURO */
+.dark-mode .peso-sistema,
+.dark .peso-sistema {
+  background: linear-gradient(135deg, #4c1d95, #5b21b6) !important;
+  color: #e9d5ff !important;
+  border-color: #7c3aed !important;
+}
+
+.dark-mode .peso-sistema.peso-alto,
+.dark .peso-sistema.peso-alto {
+  background: linear-gradient(135deg, #991b1b, #b91c1c) !important;
+  color: #fecaca !important;
+  border-color: #dc2626 !important;
+}
+
+.dark-mode .peso-sistema[title]:hover::after,
+.dark .peso-sistema[title]:hover::after {
+  background: #374151 !important;
+  border-color: #6b7280 !important;
+}
+
+.dark-mode .peso-sistema.peso-alto[title]:hover::after,
+.dark .peso-sistema.peso-alto[title]:hover::after {
+  background: #b91c1c !important;
+  border-color: #7f1d1d !important;
+}
+
+/* ⭐ ELIMINAR ESTILOS CONFLICTIVOS ANTERIORES */
+/* Comentar o eliminar las reglas anteriores de peso-sistema que pudieran causar conflictos */
+
+/* ===== LIMPIAR ESTILOS DUPLICADOS ANTERIORES ===== */
+/* 
+Se eliminan los estilos anteriores de .peso-sistema que causaban conflictos:
+- Diferentes gradientes
+- Diferentes efectos de hover
+- Animaciones complejas no consistentes
+- Tooltips con estilos diferentes
+- Responsive inconsistente
+*/
+
+/* ⭐ MEJORAS ADICIONALES PARA CONSISTENCIA VISUAL */
+.peso-sistema {
+  /* Asegurar que use exactamente los mismos estilos que peso-factor */
+  font-family: inherit !important;
+  box-sizing: border-box !important;
+}
+
+/* ⭐ ANIMACIONES DE ENTRADA PARA LA MÉTRICA DE PESO EN SISTEMA */
+.metrics-row .peso-sistema {
+  animation: slideInWeight 0.6s ease-out backwards !important;
+  animation-delay: 0.3s !important;
+}
+
+@keyframes slideInWeight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ⭐ EFECTO ESPECIAL PARA LA FILA QUE CONTIENE PESO EN SISTEMA */
+.metrics-row.peso-sistema-row {
+  border: 1px solid rgba(124, 58, 237, 0.1) !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  background: rgba(243, 232, 255, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.metrics-row.peso-sistema-row:hover {
+  background: rgba(243, 232, 255, 0.5) !important;
+  border-color: rgba(124, 58, 237, 0.2) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1) !important;
+}
+
+.metrics-row.peso-sistema-row.peso-alto {
+  border-color: rgba(220, 38, 38, 0.1) !important;
+  background: rgba(254, 226, 226, 0.3) !important;
+}
+
+.metrics-row.peso-sistema-row.peso-alto:hover {
+  background: rgba(254, 226, 226, 0.5) !important;
+  border-color: rgba(220, 38, 38, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* ⭐ ETIQUETA ESPECIAL PARA PESO EN SISTEMA */
+.metric-label.peso-sistema-label {
+  color: #7c3aed !important;
+  font-weight: 700 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.metric-label.peso-sistema-label.peso-alto {
+  color: #dc2626 !important;
+}
+
+.metric-label.peso-sistema-label::before {
+  content: '⚖️';
+  font-size: 0.8rem;
+}
+
+.metric-label.peso-sistema-label.peso-alto::before {
+  content: '⚠️';
+}
+
+/* ⭐ HOVER ESPECIAL PARA TODA LA FILA DE PESO EN SISTEMA */
+.metrics-row.peso-sistema-row:hover .metric-label {
+  color: #5b21b6 !important;
+}
+
+.metrics-row.peso-sistema-row.peso-alto:hover .metric-label {
+  color: #991b1b !important;
+}
+
+/* ⭐ SEPARADOR VISUAL OPCIONAL PARA PESO EN SISTEMA */
+.peso-sistema-separator {
+  width: 100% !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.3), transparent) !important;
+  margin: 8px 0 !important;
+}
+
+.peso-sistema-separator.peso-alto {
+  background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.3), transparent) !important;
+}

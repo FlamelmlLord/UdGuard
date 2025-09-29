@@ -42,11 +42,26 @@
                     <div>
                       <h3 class="characteristic-title">{{ characteristic.nombre }}</h3>
                       
-                      <!-- ⭐ SECCIÓN ACTUALIZADA CON TOTALES -->
+                      <!-- ⭐ SECCIÓN ACTUALIZADA CON TOTALES Y PESO EN FACTOR -->
                       <div class="characteristic-metrics">
                         <div class="metrics-row">
                           <span class="metric-label">Grado Cumplimiento:</span>
                           <span class="metric-value">{{ characteristic.cumplimiento || '0.0' }}</span>
+                        </div>
+                        
+                        <!-- ⭐ FILA ACTUALIZADA: PESO EN FACTOR CON LÓGICA DINÁMICA -->
+                        <div class="metrics-row">
+                          <span class="metric-label">Peso en Factor:</span>
+                          <span 
+                            class="metric-value peso-factor"
+                            :class="{
+                              'peso-alto': isPesoAlto(characteristic) && !isPesoExtremo(characteristic),
+                              'peso-extremo': isPesoExtremo(characteristic)
+                            }"
+                            :title="getPesoTooltip(characteristic)"
+                          >
+                            {{ (characteristic.peso_en_factor || 0).toFixed(2) }}%
+                          </span>
                         </div>
                         
                         <div class="metrics-row">
@@ -318,7 +333,8 @@ export default {
   data () {
     return {
       characteristics: [],
-      title: "",
+      title: "Cargando...", // ⭐ CAMBIAR EL VALOR INICIAL
+      factorName: '', // ⭐ NUEVA VARIABLE PARA ALMACENAR EL NOMBRE DEL FACTOR
       loading: false,
       error: null,
       nuevaCaracteristica: {
@@ -389,6 +405,47 @@ export default {
         case 'gris':
         default:
           return '?';
+      }
+    },
+
+    // ⭐ NUEVO MÉTODO PARA OBTENER LA INFORMACIÓN DEL FACTOR
+    async fetchFactorInfo() {
+      if (!this.factorId) return;
+      
+      try {
+        const token = localStorage.getItem('access_token');
+        console.log('Fetching factor info for ID:', this.factorId);
+
+        // ⭐ HACER UNA PETICIÓN ESPECÍFICA PARA OBTENER LA INFO DEL FACTOR
+        const response = await axios.get(`/factors/`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
+        // ⭐ BUSCAR EL FACTOR ESPECÍFICO POR ID
+        const factorData = response.data.factors || response.data;
+        const currentFactor = factorData.find(factor => factor.id === this.factorId);
+        
+        if (currentFactor) {
+          this.factorName = currentFactor.nombre;
+          this.title = currentFactor.nombre;
+          console.log('Factor name found:', this.factorName);
+        } else {
+          console.warn('Factor not found with ID:', this.factorId);
+          this.title = `Características del Factor ${this.factorId}`;
+        }
+
+      } catch (error) {
+        console.error('Error fetching factor info:', error);
+        this.title = `Características del Factor ${this.factorId}`;
+        
+        if (error.response?.status === 401) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user_data');
+          this.$router.push('/login');
+        }
       }
     },
 
@@ -667,7 +724,48 @@ export default {
           confirmButtonText: 'Continuar'
         });
       }
-    }
+    },
+
+    // ⭐ MÉTODO ACTUALIZADO PARA DETERMINAR SI ES PESO ALTO O EXTREMO
+    isPesoAlto(characteristic) {
+      const pesoActual = parseFloat(characteristic.peso_en_factor || 0);
+      const umbralPesoAlto = parseFloat(characteristic.umbral_peso_alto || 0);
+      
+      return pesoActual >= umbralPesoAlto;
+    },
+
+    // ⭐ NUEVO MÉTODO PARA DETERMINAR SI ES PESO EXTREMO
+    isPesoExtremo(characteristic) {
+      const pesoActual = parseFloat(characteristic.peso_en_factor || 0);
+      const pesoPromedio = parseFloat(characteristic.peso_promedio_factor || 0);
+      
+      // Peso extremo = más del doble del promedio
+      return pesoActual >= (pesoPromedio * 2);
+    },
+
+    // ⭐ MÉTODO ACTUALIZADO PARA GENERAR TOOLTIP DINÁMICO
+    getPesoTooltip(characteristic) {
+      const pesoActual = (characteristic.peso_en_factor || 0).toFixed(2);
+      const pesoPromedio = (characteristic.peso_promedio_factor || 0).toFixed(2);
+      const umbralPesoAlto = (characteristic.umbral_peso_alto || 0).toFixed(2);
+      const totalCaracteristicas = characteristic.total_caracteristicas_factor || 0;
+      const esAlto = this.isPesoAlto(characteristic);
+      const esExtremo = this.isPesoExtremo(characteristic);
+      
+      let estado = 'Peso normal';
+      if (esExtremo) {
+        estado = 'PESO EXTREMO';
+      } else if (esAlto) {
+        estado = 'PESO ALTO';
+      }
+      
+      return `📊 ANÁLISIS DE PESO:\n` +
+             `• Peso actual: ${pesoActual}%\n` +
+             `• Total características: ${totalCaracteristicas}\n` +
+             `• Peso promedio: ${pesoPromedio}%\n` +
+             `• Umbral peso alto: ${umbralPesoAlto}%\n` +
+             `• Estado: ${estado}`;
+    },
   },
 
   created() {
@@ -675,8 +773,22 @@ export default {
   },
 
   async mounted() {
-    this.title = this.$route.params.titulo || `Características del Factor ${this.factorId}`;
-    console.log('Factor ID from route:', this.$route.params.factorId);
+    // ⭐ NUEVA LÓGICA PARA MANEJAR EL TÍTULO
+    console.log('DashboardCharacteristics mounted');
+    console.log('Route params:', this.$route.params);
+    
+    // ⭐ PRIORIZAR EL TÍTULO DE LOS PARÁMETROS DE LA RUTA
+    if (this.$route.params.titulo) {
+      this.title = this.$route.params.titulo;
+      this.factorName = this.$route.params.titulo;
+      console.log('Using title from route params:', this.title);
+    } else {
+      // ⭐ SI NO HAY TÍTULO EN LA RUTA, OBTENERLO DEL BACKEND
+      console.log('No title in route params, fetching from backend...');
+      await this.fetchFactorInfo();
+    }
+    
+    // ⭐ CARGAR LAS CARACTERÍSTICAS
     await this.fetchCaracteristica();
   }
 }

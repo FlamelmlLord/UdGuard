@@ -13,6 +13,8 @@ from .views import (
 
 urlpatterns = [
     path('factors/', FactorsCreateListViewSet.as_view(), name='factors-list-create'),
+    # ⭐ NUEVA RUTA PARA ELIMINAR FACTOR
+    path('factors/<uuid:factor_id>/', FactorsCreateListViewSet.as_view(), name='factors-delete'),
     path('factors/<uuid:factor_id>/characteristics/', FactorsListCreateCharacteristicsViewSet.as_view(), name='characteristics-list-create'),
     path('characteristics/<uuid:caracteristica_id>/', CharacteristicListUpdateViewSet.as_view(), name='characteristic-detail'),
     path('characteristics/<uuid:caracteristica_id>/indicators/', IndicatorCreateView.as_view(), name='indicators-create'),

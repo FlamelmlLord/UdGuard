@@ -131,10 +131,14 @@ class CharacteristicsSerializer(serializers.ModelSerializer):
     cumplimiento = serializers.FloatField(read_only=True)
     porcentaje = serializers.FloatField(read_only=True)
     grado_cumplimiento = serializers.DictField(read_only=True)
+    # ⭐ NUEVOS CAMPOS PARA PESO EN FACTOR
+    peso_en_factor = serializers.FloatField(read_only=True)
+    total_metas_factor = serializers.FloatField(read_only=True)
     
     class Meta:
         model = Characteristics
         fields = "__all__"
+        
     def get_meta(self,obj):
         indicadores = obj.indicator_set.all()
         if indicadores.exists():

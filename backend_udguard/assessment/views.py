@@ -26,119 +26,85 @@ class FactorsCreateListViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        tipo = request.user.tipo_user
-        if tipo != "admin":
-            return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
-
-        factors = Factors.objects.all()
-        
-        # ⭐ CALCULAR MÉTRICAS GENERALES DEL SISTEMA - VERSIÓN CORREGIDA
-        total_metas_sistema = 0
-        total_puntajes_sistema = 0
-        total_caracteristicas_sistema = 0
-        total_indicadores_sistema = 0
-        
-        # ⭐ CAMBIAR LÓGICA: USAR LOS GRADOS DE CUMPLIMIENTO YA CALCULADOS DE CADA FACTOR
-        grados_cumplimiento_factores = []
-        
-        # ⭐ PRIMERA PASADA: CALCULAR EL TOTAL DE METAS DEL SISTEMA
-        for factor in factors:
-            caracteristicas = factor.characteristics_set.all()
-            for caracteristica in caracteristicas:
-                indicadores = caracteristica.indicator_set.all()
-                for indicador in indicadores:
-                    if indicador.meta is not None:
-                        total_metas_sistema += indicador.meta
-
-        print(f"Total metas del sistema calculado: {total_metas_sistema}")
-
-        # ⭐ SEGUNDA PASADA: CALCULAR DATOS DE CADA FACTOR CON SU PESO
-        for factor in factors:
-            caracteristicas = factor.characteristics_set.all()
-            total_caracteristicas_sistema += caracteristicas.count()
+        try:
+            factors = Factors.objects.all()
+            serialized_factors = []
             
-            # ⭐ OBTENER EL GRADO DE CUMPLIMIENTO YA CALCULADO DEL FACTOR
-            factor_serialized = FactorsSerializer(factor).data
-            factor_cumplimiento = factor_serialized.get('estado', {}).get('promedio', 0)
+            # ⭐ CALCULAR TOTAL DE METAS DEL SISTEMA PARA PESO EN SISTEMA
+            total_metas_sistema = 0
+            for factor in factors:
+                caracteristicas = factor.characteristics_set.all()
+                for caracteristica in caracteristicas:
+                    indicadores = caracteristica.indicator_set.all()
+                    for indicador in indicadores:
+                        if indicador.meta is not None:
+                            total_metas_sistema += indicador.meta
             
-            if factor_cumplimiento and factor_cumplimiento > 0:
-                grados_cumplimiento_factores.append(factor_cumplimiento)
-                print(f"Factor '{factor.nombre}': {factor_cumplimiento}")
-            
-            # ⭐ CALCULAR TOTALES DE METAS, PUNTAJES E INDICADORES (MANTENER LÓGICA ACTUAL)
-            for caracteristica in caracteristicas:
-                indicadores = caracteristica.indicator_set.all()
-                total_indicadores_sistema += indicadores.count()
+            for factor in factors:
+                factor_data = FactorsSerializer(factor).data
                 
-                for indicador in indicadores:
-                    if indicador.calificacion is not None and indicador.ponderacion is not None:
-                        total_puntajes_sistema += indicador.puntos
+                # ⭐ CALCULAR PESO EN SISTEMA CON INFORMACIÓN ADICIONAL
+                total_metas_factor = 0
+                caracteristicas = factor.characteristics_set.all()
+                total_caracteristicas = caracteristicas.count()
+                
+                for caracteristica in caracteristicas:
+                    indicadores = caracteristica.indicator_set.all()
+                    for indicador in indicadores:
+                        if indicador.meta is not None:
+                            total_metas_factor += indicador.meta
+                
+                # Calcular peso en sistema
+                if total_metas_sistema > 0 and total_metas_factor > 0:
+                    peso_en_sistema = round((total_metas_factor / total_metas_sistema) * 100, 2)
+                else:
+                    peso_en_sistema = 0.0
+                
+                # ⭐ CALCULAR PESO PROMEDIO Y UMBRAL DE PESO ALTO
+                total_factores = factors.count()
+                if total_factores > 0:
+                    peso_promedio_sistema = round(100 / total_factores, 2)  # Peso promedio por factor
+                    umbral_peso_alto_sistema = round(peso_promedio_sistema + 10, 2)  # Promedio + 10%
+                else:
+                    peso_promedio_sistema = 0.0
+                    umbral_peso_alto_sistema = 0.0
+                
+                # ⭐ AGREGAR INFORMACIÓN ADICIONAL PARA EL TOOLTIP
+                factor_data['peso_en_sistema'] = peso_en_sistema
+                factor_data['total_metas_factor'] = round(total_metas_factor, 2)
+                factor_data['total_metas_sistema'] = round(total_metas_sistema, 2)
+                factor_data['peso_promedio_sistema'] = peso_promedio_sistema
+                factor_data['umbral_peso_alto_sistema'] = umbral_peso_alto_sistema
+                factor_data['total_factores_sistema'] = total_factores
+                factor_data['total_caracteristicas_factor'] = total_caracteristicas
+                
+                print(f"Factor '{factor.nombre}':")
+                print(f"  - Total factores en sistema: {total_factores}")
+                print(f"  - Peso promedio sistema: {peso_promedio_sistema}%")
+                print(f"  - Umbral peso alto sistema: {umbral_peso_alto_sistema}%")
+                print(f"  - Peso actual: {peso_en_sistema}%")
+                print(f"  - ¿Es peso alto?: {'SÍ' if peso_en_sistema >= umbral_peso_alto_sistema else 'NO'}")
+                
+                serialized_factors.append(factor_data)
 
-        # ⭐ CALCULAR GRADO DE CUMPLIMIENTO GENERAL DESDE FACTORES (NO CARACTERÍSTICAS)
-        if grados_cumplimiento_factores:
-            promedio_general = sum(grados_cumplimiento_factores) / len(grados_cumplimiento_factores)
-            cumplimiento_general = round(promedio_general, 2)
-            porcentaje_general = round(((promedio_general - 1) / 4) * 100, 2) if promedio_general else 0
-            
-            grado_cumplimiento_general = get_grado_cumplimiento(cumplimiento_general)
-            
-            print(f"=== CÁLCULO CORREGIDO ===")
-            print(f"Grados de cumplimiento de factores: {grados_cumplimiento_factores}")
-            print(f"Suma: {sum(grados_cumplimiento_factores)}")
-            print(f"Cantidad de factores: {len(grados_cumplimiento_factores)}")
-            print(f"Promedio manual: {sum(grados_cumplimiento_factores) / len(grados_cumplimiento_factores)}")
-            print(f"Cumplimiento general calculado: {cumplimiento_general}")
-            print(f"Porcentaje general: {porcentaje_general}")
-            print(f"Grado: {grado_cumplimiento_general['grado']}")
-            print(f"Color: {grado_cumplimiento_general['color']}")
-            
-        else:
-            cumplimiento_general = 0.0
-            porcentaje_general = 0.0
-            grado_cumplimiento_general = {
-                "grado": "N/A",
-                "descripcion": "Sin datos suficientes",
-                "color": "#6b7280",
-            }
-
-        # ⭐ SERIALIZAR DATOS DE FACTORES CON PESO EN SISTEMA
-        serialized_factors = []
-        for factor in factors:
-            factor_data = FactorsSerializer(factor).data
-            
-            # ⭐ CALCULAR PESO EN SISTEMA PARA ESTE FACTOR
-            factor_metas = factor_data.get('meta', 0)
-            if total_metas_sistema > 0 and factor_metas > 0:
-                peso_en_sistema = round((factor_metas / total_metas_sistema) * 100, 2)
+            # ⭐ CALCULAR MÉTRICAS GENERALES CON 2 DECIMALES
+            if factors.exists():
+                metricas_generales = self.calcular_metricas_generales(factors)
             else:
-                peso_en_sistema = 0.0
-            
-            factor_data['peso_en_sistema'] = peso_en_sistema
-            serialized_factors.append(factor_data)
-            
-            print(f"Factor '{factor.nombre}': Metas={factor_metas}, Peso={peso_en_sistema}%")
-        
-        # ⭐ AGREGAR MÉTRICAS GENERALES A LA RESPUESTA
-        response_data = {
-            "factors": serialized_factors,
-            "metricas_generales": {
-                "total_metas": round(total_metas_sistema, 2),
-                "total_puntajes": round(total_puntajes_sistema, 2),
-                "total_caracteristicas": total_caracteristicas_sistema,
-                "total_indicadores": total_indicadores_sistema,
-                "cumplimiento_general": cumplimiento_general,
-                "porcentaje_general": porcentaje_general,
-                "grado_cumplimiento_general": grado_cumplimiento_general,
-                # ⭐ AGREGAR DATOS DE DEBUG PARA VERIFICACIÓN
-                "debug_info": {
-                    "factores_evaluados": len(grados_cumplimiento_factores),
-                    "grados_individuales": grados_cumplimiento_factores,
-                    "suma_grados": sum(grados_cumplimiento_factores) if grados_cumplimiento_factores else 0
-                }
+                metricas_generales = None
+
+            response_data = {
+                "factors": serialized_factors,
+                "metricas_generales": metricas_generales
             }
-        }
-        
-        return Response(response_data, status=status.HTTP_200_OK)
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Error al obtener los factores: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def post(self, request):
         tipo = request.user.tipo_user
@@ -169,6 +135,136 @@ class FactorsCreateListViewSet(APIView):
         log_action(factor, "update", request.user)
 
         return Response({"message": "Factor actualizado correctamente"}, status=status.HTTP_200_OK)
+
+    def delete(self, request, factor_id=None):
+        """Eliminar un factor y todas sus dependencias"""
+        tipo = request.user.tipo_user
+        if tipo != "admin":
+            return Response("Unauthorized", status=status.HTTP_401_UNAUTHORIZED)
+
+        # Obtener factor_id desde la URL si no se pasa como parámetro
+        if not factor_id:
+            factor_id = request.data.get("id")
+            
+        if not factor_id:
+            return Response(
+                {"error": "Debe proporcionar el ID del factor a eliminar"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            factor = get_object_or_404(Factors, pk=factor_id)
+            
+            # ⭐ CONTAR ELEMENTOS ANTES DE ELIMINAR PARA EL LOG
+            caracteristicas = factor.characteristics_set.all()
+            num_caracteristicas = caracteristicas.count()
+            num_indicadores = sum(c.indicator_set.count() for c in caracteristicas)
+            
+            # ⭐ GUARDAR INFORMACIÓN PARA EL LOG ANTES DE ELIMINAR
+            factor_nombre = factor.nombre
+            
+            # ⭐ LOG ANTES DE ELIMINAR
+            extra_info = f"(contenía {num_caracteristicas} característica{'s' if num_caracteristicas != 1 else ''} y {num_indicadores} indicador{'es' if num_indicadores != 1 else ''})"
+            log_action(factor, "delete", request.user, extra_info)
+            
+            # Eliminar el factor (CASCADE eliminará características e indicadores automáticamente)
+            factor.delete()
+
+            return Response(
+                {"message": f"Factor '{factor_nombre}' eliminado correctamente junto con todas sus dependencias"}, 
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            return Response(
+                {"error": f"Error al eliminar el factor: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    # ⭐ MOVER EL MÉTODO DENTRO DE LA CLASE
+    def calcular_metricas_generales(self, factors):
+        """
+        Calcula las métricas generales del sistema con 2 decimales
+        """
+        try:
+            print("Calculando métricas generales del sistema...")
+            
+            # Inicializar contadores
+            total_metas_sistema = 0
+            total_puntajes_sistema = 0
+            total_caracteristicas_sistema = 0
+            total_indicadores_sistema = 0
+            cumplimientos_factores = []
+            
+            for factor in factors:
+                print(f"Procesando factor: {factor.nombre}")
+                
+                # Obtener características del factor
+                caracteristicas = factor.characteristics_set.all()
+                total_caracteristicas_sistema += caracteristicas.count()
+                
+                cumplimientos_caracteristicas = []
+                
+                for caracteristica in caracteristicas:
+                    # Obtener indicadores de la característica
+                    indicadores = caracteristica.indicator_set.all()
+                    total_indicadores_sistema += indicadores.count()
+                    
+                    # Calcular metas y puntajes de esta característica
+                    metas_caracteristica = 0
+                    puntajes_caracteristica = 0
+                    calificaciones_caracteristica = []
+                    
+                    for indicador in indicadores:
+                        if indicador.meta is not None:
+                            metas_caracteristica += indicador.meta
+                            total_metas_sistema += indicador.meta
+                        
+                        if indicador.calificacion is not None and indicador.ponderacion is not None:
+                            puntajes_caracteristica += indicador.puntos
+                            total_puntajes_sistema += indicador.puntos
+                            calificaciones_caracteristica.append(indicador.calificacion)
+                    
+                    # Calcular promedio de cumplimiento de la característica
+                    if calificaciones_caracteristica:
+                        promedio_caracteristica = sum(calificaciones_caracteristica) / len(calificaciones_caracteristica)
+                        cumplimientos_caracteristicas.append(promedio_caracteristica)
+                
+                # Calcular promedio del factor
+                if cumplimientos_caracteristicas:
+                    promedio_factor = sum(cumplimientos_caracteristicas) / len(cumplimientos_caracteristicas)
+                    cumplimientos_factores.append(promedio_factor)
+            
+            # Calcular métricas generales
+            if cumplimientos_factores:
+                cumplimiento_general = sum(cumplimientos_factores) / len(cumplimientos_factores)
+                porcentaje_general = ((cumplimiento_general - 1) / 4) * 100 if cumplimiento_general > 0 else 0
+            else:
+                cumplimiento_general = 0
+                porcentaje_general = 0
+            
+            # Obtener grado de cumplimiento general
+            grado_cumplimiento_general = get_grado_cumplimiento(cumplimiento_general)
+            
+            metricas = {
+                "cumplimiento_general": round(cumplimiento_general, 2),
+                "porcentaje_general": round(porcentaje_general, 2),
+                "grado_cumplimiento_general": grado_cumplimiento_general,
+                "total_metas": round(total_metas_sistema, 2),
+                "total_puntajes": round(total_puntajes_sistema, 2),
+                "total_caracteristicas": total_caracteristicas_sistema,
+                "total_indicadores": total_indicadores_sistema,
+                "total_factores": factors.count()
+            }
+            
+            print(f"Métricas calculadas: {metricas}")
+            return metricas
+            
+        except Exception as e:
+            print(f"Error calculando métricas generales: {e}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            return None
 
 
 class FactorsListCreateCharacteristicsViewSet(APIView):
@@ -218,7 +314,7 @@ class CharacteristicListUpdateViewSet(APIView):
 
         caracteristica_data["cumplimiento"] = round(promedio, 1)
 
-        caracteristica_data["porcentaje"] = (
+        caracteristica_data["porcentaje"] = ( 
             round(((promedio - 1) / 4) * 100, 1) if promedio else 0
         )
 
@@ -341,6 +437,7 @@ class IndicatorUpdateView(APIView):
             status=status.HTTP_204_NO_CONTENT,
         )
 
+# ⭐ MOVER ESTAS FUNCIONES FUERA DE LA CLASE (COMO FUNCIONES GLOBALES)
 def get_grado_cumplimiento(grado_numerico):
     """
     Determina el grado de cumplimiento basado en la escala numérica 1-5
@@ -424,18 +521,67 @@ def characteristic_status(caracteristica):
     caracteristica_data = CharacteristicsSerializer(caracteristica).data
 
     # ⭐ USAR 2 DECIMALES PARA MAYOR PRECISIÓN
-    caracteristica_data["cumplimiento"] = round(promedio, 2)  # ⭐ CAMBIAR A 2 DECIMALES
+    caracteristica_data["cumplimiento"] = round(promedio, 2)
     caracteristica_data["porcentaje"] = (
-        round(((promedio - 1) / 4) * 100, 2) if promedio else 0  # ⭐ CAMBIAR A 2 DECIMALES
+        round(((promedio - 1) / 4) * 100, 2) if promedio else 0
     )
     caracteristica_data["grado_cumplimiento"] = get_grado_cumplimiento(
         caracteristica_data["cumplimiento"]
     )
     
     # ⭐ AGREGAR TOTALES A LA RESPUESTA CON 2 DECIMALES
-    caracteristica_data["total_metas"] = round(total_metas, 2)  # ⭐ 2 DECIMALES
-    caracteristica_data["total_puntajes"] = round(total_puntajes, 2)  # ⭐ 2 DECIMALES
+    caracteristica_data["total_metas"] = round(total_metas, 2)
+    caracteristica_data["total_puntajes"] = round(total_puntajes, 2)
     caracteristica_data["cantidad_indicadores"] = indicators.count()
+    
+    # ⭐ NUEVO: CALCULAR PESO EN FACTOR CON LÓGICA DE PESO ALTO DINÁMICO
+    factor = caracteristica.factors
+    if factor:
+        # Obtener todas las características del factor
+        factor_caracteristicas = factor.characteristics_set.all()
+        total_caracteristicas = factor_caracteristicas.count()
+        
+        # Calcular total de metas del factor
+        total_metas_factor = 0
+        for c in factor_caracteristicas:
+            indicadores_factor = c.indicator_set.all()
+            for indicador in indicadores_factor:
+                if indicador.meta is not None:
+                    total_metas_factor += indicador.meta
+        
+        # Calcular peso de esta característica en el factor
+        if total_metas_factor > 0 and total_metas > 0:
+            peso_en_factor = round((total_metas / total_metas_factor) * 100, 2)
+        else:
+            peso_en_factor = 0.0
+        
+        # ⭐ CALCULAR PESO PROMEDIO Y UMBRAL DE PESO ALTO
+        if total_caracteristicas > 0:
+            peso_promedio = round(100 / total_caracteristicas, 2)  # Peso promedio por característica
+            umbral_peso_alto = round(peso_promedio + 10, 2)  # Promedio + 10%
+        else:
+            peso_promedio = 0.0
+            umbral_peso_alto = 0.0
+            
+        caracteristica_data["peso_en_factor"] = peso_en_factor
+        caracteristica_data["total_metas_factor"] = round(total_metas_factor, 2)
+        caracteristica_data["peso_promedio_factor"] = peso_promedio  # ⭐ NUEVO CAMPO
+        caracteristica_data["umbral_peso_alto"] = umbral_peso_alto   # ⭐ NUEVO CAMPO
+        caracteristica_data["total_caracteristicas_factor"] = total_caracteristicas  # ⭐ NUEVO CAMPO
+        
+        print(f"Característica '{caracteristica.nombre}':")
+        print(f"  - Total características en factor: {total_caracteristicas}")
+        print(f"  - Peso promedio: {peso_promedio}%")
+        print(f"  - Umbral peso alto: {umbral_peso_alto}%")
+        print(f"  - Peso actual: {peso_en_factor}%")
+        print(f"  - ¿Es peso alto?: {'SÍ' if peso_en_factor >= umbral_peso_alto else 'NO'}")
+        
+    else:
+        caracteristica_data["peso_en_factor"] = 0.0
+        caracteristica_data["total_metas_factor"] = 0.0
+        caracteristica_data["peso_promedio_factor"] = 0.0
+        caracteristica_data["umbral_peso_alto"] = 0.0
+        caracteristica_data["total_caracteristicas_factor"] = 0
 
     return caracteristica_data
 

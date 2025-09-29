@@ -12,6 +12,15 @@
           </div>
           <!-- Botón Adjuntar Resultados -->
           <div class="header-actions">
+            <!-- ⭐ NUEVO BOTÓN CREAR FACTOR -->
+            <button @click="showCreateFactorModal = true" class="create-factor-btn" title="Crear nuevo factor">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              <span>Crear Factor</span>
+            </button>
+            
             <button @click="showAttachResultsModal = true" class="attach-results-btn" title="Abrir modal para subir resultados de encuestas">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.64 16.2a2 2 0 0 1-2.83-2.83l8.49-8.49"/>
@@ -59,6 +68,21 @@
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                       </svg>
                     </button>
+                    
+                    <!-- ⭐ NUEVO BOTÓN ELIMINAR FACTOR -->
+                    <button 
+                      @click="confirmarEliminarFactor(factor)" 
+                      class="icon-btn delete-btn"
+                      title="Eliminar factor"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3,6 5,6 21,6"/>
+                        <path d="m19,6-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/>
+                        <path d="M10,11v6"/>
+                        <path d="M14,11v6"/>
+                        <path d="M5,6l1-2a2,2,0,0,1,2-2h8a2,2,0,0,1,2,2l1,2"/>
+                      </svg>
+                    </button>
                   </div>
                   
                   <!-- Estado del factor -->
@@ -81,15 +105,15 @@
                       <span class="metric-value">{{ (factor.estado?.promedio || 0).toFixed(2) }}</span>
                     </div>
                     
-                    <!-- ⭐ NUEVA FILA: PESO EN SISTEMA -->
+                    <!-- ⭐ FILA ACTUALIZADA: PESO EN SISTEMA CON TOOLTIP DINÁMICO -->
                     <div class="metrics-row">
                       <span class="metric-label">Peso en Sistema:</span>
                       <span 
                         class="metric-value peso-sistema"
                         :class="{
-                          'peso-alto': (factor.peso_en_sistema || 0) >= 14
+                          'peso-alto': isPesoAltoSistema(factor)
                         }"
-                        :title="`Este factor representa el ${(factor.peso_en_sistema || 0).toFixed(2)}% del total de metas del sistema`"
+                        :title="getPesoSistemaTooltipCompacto(factor)"
                       >
                         {{ (factor.peso_en_sistema || 0).toFixed(2) }}%
                       </span>
@@ -522,6 +546,163 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal para crear factor -->
+    <div class="modal" v-if="showCreateFactorModal" @click.self="cerrarModalCrearFactor">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Crear Nuevo Factor</h3>
+          <button @click="cerrarModalCrearFactor" class="close-btn" title="Cerrar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <!-- Campo nombre -->
+          <div class="form-section">
+            <label class="form-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+              Nombre del Factor *
+            </label>
+            <input 
+              v-model="nuevoFactor.nombre" 
+              placeholder="Ej: FACTOR 1. Estudiantes" 
+              class="input"
+              @keypress.enter="$event.target.blur()"
+              maxlength="200"
+            />
+            <div class="input-counter">
+              {{ (nuevoFactor.nombre || '').length }}/200 caracteres
+            </div>
+          </div>
+          
+          <!-- Campo descripción -->
+          <div class="form-section">
+            <label class="form-label">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14,2 14,8 20,8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10,9 9,9 8,9"/>
+              </svg>
+              Descripción del Factor
+            </label>
+            <textarea 
+              v-model="nuevoFactor.descripcion" 
+              placeholder="Describa detalladamente este factor..." 
+              class="input textarea-input"
+              rows="6"
+              maxlength="1000"
+            ></textarea>
+            <div class="input-counter">
+              {{ (nuevoFactor.descripcion || '').length }}/1000 caracteres
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button @click="cerrarModalCrearFactor" class="cancel-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Cancelar
+          </button>
+          <button 
+            @click="crearFactor" 
+            class="save-btn primary"
+            :disabled="!nuevoFactor.nombre?.trim()"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Crear Factor
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de confirmación eliminar factor -->
+    <div class="modal" v-if="showDeleteFactorModal" @click.self="cerrarModalEliminarFactor">
+      <div class="modal-content modal-small">
+        <div class="modal-header delete-header">
+          <h3>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            Confirmar Eliminación
+          </h3>
+          <button @click="cerrarModalEliminarFactor" class="close-btn" title="Cerrar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="delete-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          
+          <h4>¿Estás seguro?</h4>
+          
+          <p class="warning-text">
+            ¿Deseas eliminar el factor 
+            <strong>"{{ factorAEliminar?.nombre }}"</strong>?
+          </p>
+          
+          <div v-if="factorAEliminar?.cantidad_caracteristicas > 0" class="danger-warning">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span>
+              Este factor tiene <strong>{{ factorAEliminar?.cantidad_caracteristicas }} característica(s)</strong> 
+              que también serán eliminadas permanentemente, junto con todos sus indicadores.
+            </span>
+          </div>
+          
+          <p class="warning-final">
+            <strong>Esta acción no se puede deshacer.</strong>
+          </p>
+        </div>
+        
+        <div class="modal-footer">
+          <button @click="cerrarModalEliminarFactor" class="cancel-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Cancelar
+          </button>
+          <button @click="eliminarFactor" class="delete-btn-confirm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3,6 5,6 21,6"/>
+              <path d="m19,6-1,14a2,2,0,0,1-2-2H8a2,2,0,0,1-2,2L5,6"/>
+              <path d="M10,11v6"/>
+              <path d="M14,11v6"/>
+              <path d="M5,6l1-2a2,2,0,0,1,2-2h8a2,2,0,0,1,2,2l1,2"/>
+            </svg>
+            Eliminar Permanentemente
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -535,8 +716,8 @@ export default {
   data() {
     return {
       factores: [],
-      metricasGenerales: null, // ⭐ NUEVA PROPIEDAD PARA MÉTRICAS GENERALES
-      cumplimientoGeneralChart: null, // ⭐ NUEVA PROPIEDAD PARA EL GRÁFICO
+      metricasGenerales: null,
+      cumplimientoGeneralChart: null,
       loading: false,
       error: null,
       // Modal de adjuntar resultados - variables actualizadas
@@ -547,6 +728,17 @@ export default {
       isDragOver: false,
       isUploading: false,
       uploadProgress: 0,
+      
+      // ⭐ VARIABLES PARA CREAR FACTOR
+      showCreateFactorModal: false,
+      nuevoFactor: {
+        nombre: '',
+        descripcion: ''
+      },
+      
+      // ⭐ VARIABLES PARA ELIMINAR FACTOR
+      showDeleteFactorModal: false,
+      factorAEliminar: null,
       
       // ⭐ VARIABLES PARA EDITAR FACTOR (mantener las existentes)
       mostrarModalEditarFactor: false,
@@ -798,11 +990,13 @@ export default {
     },
 
     navigateToDashboardCharacteristics(factor) {
+      console.log('Navigating to characteristics for factor:', factor.nombre); // ⭐ LOG PARA DEBUG
+      
       this.$router.push({
         name: 'DashboardCharacteristics',
         params: { 
           factorId: factor.id, 
-          titulo: factor.nombre 
+          titulo: factor.nombre // ⭐ ASEGURAR QUE SIEMPRE SE PASE EL TÍTULO
         }
       })
     },
@@ -1139,7 +1333,183 @@ export default {
           confirmButtonText: 'Continuar'
         });
       }
-    }
+    },
+
+    // ⭐ MÉTODOS PARA CREAR FACTOR
+    cerrarModalCrearFactor() {
+      this.showCreateFactorModal = false;
+      this.nuevoFactor = {
+        nombre: '',
+        descripcion: ''
+      };
+    },
+
+    async crearFactor() {
+      if (!this.nuevoFactor.nombre?.trim()) {
+        this.$swal({
+          title: 'Error',
+          text: 'El nombre del factor es requerido.',
+          icon: 'warning',
+          confirmButtonText: 'Continuar'
+        });
+        return;
+      }
+
+      try {
+        const token = localStorage.getItem('access_token');
+        
+        console.log('Creando factor:', this.nuevoFactor);
+
+        const response = await axios.post(
+          `/factors/`,
+          {
+            nombre: this.nuevoFactor.nombre.trim(),
+            descripcion: this.nuevoFactor.descripcion?.trim() || ''
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        console.log('Factor created:', response.data);
+
+        // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE CREAR
+        await this.fetchFactores();
+
+        this.$swal({
+          title: '¡Factor Creado!',
+          text: 'El nuevo factor se ha creado correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Continuar'
+        });
+
+        this.cerrarModalCrearFactor();
+
+      } catch (error) {
+        console.error('Error creating factor:', error);
+        
+        let errorMessage = 'Error al crear el factor.';
+        
+        if (error.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user_data');
+          this.$router.push('/login');
+        } else if (error.response?.status === 403) {
+          errorMessage = 'No tienes permisos para crear factores.';
+        } else if (error.response?.status === 400) {
+          errorMessage = 'Datos inválidos. Verifique que el nombre no esté duplicado.';
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        }
+
+        this.$swal({
+          title: 'Error',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Continuar'
+        });
+      }
+    },
+
+    // ⭐ MÉTODOS PARA ELIMINAR FACTOR
+    confirmarEliminarFactor(factor) {
+      this.factorAEliminar = factor;
+      this.showDeleteFactorModal = true;
+    },
+
+    cerrarModalEliminarFactor() {
+      this.showDeleteFactorModal = false;
+      this.factorAEliminar = null;
+    },
+
+    async eliminarFactor() {
+      if (!this.factorAEliminar) return;
+
+      try {
+        const token = localStorage.getItem('access_token');
+        
+        console.log('Eliminando factor:', this.factorAEliminar.id);
+
+        const response = await axios.delete(
+          `/factors/${this.factorAEliminar.id}/`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        
+        console.log('Factor deleted:', response.data);
+
+        // ⭐ REFRESCAR DATOS DEL BACKEND DESPUÉS DE ELIMINAR
+        await this.fetchFactores();
+
+        this.$swal({
+          title: '¡Factor Eliminado!',
+          text: 'El factor y todas sus características e indicadores han sido eliminados correctamente.',
+          icon: 'success',
+          confirmButtonText: 'Continuar'
+        });
+
+        this.cerrarModalEliminarFactor();
+
+      } catch (error) {
+        console.error('Error deleting factor:', error);
+        
+        let errorMessage = 'Error al eliminar el factor.';
+        
+        if (error.response?.status === 401) {
+          errorMessage = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user_data');
+          this.$router.push('/login');
+        } else if (error.response?.status === 403) {
+          errorMessage = 'No tienes permisos para eliminar factores.';
+        } else if (error.response?.status === 404) {
+          errorMessage = 'El factor no fue encontrado.';
+        } else if (error.response?.status === 400) {
+          errorMessage = 'No se puede eliminar el factor. Puede tener dependencias.';
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data?.error) {
+          errorMessage = error.response.data.error;
+        }
+
+        this.$swal({
+          title: 'Error',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'Continuar'
+        });
+      }
+    },
+
+    // ⭐ MÉTODO PARA VERIFICAR SI EL PESO EN SISTEMA ES ALTO
+    isPesoAltoSistema(factor) {
+      const pesoActual = parseFloat(factor.peso_en_sistema || 0);
+      const umbralPesoAlto = parseFloat(factor.umbral_peso_alto_sistema || 0);
+      
+      return pesoActual >= umbralPesoAlto;
+    },
+
+    // ⭐ MÉTODO ALTERNATIVO PARA TOOLTIP MÁS COMPACTO (OPCIONAL)
+    getPesoSistemaTooltipCompacto(factor) {
+      const pesoActual = (factor.peso_en_sistema || 0).toFixed(2);
+      const pesoPromedio = (factor.peso_promedio_sistema || 0).toFixed(2);
+      const umbralPesoAlto = (factor.umbral_peso_alto_sistema || 0).toFixed(2);
+      const totalFactores = factor.total_factores_sistema || 0;
+      const esAlto = this.isPesoAltoSistema(factor);
+      
+      return `Peso: ${pesoActual}% | Factores: ${totalFactores} | Promedio: ${pesoPromedio}% | Alto desde: ${umbralPesoAlto}% | Estado: ${esAlto ? 'Alto' : 'Normal'}`;
+    },
   },
 
   async mounted() {
