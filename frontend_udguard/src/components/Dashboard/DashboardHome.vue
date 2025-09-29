@@ -12,9 +12,9 @@
       </div>
     </div>
 
-    <!-- Main Content - Solo Calendar Panel -->
-    <div class="main-content">
-      <!-- Calendar Panel - Ahora ocupa todo el ancho -->
+    <!-- Main Content Grid -->
+    <div class="main-grid">
+      <!-- Left Panel: Calendar (Principal) -->
       <div class="calendar-panel">
         <div class="panel-header">
           <h2 class="panel-title">
@@ -26,18 +26,6 @@
             </svg>
             Calendario de Actividades
           </h2>
-
-          <!-- Event Counters dentro del header del calendario -->
-          <div class="calendar-event-counters">
-            <div class="calendar-counter-card">
-              <div class="calendar-counter-number">{{ upcomingEventsCount }}</div>
-              <div class="calendar-counter-label">Próximos Eventos</div>
-            </div>
-            <div class="calendar-counter-card">
-              <div class="calendar-counter-number">{{ todayEventsCount }}</div>
-              <div class="calendar-counter-label">Eventos Hoy</div>
-            </div>
-          </div>
 
           <!-- Admin Controls -->
           <div v-if="isAdmin" class="panel-controls">
@@ -65,6 +53,89 @@
             :options="calendarOptions"
             class="custom-calendar"
           />
+        </div>
+      </div>
+
+      <!-- Right Panel: Info Cards -->
+      <div class="info-panel">
+        <!-- Panel de Próximos Eventos - REEMPLAZA EL CARRUSEL -->
+        <div class="upcoming-events-panel">
+          <div class="panel-header-small">
+            <h3 class="panel-title-small">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="panel-icon-small">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
+                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
+                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              Próximos Eventos
+            </h3>
+            <span class="events-badge">{{ upcomingEvents.length }}</span>
+          </div>
+
+          <div class="events-preview-container">
+            <!-- Estado vacío -->
+            <div v-if="upcomingEvents.length === 0" class="empty-events-state">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" class="empty-icon">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
+                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
+                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
+                <line x1="12" y1="14" x2="12" y2="18" stroke="currentColor" stroke-width="2"/>
+                <line x1="10" y1="16" x2="14" y2="16" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <p>No hay eventos próximos</p>
+              <button v-if="isAdmin" class="btn btn-sm btn-primary" @click="showCreateEventModal = true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2"/>
+                  <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Crear Evento
+              </button>
+            </div>
+
+            <!-- Lista de eventos -->
+            <div v-else class="events-preview-list">
+              <div 
+                v-for="event in upcomingEvents" 
+                :key="event.id" 
+                class="event-preview-item"
+                @click="viewEventDetails(event)"
+              >
+                <div class="event-preview-indicator" :style="{ backgroundColor: event.color }"></div>
+                <div class="event-preview-content">
+                  <div class="event-preview-header">
+                    <h4 class="event-preview-title">{{ event.title }}</h4>
+                    <span class="event-preview-badge" :class="getTypeBadgeClass(event.extendedProps?.type)">
+                      {{ getTypeLabel(event.extendedProps?.type) }}
+                    </span>
+                  </div>
+                  <div class="event-preview-info">
+                    <div class="event-preview-date">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                      <span>{{ formatEventDateShort(event.start) }}</span>
+                    </div>
+                    <div v-if="isToday(event.start)" class="today-indicator">
+                      <span>HOY</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ver todos los eventos -->
+            <div v-if="upcomingEvents.length > 0" class="events-preview-footer">
+              <button class="btn btn-text btn-sm" @click="showManageEventsModal = true">
+                Ver todos los eventos
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <polyline points="9 18 15 12 9 6" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -265,260 +336,458 @@
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Edit Event Modal -->
-    <div v-if="showEditEventModal" class="modal-overlay" @click="closeEditEventModal">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>Editar Evento</h3>
-          <button class="modal-close" @click="closeEditEventModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
-        </div>
-
-        <form @submit.prevent="updateEvent" class="event-form">
-          <div class="form-group">
-            <label for="editEventTitle">Título del Evento</label>
-            <input
-              id="editEventTitle"
-              v-model="editingEvent.titulo"
-              type="text"
-              required
-              placeholder="Ingrese el título del evento"
-              maxlength="100"
-            />
+      <!-- Create Event Modal -->
+      <div v-if="showCreateEventModal" class="modal-overlay" @click="closeCreateEventModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3>Crear Nuevo Evento</h3>
+            <button class="modal-close" @click="closeCreateEventModal">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
           </div>
 
-          <div class="form-group">
-            <label for="editEventDescription">Descripción</label>
-            <textarea
-              id="editEventDescription"
-              v-model="editingEvent.descripcion"
-              placeholder="Descripción del evento (opcional)"
-              rows="3"
-              maxlength="500"
-            ></textarea>
-          </div>
-
-          <div class="form-row">
+          <form @submit.prevent="createEvent" class="event-form">
             <div class="form-group">
-              <label for="editEventStart">Fecha de Inicio</label>
+              <label for="eventTitle">Título del Evento</label>
               <input
-                id="editEventStart"
-                v-model="editingEvent.fecha_inicio"
-                type="datetime-local"
+                id="eventTitle"
+                v-model="newEvent.titulo"
+                type="text"
                 required
+                maxlength="100"
               />
             </div>
 
             <div class="form-group">
-              <label for="editEventEnd">Fecha de Fin (Opcional)</label>
-              <input
-                id="editEventEnd"
-                v-model="editingEvent.fecha_fin"
-                type="datetime-local"
-              />
+              <label for="eventDescription">Descripción</label>
+              <textarea
+                id="eventDescription"
+                v-model="newEvent.descripcion"
+                rows="3"
+                maxlength="500"
+              ></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="eventStart">Fecha de Inicio</label>
+                <input
+                  id="eventStart"
+                  v-model="newEvent.fecha_inicio"
+                  type="datetime-local"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="eventEnd">Fecha de Fin (Opcional)</label>
+                <input
+                  id="eventEnd"
+                  v-model="newEvent.fecha_fin"
+                  type="datetime-local"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="eventType">Tipo de Evento</label>
+              <select id="eventType" v-model="newEvent.tipo_evento" required>
+                <option value="">Selecciona un tipo</option>
+                <option value="meeting">Reunión</option>
+                <option value="deadline">Fecha Límite</option>
+                <option value="event">Evento</option>
+                <option value="holiday">Feriado</option>
+                <option value="exam">Examen</option>
+                <option value="presentation">Presentación</option>
+                <option value="workshop">Taller</option>
+                <option value="conference">Conferencia</option>
+              </select>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary" @click="closeCreateEventModal">
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn-primary" :disabled="loading || !isFormValid">
+                <span v-if="loading">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="loading-icon">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  Creando...
+                </span>
+                <span v-else>Crear Evento</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Manage Events Modal -->
+      <div v-if="showManageEventsModal" class="modal-overlay" @click="closeManageEventsModal">
+        <div class="modal-content modal-wide" @click.stop>
+          <div class="modal-header">
+            <h3>Gestionar Eventos</h3>
+            <div class="modal-header-actions">
+              <span class="events-count">{{ events.length }} evento{{ events.length !== 1 ? 's' : '' }}</span>
+              <button class="modal-close" @click="closeManageEventsModal">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+                  <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="editEventType">Tipo de Evento</label>
-            <select id="editEventType" v-model="editingEvent.tipo_evento" required>
-              <option value="">Seleccione un tipo</option>
-              <option value="meeting">Reunión</option>
-              <option value="deadline">Fecha Límite</option>
-              <option value="event">Evento Especial</option>
-              <option value="holiday">Feriado</option>
-              <option value="exam">Examen</option>
-              <option value="presentation">Presentación</option>
-              <option value="workshop">Taller</option>
-              <option value="conference">Conferencia</option>
-            </select>
+          <div class="events-list">
+            <div v-if="events.length === 0" class="no-events">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" class="no-events-icon">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2"/>
+                <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
+                <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
+                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
+                <line x1="12" y1="14" x2="12" y2="18" stroke="currentColor" stroke-width="2"/>
+                <line x1="10" y1="16" x2="14" y2="16" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <p>No hay eventos creados aún</p>
+              <button class="btn btn-primary" @click="showCreateEventModal = true; closeManageEventsModal()">
+                Crear mi primer evento
+              </button>
+            </div>
+
+            <div v-else class="events-table">
+              <div class="events-filter">
+                <input
+                  v-model="eventsFilter"
+                  type="text"
+                  placeholder="Buscar eventos..."
+                  class="filter-input"
+                />
+                <select v-model="eventsTypeFilter" class="filter-select">
+                  <option value="">Todos los tipos</option>
+                  <option value="meeting">Reuniones</option>
+                  <option value="deadline">Fechas Límite</option>
+                  <option value="event">Eventos Especiales</option>
+                  <option value="holiday">Feriados</option>
+                  <option value="exam">Exámenes</option>
+                  <option value="presentation">Presentaciones</option>
+                  <option value="workshop">Talleres</option>
+                  <option value="conference">Conferencias</option>
+                </select>
+              </div>
+
+              <div class="event-item" v-for="event in filteredEvents" :key="event.id">
+                <div class="event-info">
+                  <div class="event-title-row">
+                    <div class="event-type-indicator" :style="{ backgroundColor: event.color }"></div>
+                    <h4 class="event-title">{{ event.title }}</h4>
+                    <span class="event-type-badge" :class="getTypeBadgeClass(event.extendedProps?.type)">
+                      {{ getTypeLabel(event.extendedProps?.type) }}
+                    </span>
+                  </div>
+                  <p class="event-description" v-if="event.extendedProps?.description">
+                    {{ event.extendedProps.description }}
+                  </p>
+                  <div class="event-dates">
+                    <span class="event-date">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                        <polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                      {{ formatEventDate(event.start) }}
+                      <span v-if="event.end"> - {{ formatEventDate(event.end) }}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="event-actions">
+                  <button
+                    class="btn-icon btn-edit"
+                    @click="openEditEvent(event)"
+                    title="Editar evento"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/>
+                      <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </button>
+
+                  <button
+                    class="btn-icon btn-delete"
+                    @click="confirmDeleteEvent(event)"
+                    title="Eliminar evento"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
+                      <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6" stroke="currentColor" stroke-width="2"/>
+                      <line x1="10" y1="11" x2="10" y2="17" stroke="currentColor" stroke-width="2"/>
+                      <line x1="14" y1="11" x2="14" y2="17" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Event Modal -->
+      <div v-if="showEditEventModal" class="modal-overlay" @click="closeEditEventModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h3>Editar Evento</h3>
+            <button class="modal-close" @click="closeEditEventModal">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+          </div>
+
+          <form @submit.prevent="updateEvent" class="event-form">
+            <div class="form-group">
+              <label for="editEventTitle">Título del Evento</label>
+              <input
+                id="editEventTitle"
+                v-model="editingEvent.titulo"
+                type="text"
+                required
+                placeholder="Ingrese el título del evento"
+                maxlength="100"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editEventDescription">Descripción</label>
+              <textarea
+                id="editEventDescription"
+                v-model="editingEvent.descripcion"
+                placeholder="Descripción del evento (opcional)"
+                rows="3"
+                maxlength="500"
+              ></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editEventStart">Fecha de Inicio</label>
+                <input
+                  id="editEventStart"
+                  v-model="editingEvent.fecha_inicio"
+                  type="datetime-local"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="editEventEnd">Fecha de Fin (Opcional)</label>
+                <input
+                  id="editEventEnd"
+                  v-model="editingEvent.fecha_fin"
+                  type="datetime-local"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="editEventType">Tipo de Evento</label>
+              <select id="editEventType" v-model="editingEvent.tipo_evento" required>
+                <option value="">Seleccione un tipo</option>
+                <option value="meeting">Reunión</option>
+                <option value="deadline">Fecha Límite</option>
+                <option value="event">Evento Especial</option>
+                <option value="holiday">Feriado</option>
+                <option value="exam">Examen</option>
+                <option value="presentation">Presentación</option>
+                <option value="workshop">Taller</option>
+                <option value="conference">Conferencia</option>
+              </select>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary" @click="closeEditEventModal">
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn-primary" :disabled="loading || !isEditFormValid">
+                <span v-if="loading">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="loading-icon">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  Actualizando...
+                </span>
+                <span v-else>Actualizar Evento</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Event Details Modal -->
+      <div v-if="showEventDetailsModal" class="modal-overlay" @click="closeEventDetailsModal">
+        <div class="modal-content modal-small" @click.stop>
+          <div class="modal-header">
+            <h3>Detalles del Evento</h3>
+            <button class="modal-close" @click="closeEventDetailsModal">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="event-details-content" v-if="selectedEvent">
+            <div class="event-detail-header">
+              <div class="event-detail-indicator" :style="{ backgroundColor: selectedEvent.color }"></div>
+              <div>
+                <h4 class="event-detail-title">{{ selectedEvent.title }}</h4>
+                <span class="event-detail-badge" :class="getTypeBadgeClass(selectedEvent.extendedProps?.type)">
+                  {{ getTypeLabel(selectedEvent.extendedProps?.type) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="event-detail-info">
+              <div class="detail-row" v-if="selectedEvent.extendedProps?.description">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <div>
+                  <strong>Descripción:</strong>
+                  <p>{{ selectedEvent.extendedProps.description }}</p>
+                </div>
+              </div>
+
+              <div class="detail-row">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <div>
+                  <strong>Fecha de Inicio:</strong>
+                  <p>{{ formatEventDate(selectedEvent.start) }}</p>
+                </div>
+              </div>
+
+              <div class="detail-row" v-if="selectedEvent.end">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                  <polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <div>
+                  <strong>Fecha de Fin:</strong>
+                  <p>{{ formatEventDate(selectedEvent.end) }}</p>
+                </div>
+              </div>
+
+              <div class="detail-row">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <div>
+                  <strong>Duración:</strong>
+                  <p>{{ calculateEventDuration(selectedEvent) }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- ⭐ BOTONES DE ACCIÓN - VERIFICAR QUE ESTÁN CONECTADOS CORRECTAMENTE -->
+            <div class="modal-actions" v-if="isAdmin">
+              <button type="button" class="btn btn-secondary" @click="openEditEventFromDetails(selectedEvent)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/>
+                  <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Editar Evento
+              </button>
+              <button type="button" class="btn btn-danger" @click="confirmDeleteEventFromDetails(selectedEvent)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
+                  <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Eliminar Evento
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmation Delete Modal -->
+      <div v-if="showDeleteConfirmModal" class="modal-overlay" @click="closeDeleteConfirmModal">
+        <div class="modal-content modal-small" @click.stop>
+          <div class="modal-header">
+            <h3>Confirmar Eliminación</h3>
+            <button class="modal-close" @click="closeDeleteConfirmModal">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="delete-confirm-content">
+            <div class="delete-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="#EF4444" stroke-width="2"/>
+                <line x1="15" y1="9" x2="9" y2="15" stroke="#EF4444" stroke-width="2"/>
+                <line x1="9" y1="9" x2="15" y2="15" stroke="#EF4444" stroke-width="2"/>
+              </svg>
+            </div>
+            <h4>¿Estás seguro?</h4>
+            <p>
+              ¿Deseas eliminar el evento "<strong>{{ eventToDelete?.title }}</strong>"?
+              <br>Esta acción no se puede deshacer.
+            </p>
           </div>
 
           <div class="modal-actions">
-            <button type="button" class="btn btn-secondary" @click="closeEditEventModal">
+            <button type="button" class="btn btn-secondary" @click="closeDeleteConfirmModal">
               Cancelar
             </button>
-            <button type="submit" class="btn btn-primary" :disabled="loading || !isEditFormValid">
+            <button type="button" class="btn btn-danger" @click="deleteEvent" :disabled="loading">
               <span v-if="loading">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="loading-icon">
                   <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
                   <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2"/>
                 </svg>
-                Actualizando...
+                Eliminando...
               </span>
-              <span v-else>Actualizar Evento</span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Event Details Modal -->
-    <div v-if="showEventDetailsModal" class="modal-overlay" @click="closeEventDetailsModal">
-      <div class="modal-content modal-small" @click.stop>
-        <div class="modal-header">
-          <h3>Detalles del Evento</h3>
-          <button class="modal-close" @click="closeEventDetailsModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
-        </div>
-
-        <div class="event-details-content" v-if="selectedEvent">
-          <div class="event-detail-header">
-            <div class="event-detail-indicator" :style="{ backgroundColor: selectedEvent.color }"></div>
-            <div>
-              <h4 class="event-detail-title">{{ selectedEvent.title }}</h4>
-              <span class="event-detail-badge" :class="getTypeBadgeClass(selectedEvent.extendedProps?.type)">
-                {{ getTypeLabel(selectedEvent.extendedProps?.type) }}
-              </span>
-            </div>
-          </div>
-
-          <div class="event-detail-info">
-            <div class="detail-row" v-if="selectedEvent.extendedProps?.description">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" stroke-width="2"/>
-              </svg>
-              <div>
-                <strong>Descripción:</strong>
-                <p>{{ selectedEvent.extendedProps.description }}</p>
-              </div>
-            </div>
-
-            <div class="detail-row">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                <polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2"/>
-              </svg>
-              <div>
-                <strong>Fecha de Inicio:</strong>
-                <p>{{ formatEventDate(selectedEvent.start) }}</p>
-              </div>
-            </div>
-
-            <div class="detail-row" v-if="selectedEvent.end">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                <polyline points="12,6 12,12 16,14" stroke="currentColor" stroke-width="2"/>
-              </svg>
-              <div>
-                <strong>Fecha de Fin:</strong>
-                <p>{{ formatEventDate(selectedEvent.end) }}</p>
-              </div>
-            </div>
-
-            <div class="detail-row">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="currentColor" stroke-width="2"/>
-              </svg>
-              <div>
-                <strong>Duración:</strong>
-                <p>{{ calculateEventDuration(selectedEvent) }}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- ⭐ BOTONES DE ACCIÓN - VERIFICAR QUE ESTÁN CONECTADOS CORRECTAMENTE -->
-          <div class="modal-actions" v-if="isAdmin">
-            <button type="button" class="btn btn-secondary" @click="openEditEventFromDetails(selectedEvent)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2"/>
-                <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2"/>
-              </svg>
-              Editar Evento
-            </button>
-            <button type="button" class="btn btn-danger" @click="confirmDeleteEventFromDetails(selectedEvent)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <polyline points="3,6 5,6 21,6" stroke="currentColor" stroke-width="2"/>
-                <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6" stroke="currentColor" stroke-width="2"/>
-              </svg>
-              Eliminar Evento
+              <span v-else>Eliminar Evento</span>
             </button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Confirmation Delete Modal -->
-    <div v-if="showDeleteConfirmModal" class="modal-overlay" @click="closeDeleteConfirmModal">
-      <div class="modal-content modal-small" @click.stop>
-        <div class="modal-header">
-          <h3>Confirmar Eliminación</h3>
-          <button class="modal-close" @click="closeDeleteConfirmModal">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"/>
-              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"/>
-            </svg>
-          </button>
-        </div>
-
-        <div class="delete-confirm-content">
-          <div class="delete-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="#EF4444" stroke-width="2"/>
-              <line x1="15" y1="9" x2="9" y2="15" stroke="#EF4444" stroke-width="2"/>
-              <line x1="9" y1="9" x2="15" y2="15" stroke="#EF4444" stroke-width="2"/>
-            </svg>
-          </div>
-          <h4>¿Estás seguro?</h4>
-          <p>
-            ¿Deseas eliminar el evento "<strong>{{ eventToDelete?.title }}</strong>"?
-            <br>Esta acción no se puede deshacer.
-          </p>
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" @click="closeDeleteConfirmModal">
-            Cancelar
-          </button>
-          <button type="button" class="btn btn-danger" @click="deleteEvent" :disabled="loading">
-            <span v-if="loading">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="loading-icon">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2"/>
-              </svg>
-              Eliminando...
-            </span>
-            <span v-else>Eliminar Evento</span>
-          </button>
-        </div>
+      <!-- Success Toast -->
+      <div v-if="showSuccessToast" class="toast toast-success" :class="{ 'toast-show': showSuccessToast }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2"/>
+          <polyline points="22,4 12,14.01 9,11.01" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span>{{ toastMessage }}</span>
       </div>
-    </div>
 
-    <!-- Success Toast -->
-    <div v-if="showSuccessToast" class="toast toast-success" :class="{ 'toast-show': showSuccessToast }">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2"/>
-        <polyline points="22,4 12,14.01 9,11.01" stroke="currentColor" stroke-width="2"/>
-      </svg>
-      <span>{{ toastMessage }}</span>
-    </div>
+      <!-- Error Toast -->
+      <div v-if="showErrorToast" class="toast toast-error" :class="{ 'toast-show': showErrorToast }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2"/>
+          <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <span>{{ toastMessage }}</span>
+      </div>
 
-    <!-- Error Toast -->
-    <div v-if="showErrorToast" class="toast toast-error" :class="{ 'toast-show': showErrorToast }">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-        <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" stroke-width="2"/>
-        <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="2"/>
-      </svg>
-      <span>{{ toastMessage }}</span>
-    </div>
-
-    <!-- Loading Overlay -->
-    <div v-if="loading" class="loading-overlay">
-      <div class="loading-spinner">
-        <div class="spinner"></div>
-        <p>Procesando...</p>
+      <!-- Loading Overlay -->
+      <div v-if="loading" class="loading-overlay">
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <p>Procesando...</p>
+        </div>
       </div>
     </div>
   </div>
@@ -541,9 +810,8 @@ export default {
   data () {
     return {
       loading: false,
-      // Remover propiedades del carrusel que ya no se necesitan
-      // currentSlide: 0,
-      // autoSlideInterval: null,
+      currentSlide: 0,
+      autoSlideInterval: null,
       showCreateEventModal: false,
       showManageEventsModal: false,
       showEditEventModal: false,
@@ -571,8 +839,33 @@ export default {
         events_by_type: {}
       },
 
-      // Remover slides del carrusel ya que no se usa
-      // slides: [...],
+      // Slides del carrusel
+      slides: [
+        {
+          id: 1,
+          title: 'Maestría en GSI',
+          description: 'Formando expertos en ciberseguridad y gestión de información para el futuro digital.',
+          image: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=200&fit=crop'
+        },
+        {
+          id: 2,
+          title: 'Noticias Académicas',
+          description: 'Mantente actualizado con las últimas novedades y eventos del programa.',
+          image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop'
+        },
+        {
+          id: 3,
+          title: 'Eventos Especiales',
+          description: 'Participa en conferencias magistrales y actividades académicas destacadas.',
+          image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=200&fit=crop'
+        },
+        {
+          id: 4,
+          title: 'Recursos Digitales',
+          description: 'Accede a la biblioteca digital y herramientas especializadas del programa.',
+          image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=200&fit=crop'
+        }
+      ],
 
       // Nuevo evento
       newEvent: {
@@ -596,7 +889,7 @@ export default {
       // Array de eventos del backend
       events: [],
 
-      // Opciones del calendario - mejoradas para pantalla completa
+      // Opciones del calendario
       calendarOptions: {
         plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
         locale: esLocale,
@@ -613,19 +906,18 @@ export default {
           day: 'Día'
         },
         height: 'auto',
-        aspectRatio: 1.8, // ⭐ Mejorar proporción para pantalla completa
         events: [],
         eventClick: this.handleEventClick,
         dateClick: this.handleDateClick,
         eventColor: '#3B82F6',
         eventTextColor: '#FFFFFF',
-        dayMaxEvents: 4, // ⭐ Aumentar eventos visibles por día
+        dayMaxEvents: 3,
         moreLinkText: 'más eventos',
         eventDisplay: 'block',
         editable: true,
         selectable: true,
         selectMirror: true,
-        dayMaxEventRows: 4, // ⭐ Aumentar filas de eventos
+        dayMaxEventRows: 3,
         weekends: true,
         nowIndicator: true,
         businessHours: {
@@ -648,14 +940,6 @@ export default {
         .filter(event => new Date(event.start) > now)
         .sort((a, b) => new Date(a.start) - new Date(b.start))
       return futureEvents.slice(0, 5) // Mostrar solo los próximos 5
-    },
-
-    upcomingEventsCount () {
-      return this.dashboardStats.upcoming_events
-    },
-
-    todayEventsCount () {
-      return this.dashboardStats.today_events
     },
 
     filteredEvents () {
@@ -694,8 +978,7 @@ export default {
   },
 
   async mounted () {
-    // Remover métodos del carrusel
-    // this.startAutoSlide()
+    this.startAutoSlide()
     await this.loadUserInfo()
     await this.loadDashboardStats()
     await this.loadEvents()
@@ -703,15 +986,12 @@ export default {
   },
 
   beforeUnmount () {
-    // Remover cleanup del carrusel
-    // this.stopAutoSlide()
+    this.stopAutoSlide()
   },
 
   methods: {
-    // Mantener todos los métodos existentes excepto los del carrusel
-    // (copiar todos los métodos del script anterior, removiendo solo los métodos del carrusel)
-
     // ⭐ NUEVOS MÉTODOS PARA CONECTAR CON EL BACKEND
+    
     async loadUserInfo() {
       try {
         const token = localStorage.getItem('access_token')
@@ -1180,6 +1460,40 @@ export default {
         hour: '2-digit',
         minute: '2-digit'
       })
+    },
+
+    formatEventDateShort (date) {
+      if (!date) return ''
+      const d = new Date(date)
+      const now = new Date()
+      const isToday = d.toDateString() === now.toDateString()
+      const isTomorrow = d.toDateString() === new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString()
+      
+      if (isToday) {
+        return d.toLocaleTimeString('es-CO', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      } else if (isTomorrow) {
+        return 'Mañana ' + d.toLocaleTimeString('es-CO', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      } else {
+        return d.toLocaleDateString('es-CO', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      }
+    },
+
+    isToday (date) {
+      if (!date) return false
+      const d = new Date(date)
+      const today = new Date()
+      return d.toDateString() === today.toDateString()
     },
 
     getEventColor (type) {
