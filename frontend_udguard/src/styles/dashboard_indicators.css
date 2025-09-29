@@ -1463,3 +1463,52 @@
 .validation-help.success {
   color: #4caf50 !important;
 }
+
+/* ⭐ ESTILOS MÁS ESPECÍFICOS PARA ELIMINAR EL FONDO BLANCO */
+.factor-select .v-select__slot {
+  background: transparent !important;
+}
+
+.factor-select .v-input__slot {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.factor-select .v-select__selections {
+  background: transparent !important;
+}
+
+.factor-select .v-input__control {
+  background: transparent !important;
+}
+
+.factor-select .v-input__prepend-inner,
+.factor-select .v-input__append-inner {
+  background: transparent !important;
+}
+
+/* ⭐ FORZAR TRANSPARENCIA EN TODOS LOS ELEMENTOS INTERNOS */
+.factor-select input,
+.factor-select .v-select__selection--comma {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* ⭐ REMOVER CUALQUIER SOMBRA O BORDER QUE CAUSE EL FONDO BLANCO */
+.factor-select .v-input__slot::before,
+.factor-select .v-input__slot::after {
+  border: none !important;
+  background: none !important;
+}
+
+.factor-select fieldset {
+  background: transparent !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ⭐ ESTADO HOVER Y FOCUS SIN FONDO BLANCO */
+.factor-select:hover .v-input__slot,
+.factor-select.v-input--is-focused .v-input__slot {
+  background: rgba(255, 255, 255, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}

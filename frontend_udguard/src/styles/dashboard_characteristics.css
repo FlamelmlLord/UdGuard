@@ -740,8 +740,10 @@
 }
 
 .characteristic-actions {
-  align-self: flex-end;
-  margin-top: 8px;
+  display: flex !important;
+  gap: 8px !important; /* Aumentado para consistencia con factores */
+  margin-left: 16px !important;
+  align-items: center !important;
 }
 
 /* Para pantallas más grandes, mantener el layout horizontal */

@@ -1988,9 +1988,7 @@
   transition: left 0.5s;
 }
 
-.metrics-row:hover .peso-sistema::before {
-  left: 100%;
-}
+
 
 /* ⭐ CLASE ESPECÍFICA PARA PESO ALTO EN SISTEMA - CON COLOR ROJO Y FONT-WEIGHT 900 */
 .peso-sistema.peso-alto {
@@ -2248,11 +2246,12 @@
     align-items: flex-start !important;
   }
   
-  .factor-actions {
-    align-self: flex-start !important;
-    margin-top: 0 !important;
-    margin-left: 16px !important;
-  }
+.factor-actions {
+  display: flex !important;
+  gap: 8px !important; /* Aumentado de 6px a 8px para mejor separación */
+  margin-right: 12px !important;
+  align-items: center !important;
+}
 }
 
 /* ⭐ ESTILOS ESPECÍFICOS PARA LA NUEVA FILA DE PESO EN SISTEMA */

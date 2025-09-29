@@ -151,6 +151,11 @@
                   <v-icon class="mr-2" size="18">mdi-star-outline</v-icon>
                   CALIFICACIÓN
                 </th>
+                <!-- ⭐ NUEVA COLUMNA PONDERACIÓN -->
+                <th class="text-center weighting-header">
+                  <v-icon class="mr-2" size="18">mdi-weight</v-icon>
+                  PONDERACIÓN
+                </th>
                 <th class="text-center actions-header">
                   <v-icon class="mr-2" size="18">mdi-cog</v-icon>
                   ACCIONES
@@ -238,9 +243,19 @@
                     </v-text-field>
                   </div>
                 </td>
+                <!-- ⭐ NUEVA CELDA PONDERACIÓN CON VALOR MÁXIMO 9 -->
+                <td class="weighting-cell">
+                  <div class="weighting-display-wrapper">
+                    <div class="weighting-badge">
+                      <v-icon class="weighting-icon" size="16" color="deep-purple">mdi-weight</v-icon>
+                      <span class="weighting-value">{{ item.ponderacion || 0 }}</span>
+                      <span class="weighting-suffix">/9</span>
+                    </div>
+                  </div>
+                </td>
                 <td class="actions-cell">
                   <div class="indicator-actions-vertical">
-                    <!-- Botón Editar -->
+                     <!-- Botón Editar -->
                     <v-tooltip left>
                       <template v-slot:activator="{ on, attrs }">
                         <v-btn 
@@ -354,9 +369,9 @@
                   dense
                   hide-details="auto"
                   min="1"
-                  max="10"
+                  max="9"
                   step="1"
-                  suffix="/10"
+                  suffix="/9"
                   placeholder="1"
                   class="data-input"
                   :rules="ponderacionRules"
@@ -715,7 +730,7 @@ export default {
   name: 'DashboardGraphs',
   data () {
     return {
-      selectedFactor: null,
+      selectedFactor: null, // ⭐ CAMBIAR ESTO
       showEditIndicatorModal: false,
       showDeleteConfirmModal: false,
       showEditDescriptionModal: false,
@@ -749,7 +764,7 @@ export default {
       isSearching: false,
       isGeneratingChart: false,
       
-      // Paginación
+      // Paginación - ⭐ ESTAS PROPIEDADES ESTABAN FALTANDO
       currentPage: 1,
       itemsPerPage: 10,
 
@@ -757,34 +772,26 @@ export default {
       aspectos: [],
       complianceChart: null,
 
-      // ⭐ REGLAS DE VALIDACIÓN
+      // ⭐ REGLAS DE VALIDACIÓN ACTUALIZADAS
       ponderacionRules: [
         v => !!v || 'La ponderación es requerida',
-        v => (v >= 1 && v <= 10) || 'La ponderación debe estar entre 1 y 10',
+        v => (v >= 1 && v <= 9) || 'La ponderación debe estar entre 1 y 9',
         v => Number.isInteger(Number(v)) || 'La ponderación debe ser un número entero'
       ],
       
       calificacionRules: [
         v => !!v || 'La calificación es requerida',
         v => (v >= 1 && v <= 5) || 'La calificación debe estar entre 1 y 5',
-        v => (v % 0.1 === 0) || 'La calificación debe tener máximo 1 decimal'
+        v => {
+          const num = Number(v)
+          const decimals = (num.toString().split('.')[1] || '').length
+          return decimals <= 1 || 'La calificación debe tener máximo 1 decimal'
+        }
       ]
     }
   },
 
   computed: {
-    // ⭐ REMOVER ESTOS COMPUTED YA QUE NO SE USAN
-    // completedAspects () {
-    //   return this.aspectos.filter(aspect => aspect.calificacion && parseFloat(aspect.calificacion) > 0).length
-    // },
-
-    // averageRating () {
-    //   const ratings = this.aspectos.filter(aspect => aspect.calificacion && parseFloat(aspect.calificacion) > 0)
-    //   if (ratings.length === 0) return '0.0'
-    //   const sum = ratings.reduce((acc, aspect) => acc + parseFloat(aspect.calificacion), 0)
-    //   return (sum / ratings.length).toFixed(1)
-    // },
-
     calculatedPuntaje() {
       const ponderacion = this.editingIndicator.ponderacion || 0
       const calificacion = this.editingIndicator.calificacion || 0
@@ -792,7 +799,8 @@ export default {
     },
     
     calculatedMeta () {
-      return this.editingIndicator.ponderacion * 5
+      // ⭐ MÁXIMO AHORA ES 45 (9 × 5) EN LUGAR DE 50 (10 × 5)
+      return (this.editingIndicator.ponderacion || 0) * 5
     },
 
     calculatedPorcentaje() {
@@ -801,29 +809,48 @@ export default {
       return meta > 0 ? Math.round((puntaje / meta) * 100) || '00' : '00'
     },
 
+    // ⭐ COMPUTED PARA DETERMINAR NIVEL DE PONDERACIÓN
+    ponderacionLevel() {
+      const value = this.editingIndicator.ponderacion || 0
+      if (value >= 1 && value <= 3) return 'low'
+      if (value >= 4 && value <= 5) return 'medium-low'
+      if (value >= 6 && value <= 7) return 'medium-high'
+      if (value >= 8 && value <= 9) return 'high'
+      return 'low'
+    },
+
+    // ⭐ COMPUTED PARA MENSAJE DE AYUDA DINÁMICO
+    ponderacionHelpMessage() {
+      const value = this.editingIndicator.ponderacion || 0
+      const level = this.ponderacionLevel
+      
+      const messages = {
+        low: 'Ponderación baja (1-3): Indicador de importancia estándar',
+        'medium-low': 'Ponderación media-baja (4-5): Indicador de importancia moderada',
+        'medium-high': 'Ponderación media-alta (6-7): Indicador de alta importancia',
+        high: 'Ponderación alta (8-9): Indicador crítico/prioritario'
+      }
+      
+      return messages[level] || 'Seleccione una ponderación entre 1 y 9'
+    },
+    
+    // ⭐ AGREGAR COMPUTED PROPERTIES FALTANTES PARA PAGINACIÓN
     paginatedResults() {
       const start = (this.currentPage - 1) * this.itemsPerPage
       const end = start + this.itemsPerPage
       return this.searchResults.slice(start, end)
     },
-
+    
     totalPages() {
       return Math.ceil(this.searchResults.length / this.itemsPerPage)
     },
-
+    
+    // ⭐ COMPUTED PARA EL NÚMERO DE INDICADOR ACTUAL
     currentIndicatorNumber() {
-      if (this.editingIndex === -1) {
-        const existingIndicators = Object.keys(this.characteristic.indicadores || {}).length
-        return existingIndicators + 1
-      } else {
-        return this.editingIndex + 1
-      }
-    },
-
-    isFormValid() {
-      return this.editingIndicator.nombre.trim() && 
-             this.editingIndicator.ponderacion > 0
-    },
+      return this.editingIndex === -1 
+        ? Object.keys(this.characteristic.indicadores || {}).length + 1 
+        : this.editingIndex + 1
+    }
   },
 
   beforeDestroy () {
@@ -836,7 +863,11 @@ export default {
     this.characteristicsId = this.$route.params.caracteristicaId
     await this.fetchCaracteristica()
     
-    // ⭐ FORZAR RE-RENDER DESPUÉS DE CARGAR DATOS
+    // ⭐ ESTABLECER EL VALOR INICIAL DEL SELECTOR
+    if (this.characteristic && this.characteristic.id) {
+      this.selectedFactor = this.characteristic.id
+    }
+    
     this.$nextTick(() => {
       // Forzar actualización de estilos
       const header = document.querySelector('.dashboard-header')
@@ -955,6 +986,9 @@ export default {
         console.log('API response received Characteristics:', response.data)
         this.characteristic = response.data
 
+        // ⭐ ESTABLECER EL VALOR DEL SELECTOR DESPUÉS DE CARGAR
+        this.selectedFactor = response.data.id
+
         await this.characteristicsByFactor(response.data.factors)
 
         // Esperar a que Vue termine de actualizar el DOM
@@ -1012,9 +1046,59 @@ export default {
       }
     },
 
+    // ⭐ MÉTODO MEJORADO PARA VALIDAR LÍMITES DE PONDERACIÓN
+    validatePonderacion() {
+      if (this.editingIndicator.ponderacion !== null && this.editingIndicator.ponderacion !== undefined) {
+        const value = parseInt(this.editingIndicator.ponderacion)
+        
+        if (isNaN(value)) {
+          this.editingIndicator.ponderacion = 1
+          return
+        }
+        
+        if (value < 1) {
+          this.editingIndicator.ponderacion = 1
+          this.showPonderacionFeedback('Valor mínimo: 1', 'invalid')
+        } else if (value > 9) {
+          this.editingIndicator.ponderacion = 9
+          this.showPonderacionFeedback('Valor máximo: 9', 'invalid')
+        } else {
+          this.editingIndicator.ponderacion = value
+          this.showPonderacionFeedback(`Ponderación válida: ${value}/9`, 'valid')
+        }
+      }
+    },
+
+    enforcePonderacionLimits() {
+      if (this.editingIndicator.ponderacion !== null && this.editingIndicator.ponderacion !== undefined) {
+        const value = parseInt(this.editingIndicator.ponderacion)
+        
+        if (isNaN(value) || value < 1) {
+          this.editingIndicator.ponderacion = 1
+        } else if (value > 9) {
+          this.editingIndicator.ponderacion = 9
+        } else {
+          this.editingIndicator.ponderacion = value
+        }
+        
+        // Calcular automáticamente la meta actualizada
+        this.calculateResults()
+      }
+    },
+
+    // ⭐ MÉTODO PARA MOSTRAR FEEDBACK VISUAL
+    showPonderacionFeedback(message, type) {
+      // Este método podría implementarse para mostrar feedback en tiempo real
+      console.log(`Ponderación ${type}: ${message}`)
+    },
+
+    // ⭐ MÉTODO ACTUALIZADO PARA CALCULAR META CON MÁXIMO 9
     calculateResults() {
-      // Este método se llama automáticamente cuando cambia la calificación
-      // Los computed properties se actualizan automáticamente
+      if (this.editingIndicator.ponderacion) {
+        // Meta = ponderación × 5 (máximo 45 en lugar de 50)
+        const meta = this.editingIndicator.ponderacion * 5
+        this.editingIndicator.meta = meta
+      }
     },
 
     async saveIndicatorChanges() {
@@ -1403,10 +1487,11 @@ export default {
       this.showSearchModal = false
       this.searchQuery = ''
       this.searchResults = []
-      this.selectedQuestion = null
+      this.selectedQuestion = null // ⭐ Limpiar selección al cerrar
       this.currentPage = 1
     },
 
+    // ⭐ MÉTODO MEJORADO PARA BÚSQUEDA CON MEJOR MANEJO DE RESPUESTA
     async performSearch() {
       if (!this.searchQuery || this.searchQuery.trim().length < 3) {
         this.searchResults = []
@@ -1416,14 +1501,11 @@ export default {
       this.isSearching = true
       this.searchResults = []
 
-      // ⭐ AGREGAR LOGS DE DEBUG
       console.log('=== INICIANDO BÚSQUEDA DE PREGUNTAS ===')
       console.log('Query:', this.searchQuery.trim())
-      console.log('Longitud del query:', this.searchQuery.trim().length)
 
       try {
         const token = localStorage.getItem('access_token')
-        console.log('Token disponible:', token ? 'Sí' : 'No')
         
         const allSurveyTypes = ['administrativos', 'directivos', 'docentes', 'egresados', 'empleadores', 'estudiantes']
         
@@ -1433,8 +1515,6 @@ export default {
         }
         
         console.log('Datos de la petición:', requestData)
-        console.log('URL de la petición:', '/surveys/search/')
-        console.log('URL completa estimada:', `${axios.defaults.baseURL}/surveys/search/`)
 
         const response = await axios.post('/surveys/search/', requestData, {
           headers: {
@@ -1444,18 +1524,27 @@ export default {
         })
 
         console.log('Respuesta exitosa:', response.data)
-        this.searchResults = response.data.results || []
+        
+        // ⭐ VERIFICAR Y PROCESAR LA RESPUESTA
+        if (response.data && response.data.results) {
+          this.searchResults = response.data.results.map(result => ({
+            ...result,
+            // ⭐ ASEGURAR QUE ACTOR_LABELS EXISTE
+            actor_labels: result.actor_labels || Object.keys(result.actors || {}).map(key => this.getSurveyTypeLabel(key)),
+            // ⭐ ASEGURAR QUE ACTOR_COUNT EXISTE
+            actor_count: result.actor_count || Object.keys(result.actors || {}).length,
+            // ⭐ ASEGURAR QUE TOTAL_RESPONSES EXISTE
+            total_responses: result.total_responses || Object.values(result.actors || {}).reduce((sum, actor) => sum + (actor.total_responses || 0), 0)
+          }))
+        } else {
+          this.searchResults = []
+        }
+        
+        console.log('Resultados procesados:', this.searchResults)
         this.currentPage = 1
 
       } catch (error) {
         console.error('=== ERROR EN BÚSQUEDA ===')
-        console.error('Tipo de error:', error.constructor.name)
-        console.error('Status del error:', error.response?.status)
-        console.error('URL solicitada:', error.config?.url)
-        console.error('Método:', error.config?.method)
-        console.error('Headers enviados:', error.config?.headers)
-        console.error('Datos enviados:', error.config?.data)
-        console.error('Respuesta del servidor:', error.response?.data)
         console.error('Error completo:', error)
 
         let errorMessage = 'Error al buscar preguntas. Intente nuevamente.'
@@ -1474,17 +1563,45 @@ export default {
           icon: 'error',
           confirmButtonText: 'Continuar'
         })
+        
+        this.searchResults = []
       } finally {
         this.isSearching = false
         console.log('=== FIN DE BÚSQUEDA ===')
+        console.log('Total de resultados:', this.searchResults.length)
       }
     },
 
-    selectQuestion(question) {
-      this.selectedQuestion = question
+    // ⭐ MÉTODO MEJORADO PARA OBTENER ETIQUETAS DE ACTORES
+    getSurveyTypeLabel(type) {
+      const labels = {
+        administrativos: 'Administrativos',
+        directivos: 'Directivos', 
+        docentes: 'Docentes',
+        egresados: 'Egresados',
+        empleadores: 'Empleadores',
+        estudiantes: 'Estudiantes'
+      }
+      return labels[type] || type.charAt(0).toUpperCase() + type.slice(1)
     },
 
+    // ⭐ MÉTODO MEJORADO PARA OBTENER COLORES DE ACTORES
+    getSurveyTypeColor(type) {
+      const colors = {
+        administrativos: 'purple',
+        directivos: 'indigo',
+        docentes: 'blue', 
+        egresados: 'green',
+        empleadores: 'orange',
+        estudiantes: 'red'
+      }
+      return colors[type] || 'grey'
+    },
+
+    // ⭐ MÉTODO MEJORADO PARA VISTA PREVIA
     previewQuestion(question) {
+      console.log('Vista previa de pregunta:', question)
+      
       // ⭐ CREAR VISTA PREVIA PARA MÚLTIPLES ACTORES CON TOTALES
       let actorDetailsHtml = ''
       
@@ -1493,7 +1610,8 @@ export default {
         
         for (const [actorKey, actorData] of Object.entries(question.actors)) {
           const actorLabel = this.getSurveyTypeLabel(actorKey)
-          const totalResponses = actorData.total_responses
+          const totalResponses = actorData.total_responses || 0
+          const responses = actorData.responses || {}
           
           actorDetailsHtml += `
             <div style="margin: 10px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #2196F3;">
@@ -1505,19 +1623,19 @@ export default {
               </h5>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 13px;">
                 <span style="padding: 4px 0; border-bottom: 1px solid #e0e0e0;">
-                  • <strong style="color: #66BB6A;">Totalmente de acuerdo:</strong> ${actorData.responses['5. Totalmente de acuerdo'] || 0}
+                  • <strong style="color: #66BB6A;">Totalmente de acuerdo:</strong> ${responses['5. Totalmente de acuerdo'] || 0}
                 </span>
                 <span style="padding: 4px 0; border-bottom: 1px solid #e0e0e0;">
-                  • <strong style="color: #42A5F5;">De acuerdo:</strong> ${actorData.responses['4. De acuerdo'] || 0}
+                  • <strong style="color: #42A5F5;">De acuerdo:</strong> ${responses['4. De acuerdo'] || 0}
                 </span>
                 <span style="padding: 4px 0; border-bottom: 1px solid #e0e0e0;">
-                  • <strong style="color: #AB47BC;">En desacuerdo:</strong> ${actorData.responses['3. En desacuerdo'] || 0}
+                  • <strong style="color: #AB47BC;">En desacuerdo:</strong> ${responses['3. En desacuerdo'] || 0}
                 </span>
                 <span style="padding: 4px 0; border-bottom: 1px solid #e0e0e0;">
-                  • <strong style="color: #EF5350;">Totalmente en desacuerdo:</strong> ${actorData.responses['2. Totalmente en desacuerdo'] || 0}
+                  • <strong style="color: #EF5350;">Totalmente en desacuerdo:</strong> ${responses['2. Totalmente en desacuerdo'] || 0}
                 </span>
                 <span style="padding: 4px 0; border-bottom: 1px solid #e0e0e0;">
-                  • <strong style="color: #FFA726;">No tengo información:</strong> ${actorData.responses['1. No tengo información o conocimiento'] || 0}
+                  • <strong style="color: #FFA726;">No tengo información:</strong> ${responses['1. No tengo información o conocimiento'] || 0}
                 </span>
               </div>
             </div>
@@ -1526,24 +1644,24 @@ export default {
         actorDetailsHtml += '</div>'
       }
 
-      // ⭐ USAR CONFIGURACIÓN CORRECTA PARA PERMITIR CERRAR EL MODAL
+      // ⭐ MOSTRAR MODAL DE VISTA PREVIA
       this.$swal({
         title: 'Vista Previa de Pregunta',
         html: `
           <div style="text-align: left; padding: 10px;">
             <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
               <p style="margin: 0;"><strong>📋 Pregunta:</strong></p>
-              <p style="margin: 8px 0 0 0; font-style: italic; color: #1976d2;">${question.question}</p>
+              <p style="margin: 8px 0 0 0; font-style: italic; color: #1976d2;">${question.question || 'Pregunta no disponible'}</p>
             </div>
             
             <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
               <div style="background: #f1f8e9; padding: 10px; border-radius: 6px; flex: 1; margin-right: 10px;">
                 <strong style="color: #558b2f;">👥 Actores incluidos:</strong><br>
-                <span style="font-size: 14px;">${question.actor_labels.join(', ')}</span>
+                <span style="font-size: 14px;">${(question.actor_labels || []).join(', ')}</span>
               </div>
               <div style="background: #fff3e0; padding: 10px; border-radius: 6px; flex: 0 0 auto;">
                 <strong style="color: #f57c00;">📊 Total respuestas:</strong><br>
-                <span style="font-size: 18px; font-weight: bold; color: #e65100;">${question.total_responses}</span>
+                <span style="font-size: 18px; font-weight: bold; color: #e65100;">${question.total_responses || 0}</span>
               </div>
             </div>
             
@@ -1554,56 +1672,17 @@ export default {
         icon: 'info',
         confirmButtonText: 'Cerrar',
         confirmButtonColor: '#3085d6',
-        // ⭐ PERMITIR CERRAR CON ESCAPE Y CLIC AFUERA
         allowEscapeKey: true,
         allowOutsideClick: true,
-        // ⭐ CONFIGURACIÓN ADICIONAL PARA GARANTIZAR QUE FUNCIONE
-        focusConfirm: true,
-        reverseButtons: false,
         width: '800px',
-        padding: '0',
         customClass: {
-          popup: 'question-preview-modal',
-          title: 'question-preview-title',
-          htmlContainer: 'question-preview-content',
-          confirmButton: 'question-preview-confirm-btn'
-        },
-        // ⭐ CALLBACK PARA MANEJAR EL CIERRE
-        willClose: () => {
-          console.log('Modal de vista previa cerrándose')
+          popup: 'question-preview-modal'
         }
       }).then((result) => {
-        // ⭐ MANEJAR EL RESULTADO DEL MODAL
-        if (result.isConfirmed || result.isDismissed) {
-          console.log('Modal de vista previa cerrado correctamente')
-        }
+        console.log('Modal de vista previa cerrado')
       }).catch((error) => {
         console.error('Error en modal de vista previa:', error)
       })
-    },
-
-    getSurveyTypeLabel(type) {
-      const labels = {
-        administrativos: 'Administrativos',
-        directivos: 'Directivos',
-        docentes: 'Docentes',
-        egresados: 'Egresados',
-        empleadores: 'Empleadores',
-        estudiantes: 'Estudiantes'
-      }
-      return labels[type] || type
-    },
-
-    getSurveyTypeColor(type) {
-      const colors = {
-        administrativos: 'purple',
-        directivos: 'indigo',
-        docentes: 'blue',
-        egresados: 'green',
-        empleadores: 'orange',
-        estudiantes: 'red'
-      }
-      return colors[type] || 'grey'
     },
 
     // ⭐ MÉTODO PARA GENERAR GRÁFICA Y ACTUALIZAR EVIDENCIA
@@ -1799,6 +1878,136 @@ export default {
           position: 'top-end'
         })
       }
+    },
+
+    // ⭐ MÉTODO PARA VALIDAR INPUTS EN LA TABLA
+    validateTableInput(event) {
+      const input = event.target
+      let value = parseFloat(input.value)
+      
+      if (isNaN(value)) {
+        input.value = '1.0'
+        return
+      }
+      
+      // ⭐ AJUSTAR AL RANGO MÁS CERCANO
+      if (value < 1) {
+        input.value = '1.0'
+        this.showTableInputFeedback(input, 'Valor ajustado al mínimo: 1.0')
+      } else if (value > 5) {
+        input.value = '5.0'
+        this.showTableInputFeedback(input, 'Valor ajustado al máximo: 5.0')
+      } else {
+        // Redondear a 1 decimal
+        value = Math.round(value * 10) / 10
+        input.value = value
+      }
+    },
+
+    // ⭐ MÉTODO PARA MOSTRAR FEEDBACK EN INPUTS DE TABLA
+    showTableInputFeedback(input, message) {
+      // Feedback visual en el input
+      input.style.borderColor = '#f44336'
+      input.style.backgroundColor = '#ffebee'
+      input.style.animation = 'inputShake 0.5s ease-in-out'
+      
+      // Toast de advertencia
+      this.$swal({
+        title: 'Valor ajustado',
+        text: message,
+        icon: 'warning',
+        timer: 2000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+        customClass: {
+          popup: 'table-feedback-toast'
+        }
+      })
+      
+      // Restaurar estilos
+      setTimeout(() => {
+        input.style.borderColor = ''
+        input.style.backgroundColor = ''
+        input.style.animation = ''
+      }, 2000)
+    },
+
+    // ⭐ MÉTODO PARA VALIDAR LÍMITES DE CALIFICACIÓN (NUEVO)
+    validateCalificacion() {
+      if (this.editingIndicator.calificacion !== null && this.editingIndicator.calificacion !== undefined) {
+        const value = parseFloat(this.editingIndicator.calificacion)
+        
+        if (isNaN(value)) {
+          this.editingIndicator.calificacion = 1.0
+          return
+        }
+        
+        if (value < 1) {
+          this.editingIndicator.calificacion = 1.0
+          this.showCalificacionFeedback('Valor mínimo: 1.0', 'invalid')
+        } else if (value > 5) {
+          this.editingIndicator.calificacion = 5.0
+          this.showCalificacionFeedback('Valor máximo: 5.0', 'invalid')
+        } else {
+          // Redondear a 1 decimal
+          const roundedValue = Math.round(value * 10) / 10
+          this.editingIndicator.calificacion = roundedValue
+          this.showCalificacionFeedback(`Calificación válida: ${roundedValue}/5.0`, 'valid')
+        }
+      }
+    },
+
+    // ⭐ MÉTODO PARA FORZAR LÍMITES DE CALIFICACIÓN (NUEVO)
+    enforceCalificacionLimits() {
+      if (this.editingIndicator.calificacion !== null && this.editingIndicator.calificacion !== undefined) {
+        const value = parseFloat(this.editingIndicator.calificacion)
+        
+        if (isNaN(value) || value < 1) {
+          this.editingIndicator.calificacion = 1.0
+        } else if (value > 5) {
+          this.editingIndicator.calificacion = 5.0
+        } else {
+          // Redondear a 1 decimal para asegurar precisión
+          this.editingIndicator.calificacion = Math.round(value * 10) / 10
+        }
+        
+        // Recalcular resultados automáticamente
+        this.calculateResults()
+      }
+    },
+
+    // ⭐ MÉTODO PARA MOSTRAR FEEDBACK DE CALIFICACIÓN (NUEVO)
+    showCalificacionFeedback(message, type) {
+      // Este método podría implementarse para mostrar feedback en tiempo real
+      console.log(`Calificación ${type}: ${message}`)
+    },
+
+    // ⭐ MÉTODO FALTANTE PARA SELECCIONAR PREGUNTA
+    selectQuestion(question) {
+      console.log('Seleccionando pregunta:', question)
+      
+      // Marcar la pregunta como seleccionada
+      this.selectedQuestion = question
+
+      // Opcional: mostrar feedback visual
+      this.$swal({
+        title: 'Pregunta Seleccionada',
+        text: `"${question.question.substring(0, 100)}${question.question.length > 100 ? '...' : ''}"`,
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
+      })
+      
+      console.log('Pregunta seleccionada:', this.selectedQuestion)
+    },
+
+    // ⭐ MÉTODO PARA DESELECCIONAR PREGUNTA (OPCIONAL)
+    deselectQuestion() {
+      this.selectedQuestion = null
+      console.log('Pregunta deseleccionada')
     },
   }
 }

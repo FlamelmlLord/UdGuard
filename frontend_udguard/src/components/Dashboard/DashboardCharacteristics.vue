@@ -7,21 +7,16 @@
         </div>
 
         <div class="characteristics-container">
-        <!-- Estado de carga -->
-        <div v-if="loading" class="loading-state">
-          <div class="loading-spinner"></div>
-          <span style="margin-left: 16px;">Cargando características...</span>
-        </div>
+          <!-- Estado de carga -->
+          <div v-if="loading" class="loading-state">
+            <div class="loading-spinner"></div>
+            <span style="margin-left: 16px;">Cargando características...</span>
+          </div>
 
-        <!-- Estado vacío -->
-        <div v-else-if="characteristics.length === 0" class="empty-state">
-          <h3>No hay características disponibles</h3>
-          <p>Comienza agregando la primera característica para este factor.</p>
-        </div>
-
-        <!-- Lista de características con scroll -->
-        <div v-else class="characteristics-grid">
-            <div class="characteristics-list">
+          <!-- ⭐ CONTENIDO PRINCIPAL - SIEMPRE MOSTRAR EL BOTÓN -->
+          <div v-else class="characteristics-grid">
+            <!-- ⭐ MOSTRAR LISTA SOLO SI HAY CARACTERÍSTICAS -->
+            <div v-if="characteristics.length > 0" class="characteristics-list">
               <div
                 v-for="characteristic in characteristics"
                 :key="characteristic.id"
@@ -144,7 +139,25 @@
               </div>
             </div>
 
-            <!-- Botón agregar nueva característica - Fijo en la parte inferior -->
+            <!-- ⭐ ESTADO VACÍO CUANDO NO HAY CARACTERÍSTICAS (SIN OCULTAR EL BOTÓN) -->
+            <div v-else class="empty-state">
+              <div class="empty-state-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14,2 14,8 20,8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <polyline points="10,9 9,9 8,9"/>
+                </svg>
+              </div>
+              <h3 class="empty-state-title">No hay características disponibles</h3>
+              <p class="empty-state-message">
+                Este factor aún no tiene características definidas. 
+                Comienza agregando la primera característica para empezar a gestionar los indicadores de calidad.
+              </p>
+            </div>
+
+            <!-- ⭐ BOTÓN AGREGAR - SIEMPRE VISIBLE (FUERA DE LAS CONDICIONES) -->
             <button class="add-characteristic-btn" @click="mostrarModal = true">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"/>
