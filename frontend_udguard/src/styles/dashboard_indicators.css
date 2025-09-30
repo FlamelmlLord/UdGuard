@@ -1512,3 +1512,47 @@
   background: rgba(255, 255, 255, 0.1) !important;
   background-color: rgba(255, 255, 255, 0.1) !important;
 }
+/* Fix para conflictos SweetAlert2 con Vuetify */
+.swal2-vuetify-fix {
+  z-index: 9999 !important;
+}
+
+.swal2-container.swal2-backdrop-show {
+  z-index: 9998 !important;
+}
+
+/* Prevenir conflictos de scroll */
+body.swal2-shown:not(.swal2-no-backdrop):not(.swal2-toast-shown) {
+  overflow-y: auto !important;
+  padding-right: 0 !important;
+}
+
+/* Mejorar la apariencia del modal de vista previa */
+.question-preview-modal {
+  font-family: 'Roboto', sans-serif;
+}
+
+.question-preview-modal .swal2-html-container {
+  max-height: 500px !important;
+  overflow-y: auto !important;
+  padding: 20px;
+}
+
+/* Scrollbar personalizado para el contenido del modal */
+.question-preview-modal .swal2-html-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.question-preview-modal .swal2-html-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.question-preview-modal .swal2-html-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.question-preview-modal .swal2-html-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
