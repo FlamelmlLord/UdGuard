@@ -37,10 +37,10 @@ class FactorsCreateListViewSet(APIView):
 class FactorsListCreateCharacteristicsViewSet(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, factors_id):
+    def get(self, __, factors_id):
         characteristics = Characteristics.objects.filter(factors=factors_id)
-        serializer = CharacteristicsSerializer(characteristics, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        data = [characteristic_status(c) for c in characteristics]
+        return Response(data, status=status.HTTP_200_OK)
 
     def post(self, request, factors_id):
         tipo = request.user.tipo_user
@@ -180,3 +180,28 @@ def get_grado_cumplimiento(porcentaje):
         return "Se cumple aceptablemente"
     if porcentaje > 80:
         return "Se cumple en alto grado"
+
+
+def characteristic_status(caracteristica):
+    indicators = Indicator.objects.filter(caracteristica=caracteristica)
+
+    if indicators.exists():
+        print(indicators)
+        calificaciones = [
+            i.calificacion for i in indicators if i.calificacion is not None
+        ]
+        promedio = sum(calificaciones) / len(calificaciones) if calificaciones else 0
+    else:
+        promedio = 0
+
+    caracteristica_data = CharacteristicsSerializer(caracteristica).data
+
+    caracteristica_data["cumplimiento"] = round(promedio, 1)
+    caracteristica_data["porcentaje"] = (
+        round(((promedio - 1) / 4) * 100, 1) if promedio else 0
+    )
+    caracteristica_data["grado_cumplimiento"] = get_grado_cumplimiento(
+        caracteristica_data["porcentaje"]
+    )
+
+    return caracteristica_data
