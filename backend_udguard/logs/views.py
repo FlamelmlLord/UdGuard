@@ -14,21 +14,22 @@ import uuid
 
 
 def log_action(instance, action, user=None, extra_info=""):
-    """
-    Función actualizada para crear logs más descriptivos
-    
-    Args:
-        instance: El objeto que se está modificando
-        action: La acción realizada (create, update, delete)
-        user: El usuario que realiza la acción
-        extra_info: Información adicional opcional
-    """
     model_name = instance.__class__.__name__.lower()
     
-    # ⭐ OBTENER EL NOMBRE/TÍTULO DEL OBJETO SEGÚN EL MODELO
+    # Obtener el nombre/título del objeto
     object_name = ""
     if hasattr(instance, 'nombre'):
-        object_name = instance.nombre
+        # Para indicadores, truncar y agregar el número
+        if model_name == 'indicator':
+            # Obtener las primeras 4-5 palabras
+            words = instance.nombre.split()[:5]
+            truncated_name = ' '.join(words)
+            if len(words) < len(instance.nombre.split()):
+                truncated_name += '...'
+            # Agregar el número del indicador
+            object_name = f"{truncated_name} (I{instance.id})"
+        else:
+            object_name = instance.nombre
     elif hasattr(instance, 'titulo'):
         object_name = instance.titulo
     elif hasattr(instance, 'username'):
@@ -38,7 +39,11 @@ def log_action(instance, action, user=None, extra_info=""):
     else:
         object_name = str(instance)
     
-    # ⭐ CREAR MENSAJE DESCRIPTIVO SEGÚN LA ACCIÓN
+    # Para indicadores, agregar la característica padre
+    if model_name == 'indicator' and hasattr(instance, 'caracteristica'):
+        extra_info = f"de característica 'C{instance.caracteristica.id}. {instance.caracteristica.nombre}'"
+    
+    # Crear mensaje descriptivo
     if action.lower() == "create":
         accion_text = f"CREAR {model_name.upper()}: '{object_name}'"
     elif action.lower() == "update":
@@ -55,7 +60,7 @@ def log_action(instance, action, user=None, extra_info=""):
         if object_name and model_name != "customuser":
             accion_text += f": '{object_name}'"
     
-    # ⭐ AGREGAR INFORMACIÓN EXTRA SI SE PROPORCIONA
+    # Agregar información extra
     if extra_info:
         accion_text += f" - {extra_info}"
 

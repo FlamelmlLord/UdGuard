@@ -4,8 +4,8 @@
         <!-- Left Section Component -->
         <auth-left-section
           :logo-src="require('@/assets/logo_UD.png')"
-          title="Maestría en Gestión y"
-          subtitle="Seguridad de la Información"
+          title="Maestría en Gestión y <br> Seguridad de la Información"
+          subtitle="<br> UdGuard"
         />
 
         <!-- Right Section -->

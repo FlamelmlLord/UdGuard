@@ -1,13 +1,14 @@
 <template>
-    <v-col cols="12" md="6" class="auth-left-section">
-      <div class="logo-container">
-        <img :src="logoSrc" :alt="logoAlt" class="auth-logo">
-        <h2 class="auth-heading">
-          {{ title }}<br/>{{ subtitle }}
-        </h2>
-      </div>
-    </v-col>
-  </template>
+  <v-col cols="12" md="6" class="auth-left-section">
+    <div class="logo-container">
+      <img :src="logoSrc" :alt="logoAlt" class="auth-logo">
+      <h2 class="auth-heading">
+        <span v-html="title"></span>
+        <span v-html="subtitle"></span>
+      </h2>
+    </div>
+  </v-col>
+</template>
 
 <script>
 export default {

@@ -86,7 +86,7 @@
           </div>
 
           <!-- Tabla de logs -->
-          <div v-else class="logs-table-wrapper">
+          <div v-else class="logs-table-wrapper" style="width: 100%;">
             <div class="table-controls">
               <div class="table-info">
                 <span class="table-results">
@@ -563,11 +563,11 @@ export default {
         // ⭐ OPERACIONES ESPECÍFICAS POR ENTIDAD
         FACTOR: '🎯',
         FACTORS: '🎯',
-        CHARACTERISTICS: '📌',
+        CARACTERÍSTICAS: '📌',
         CARACTERÍSTICA: '📌',
-        INDICATOR: '📈',
         INDICADOR: '📈',
-        EVENTS: '📅',
+        INDICADORES: '📈',
+        EVENTOS: '📅',
         EVENTO: '📅',
         CUSTOMUSER: '👤',
         USUARIO: '👤',
